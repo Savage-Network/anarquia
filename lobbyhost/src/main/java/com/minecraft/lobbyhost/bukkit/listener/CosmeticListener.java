@@ -4,6 +4,7 @@ import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape;
 import com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget;
+import com.minecraft.lobbyhost.bukkit.lobby.HotbarKeys;
 import com.minecraft.lobbyhost.bukkit.manager.CosmeticManager;
 import com.minecraft.lobbyhost.bukkit.skin.SkinService;
 import org.bukkit.Bukkit;
@@ -92,13 +93,18 @@ public final class CosmeticListener implements Listener {
         }, 5L);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onInteract(PlayerInteractEvent event) {
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() == org.bukkit.inventory.EquipmentSlot.OFF_HAND) return;
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
+        if (item == null || item.getType().isAir()) {
+            item = player.getInventory().getItemInMainHand();
+        }
+        if (HotbarKeys.readSlot(item) != null) return;
         if (item == null) return;
 
         Account account = Core.getAccountController().of(player.getUniqueId());
@@ -138,16 +144,18 @@ public final class CosmeticListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
-        Player player = event.getPlayer();
-        
-        // Impede dropar o gadget
-        if (player.getInventory().getHeldItemSlot() == 2) {
-            Account account = Core.getAccountController().of(player.getUniqueId());
-            if (account != null && account.getActiveGadget() != null) {
-                event.setCancelled(true);
-            }
+        if (event.getPlayer().hasPermission("lobbyhost.staff")) return;
+        ItemStack dropped = event.getItemDrop().getItemStack();
+        if (HotbarKeys.readSlot(dropped) != null) {
+            event.setCancelled(true);
+            return;
+        }
+        Account account = Core.getAccountController().of(event.getPlayer().getUniqueId());
+        if (account != null && account.getActiveGadget() != null
+                && event.getPlayer().getInventory().getHeldItemSlot() == 2) {
+            event.setCancelled(true);
         }
     }
 }

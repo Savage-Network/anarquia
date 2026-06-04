@@ -59,6 +59,11 @@ public final class ReplyCommand implements SimpleCommand {
             return;
         }
 
+        if (!targetAcc.getToggle().isAllowPrivateMessages()) {
+            sender.sendMessage(legacy("&cEsse jogador nao aceita mensagens privadas."));
+            return;
+        }
+
         if (!senderAcc.isVIP() && senderAcc.hasCooldown(Constant.TELL_COOLDOWN_KEY)) {
             long left = senderAcc.getCooldownRemaining(Constant.TELL_COOLDOWN_KEY) / 1000L;
             sender.sendMessage(legacy("&cAguarde &f" + Math.max(1, left) + "s &cantes de enviar outra mensagem."));
@@ -71,6 +76,11 @@ public final class ReplyCommand implements SimpleCommand {
 
         target.sendMessage(toTarget);
         sender.sendMessage(toSender);
+
+        senderAcc.getContext().setLastMessage(otherId);
+        targetAcc.getContext().setLastMessage(sender.getUniqueId());
+        senderAcc.markDirty();
+        targetAcc.markDirty();
 
         registerLastConversation(sender.getUniqueId(), otherId);
         registerLastConversation(otherId, sender.getUniqueId());

@@ -42,13 +42,19 @@ public final class Constant {
     public static final String REDIS_ACCOUNT_RANK_UPDATE_CHANNEL = "account-rank-update-channel";
     public static final String REDIS_ACCOUNT_PUNISHMENTS_CHANNEL = "account-punishments-channel";
     public static final String REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL = "account-global-message-channel";
+    public static final String REDIS_NETWORK_ALERT_CHANNEL = "network-alert-channel";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,
             REDIS_ACCOUNT_RANK_UPDATE_CHANNEL,
             REDIS_ACCOUNT_PUNISHMENTS_CHANNEL,
-            REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL
+            REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL,
+            REDIS_NETWORK_ALERT_CHANNEL
     };
+
+    public static final String SERVER_ADDRESS = "savagemc.net";
+    public static final String SERVER_STORE_URL = "loja.savagemc.net";
+    public static final String SERVER_STORE = "§6" + SERVER_STORE_URL;
 
     /* ----- Banco ----- */
     public static final String DATABASE_NAME = SERVER_NAME.toLowerCase();

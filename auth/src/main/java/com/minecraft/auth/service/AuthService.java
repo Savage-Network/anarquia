@@ -1,40 +1,32 @@
 package com.minecraft.auth.service;
 
+import com.minecraft.auth.Core;
 import com.minecraft.auth.account.Account;
 import com.minecraft.auth.account.context.objects.auth.AuthMetadata;
 import com.minecraft.auth.account.context.objects.auth.AuthState;
+import com.minecraft.auth.backend.data.AuthData;
+import com.minecraft.auth.backend.model.PlayerAuth;
+import com.minecraft.auth.util.AuthAccountSanitizer;
 import lombok.Getter;
 
 import java.security.MessageDigest;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Logica de autenticacao espelhada de {@code auth/.../Auth.java} do Savage.
- *
- * <p>Estados:
- * <ul>
- *   <li>{@link AuthState#REGISTER} - nunca cadastrou senha</li>
- *   <li>{@link AuthState#LOGIN} - cadastrado, precisa logar</li>
- *   <li>{@link AuthState#OK} - autenticado nesta sessao</li>
- * </ul>
+ * Autenticacao com credenciais em {@code player_auth} (nao no JSON de {@code accounts}).
  */
 public final class AuthService {
 
     @Getter
     private static final AuthService instance = new AuthService();
 
-    /** Tentativas restantes de login por jogador. */
     private final Map<UUID, Integer> attempts = new ConcurrentHashMap<>();
-
-    /** Jogadores autenticados nesta sessao. */
     private final Map<UUID, Long> authenticated = new ConcurrentHashMap<>();
+    private final Map<UUID, PlayerAuth> authByPlayer = new ConcurrentHashMap<>();
 
-    private final Map<UUID, String> pendingRegister = new HashMap<>();
-
-    /* -------- hashing SHA-256 (simples, igual Savage) -------- */
     public String hash(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -47,25 +39,37 @@ public final class AuthService {
         }
     }
 
-    /* -------- API -------- */
+    public void bind(UUID playerId, PlayerAuth auth) {
+        if (auth == null) {
+            authByPlayer.put(playerId, PlayerAuth.empty(playerId));
+        } else {
+            authByPlayer.put(playerId, auth);
+        }
+    }
+
+    public PlayerAuth getAuth(UUID playerId) {
+        return authByPlayer.computeIfAbsent(playerId, id -> {
+            AuthData data = Core.getAuthData();
+            if (data == null) return PlayerAuth.empty(id);
+            return data.load(id).orElseGet(() -> PlayerAuth.empty(id));
+        });
+    }
 
     public boolean isAuthenticated(UUID id) {
         return authenticated.containsKey(id);
     }
 
     public boolean isRegistered(Account account) {
-        AuthMetadata meta = account.getContext().getAuth();
-        return meta.getState() == AuthState.LOGIN || meta.getState() == AuthState.OK
-                || (meta.getPassword() != null && !meta.getPassword().isEmpty());
+        return getAuth(account.getId()).isRegistered();
     }
 
     public LoginResult login(Account account, String password) {
-        AuthMetadata meta = account.getContext().getAuth();
-        if (meta.getPassword() == null || meta.getPassword().isEmpty()) {
+        PlayerAuth auth = getAuth(account.getId());
+        if (!auth.isRegistered()) {
             return LoginResult.NOT_REGISTERED;
         }
         String hash = hash(password);
-        if (!hash.equals(meta.getPassword())) {
+        if (!hash.equals(auth.getPasswordHash())) {
             int left = attempts.merge(account.getId(), -1, Integer::sum);
             if (left <= 0) {
                 attempts.remove(account.getId());
@@ -73,9 +77,16 @@ public final class AuthService {
             }
             return LoginResult.WRONG_PASSWORD;
         }
-        meta.setState(AuthState.OK);
+
+        auth.setLastLoginAt(Instant.now());
+        persistAuth(auth);
+
+        AuthMetadata meta = account.getContext().getAuth();
+        meta.setState(AuthState.LOGIN);
         meta.setTimestamp(System.currentTimeMillis());
+        AuthAccountSanitizer.stripSecrets(meta);
         account.markDirty();
+
         authenticated.put(account.getId(), System.currentTimeMillis());
         attempts.remove(account.getId());
         return LoginResult.OK;
@@ -86,13 +97,22 @@ public final class AuthService {
         if (password == null || password.length() < minLength) return RegisterResult.TOO_SHORT;
         if (!password.equals(confirm)) return RegisterResult.MISMATCH;
 
+        PlayerAuth auth = getAuth(account.getId());
+        String newHash = hash(password);
+        auth.setLastPasswordHash(auth.getPasswordHash());
+        auth.setPasswordHash(newHash);
+        if (auth.getRecentHashes() == null) auth.setRecentHashes(new java.util.ArrayList<>());
+        auth.getRecentHashes().add(newHash);
+        if (auth.getRegisteredAt() == null) auth.setRegisteredAt(Instant.now());
+        auth.setLastLoginAt(Instant.now());
+        persistAuth(auth);
+
         AuthMetadata meta = account.getContext().getAuth();
-        meta.setLastPassword(meta.getPassword());
-        meta.setPassword(hash(password));
-        meta.setState(AuthState.OK);
+        meta.setState(AuthState.LOGIN);
         meta.setTimestamp(System.currentTimeMillis());
-        meta.getRecentPasswords().add(meta.getPassword());
+        AuthAccountSanitizer.stripSecrets(meta);
         account.markDirty();
+
         authenticated.put(account.getId(), System.currentTimeMillis());
         return RegisterResult.OK;
     }
@@ -101,18 +121,33 @@ public final class AuthService {
         if (!isRegistered(account)) return ChangePasswordResult.NOT_REGISTERED;
         if (next == null || next.length() < minLength) return ChangePasswordResult.TOO_SHORT;
 
-        AuthMetadata meta = account.getContext().getAuth();
-        if (!hash(current).equals(meta.getPassword())) return ChangePasswordResult.WRONG_PASSWORD;
+        PlayerAuth auth = getAuth(account.getId());
+        if (!hash(current).equals(auth.getPasswordHash())) {
+            return ChangePasswordResult.WRONG_PASSWORD;
+        }
 
         String newHash = hash(next);
-        if (meta.getRecentPasswords().contains(newHash)) return ChangePasswordResult.REUSED;
+        if (auth.getRecentHashes() != null && auth.getRecentHashes().contains(newHash)) {
+            return ChangePasswordResult.REUSED;
+        }
 
-        meta.setLastPassword(meta.getPassword());
-        meta.setPassword(newHash);
+        auth.setLastPasswordHash(auth.getPasswordHash());
+        auth.setPasswordHash(newHash);
+        if (auth.getRecentHashes() == null) auth.setRecentHashes(new java.util.ArrayList<>());
+        auth.getRecentHashes().add(newHash);
+        persistAuth(auth);
+
+        AuthMetadata meta = account.getContext().getAuth();
         meta.setTimestamp(System.currentTimeMillis());
-        meta.getRecentPasswords().add(newHash);
+        AuthAccountSanitizer.stripSecrets(meta);
         account.markDirty();
+
         return ChangePasswordResult.OK;
+    }
+
+    private void persistAuth(PlayerAuth auth) {
+        AuthData data = Core.getAuthData();
+        if (data != null) data.save(auth);
     }
 
     public void initAttempts(UUID id, int max) {
@@ -126,14 +161,14 @@ public final class AuthService {
     public void clear(UUID id) {
         authenticated.remove(id);
         attempts.remove(id);
-        pendingRegister.remove(id);
+        authByPlayer.remove(id);
     }
 
-    /** Marca sessao autenticada (dev-mode / bypass). */
     public void markSessionAuthenticated(Account account) {
         AuthMetadata meta = account.getContext().getAuth();
-        meta.setState(AuthState.OK);
+        meta.setState(AuthState.LOGIN);
         meta.setTimestamp(System.currentTimeMillis());
+        AuthAccountSanitizer.stripSecrets(meta);
         account.markDirty();
         authenticated.put(account.getId(), System.currentTimeMillis());
         attempts.remove(account.getId());

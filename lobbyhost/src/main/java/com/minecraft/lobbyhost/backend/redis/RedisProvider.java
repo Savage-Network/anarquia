@@ -63,6 +63,25 @@ public final class RedisProvider {
         }
     }
 
+    public void setEx(String key, String value, int seconds) {
+        if (!enabled || pool == null) return;
+        try (var jedis = pool.getResource()) {
+            jedis.setex(key, seconds, value);
+        } catch (Throwable t) {
+            plugin.getLogger().warning("Falha ao gravar Redis key " + key + ": " + t.getMessage());
+        }
+    }
+
+    public String get(String key) {
+        if (!enabled || pool == null) return null;
+        try (var jedis = pool.getResource()) {
+            return jedis.get(key);
+        } catch (Throwable t) {
+            plugin.getLogger().warning("Falha ao ler Redis key " + key + ": " + t.getMessage());
+            return null;
+        }
+    }
+
     public void subscribe(JedisPubSub handler, String... channels) {
         if (!enabled || pool == null) return;
         Thread t = new Thread(() -> {

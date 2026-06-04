@@ -50,9 +50,12 @@ public final class AccountController {
 
     public void unload(UUID id) {
         Account removed = cache.remove(id);
-        if (removed != null && removed.isDirty()) {
-            Core.getAccountData().save(removed);
-            removed.clearDirty();
+        if (removed != null) {
+            com.minecraft.game.backend.sync.NetworkStatsSync.syncPlayer(removed);
+            if (removed.isDirty()) {
+                Core.getAccountData().save(removed);
+                removed.clearDirty();
+            }
         }
     }
 

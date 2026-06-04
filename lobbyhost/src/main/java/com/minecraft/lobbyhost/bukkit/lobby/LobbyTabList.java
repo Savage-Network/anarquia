@@ -4,21 +4,17 @@ import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.rank.RankType;
+import com.minecraft.lobbyhost.util.ModernText;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 /**
- * Header e footer da tab list (Paper Adventure API).
- * Linhas em {@code config.yml} com placeholders: {@code {online}}, {@code {max}},
- * {@code {player}}, {@code {rank}}, {@code {ping}}, {@code {display-name}}, {@code {server}}.
+ * Header e footer da tab list (MiniMessage + hex).
  */
 public final class LobbyTabList {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private LobbyTabList() {}
 
@@ -36,12 +32,12 @@ public final class LobbyTabList {
 
     private static Component build(Player player, String section) {
         List<String> lines = "header".equals(section) ? LobbySettings.TAB_HEADER : LobbySettings.TAB_FOOTER;
-        StringBuilder text = new StringBuilder();
+        Component combined = Component.empty();
         for (int i = 0; i < lines.size(); i++) {
-            if (i > 0) text.append('\n');
-            text.append(replace(lines.get(i), player));
+            if (i > 0) combined = combined.append(Component.newline());
+            combined = combined.append(ModernText.parse(replace(lines.get(i), player)));
         }
-        return LEGACY.deserialize(text.toString());
+        return combined;
     }
 
     private static String replace(String line, Player player) {
@@ -49,10 +45,10 @@ public final class LobbyTabList {
         int online = Bukkit.getOnlinePlayers().size();
         int max = Bukkit.getMaxPlayers();
         Account account = Core.getAccountController().of(player.getUniqueId());
-        String rank = "§7MEMBER";
+        String rank = "MEMBER";
         if (account != null) {
             RankType type = account.getRankType();
-            rank = type.getColor() + type.name();
+            rank = type.name();
         }
 
         return line

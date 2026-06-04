@@ -60,6 +60,15 @@ public final class RedisProvider {
         }
     }
 
+    public void setEx(String key, String value, int seconds) {
+        if (!enabled || pool == null) return;
+        try (var jedis = pool.getResource()) {
+            jedis.setex(key, seconds, value);
+        } catch (Throwable t) {
+            Core.getLogger().warn("Falha ao gravar Redis key " + key + ": " + t.getMessage());
+        }
+    }
+
     /** Inicia uma thread daemon que escuta nos canais informados. */
     public void subscribe(JedisPubSub handler, String... channels) {
         if (!enabled || pool == null) return;

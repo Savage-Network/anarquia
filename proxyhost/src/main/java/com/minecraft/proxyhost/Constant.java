@@ -39,6 +39,9 @@ public final class Constant {
     public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
     public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
     public static final String REDIS_PROXY_SETTINGS_CHANNEL = "proxy-settings-channel";
+    public static final String REDIS_NETWORK_ALERT_CHANNEL = "network-alert-channel";
+    public static final String REDIS_NETWORK_STATUS_CHANNEL = "network-status-channel";
+    public static final String REDIS_NETWORK_ONLINE_KEY_PREFIX = "network:online:";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,
@@ -53,7 +56,9 @@ public final class Constant {
     public static final long CHAT_COOLDOWN_MS = 3_000L;
     public static final long TELL_COOLDOWN_MS = 1_500L;
 
-    public static final String SERVER_STORE = "§6loja.savage.com.br";
+    public static final String SERVER_ADDRESS = ProxySettings.SERVER_ADDRESS;
+    public static final String SERVER_STORE_URL = ProxySettings.SERVER_STORE_URL;
+    public static final String SERVER_STORE = ProxySettings.SERVER_STORE;
 
     public static final String ACCOUNT_LOAD_FAILED_MESSAGE = "§cOcorreu um erro ao tentar carregar a sua conta!";
 
@@ -61,5 +66,6 @@ public final class Constant {
             "§6§l" + SERVER_NAME.toUpperCase() + "\n\n"
                     + "§cA sua conta esta %s suspensa.\n"
                     + "§cMotivo: %s\n"
-                    + "§cID: %s\n";
+                    + "§cID: %s\n\n"
+                    + "§7Apelo: §e" + SERVER_STORE_URL + "\n";
 }

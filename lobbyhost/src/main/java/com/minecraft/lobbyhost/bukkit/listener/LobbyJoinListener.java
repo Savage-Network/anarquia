@@ -10,6 +10,9 @@ import com.minecraft.lobbyhost.bukkit.display.PlayerDisplayService;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyTabList;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
+import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
+import com.minecraft.lobbyhost.util.ModernText;
+import com.minecraft.lobbyhost.social.FriendService;
 import com.minecraft.lobbyhost.bukkit.manager.PermissionManager;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import com.minecraft.lobbyhost.bukkit.skin.SkinService;
@@ -24,11 +27,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 /**
  * Listener principal do lobby. Carrega a conta no pre-login, aplica
@@ -59,7 +65,13 @@ public final class LobbyJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        event.joinMessage(Component.text("§e+ §a" + player.getName() + " §7entrou."));
+        Account joinAcc = Core.getAccountController().of(player.getUniqueId());
+        if (VanishService.isVanished(player)
+                || (joinAcc != null && !joinAcc.getToggle().isAllowJoinMessage())) {
+            event.joinMessage(null);
+        } else {
+            event.joinMessage(ModernText.parse(ModernText.joinMessage(player.getName())));
+        }
 
         Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () ->
                 LobbyHostPlugin.getInstance().getArchitectLoader()
@@ -79,13 +91,18 @@ public final class LobbyJoinListener implements Listener {
                 Account otherAcc = Core.getAccountController().of(other.getUniqueId());
                 if (otherAcc != null) TagManager.applyTagForViewer(player, other);
             }
+            int friendsHere = FriendService.countFriendsOnlineInLobby(account);
+            if (friendsHere > 0) {
+                player.sendMessage(Component.text(
+                        "§e" + friendsHere + " amigo(s) §7online no lobby. §8/amigo"));
+            }
         }, 5L);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        event.quitMessage(Component.text("§e- §c" + player.getName() + " §7saiu."));
+        event.quitMessage(ModernText.parse(ModernText.quitMessage(player.getName())));
 
         try {
             LobbyHostPlugin.getInstance().getArchitectLoader()
@@ -95,6 +112,7 @@ public final class LobbyJoinListener implements Listener {
         TagManager.removeTag(player);
         AboveNameDisplay.remove(player);
         PlayerVisibilityService.onPlayerQuit(player);
+        com.minecraft.lobbyhost.social.PartyService.onQuit(player);
         PermissionManager.unloadPermissions(player);
 
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),
@@ -111,15 +129,36 @@ public final class LobbyJoinListener implements Listener {
         if (!e.getPlayer().hasPermission("lobbyhost.staff")) e.setCancelled(true);
     }
 
-    @EventHandler public void onDrop(PlayerDropItemEvent e) {
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDrop(PlayerDropItemEvent e) {
         if (!e.getPlayer().hasPermission("lobbyhost.staff")) e.setCancelled(true);
     }
 
-    @EventHandler public void onClick(InventoryClickEvent e) {
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSwapHand(PlayerSwapHandItemsEvent e) {
+        if (!e.getPlayer().hasPermission("lobbyhost.staff")) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPickup(EntityPickupItemEvent e) {
+        if (e.getEntity() instanceof Player p && !p.hasPermission("lobbyhost.staff")) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (p.hasPermission("lobbyhost.staff")) return;
         if (e.getView().getTopInventory().getHolder() instanceof LobbyMenuHolder) return;
         if (MenuManager.get(p) != null) return;
-        if (!p.hasPermission("lobbyhost.staff")) e.setCancelled(true);
+        ClickType click = e.getClick();
+        if (click == ClickType.DROP || click == ClickType.CONTROL_DROP
+                || click == ClickType.NUMBER_KEY || click == ClickType.SWAP_OFFHAND) {
+            e.setCancelled(true);
+            return;
+        }
+        e.setCancelled(true);
     }
 
     @EventHandler public void onDamage(EntityDamageEvent e) {

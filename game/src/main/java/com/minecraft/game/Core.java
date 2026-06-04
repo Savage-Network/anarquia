@@ -6,6 +6,9 @@ import com.minecraft.game.account.AccountController;
 import com.minecraft.game.backend.data.AccountData;
 import com.minecraft.game.backend.data.ClanData;
 import com.minecraft.game.backend.data.AuctionData;
+import com.minecraft.game.backend.data.NetworkStatsData;
+import com.minecraft.game.backend.data.PunishmentData;
+import com.minecraft.game.backend.data.ReportData;
 import com.minecraft.game.backend.data.SignShopData;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.backend.redis.RedisProvider;
@@ -41,6 +44,9 @@ public final class Core {
     @Getter @Setter private static ClanData clanData;
     @Getter @Setter private static SignShopData signShopData;
     @Getter @Setter private static AuctionData auctionData;
+    @Getter @Setter private static NetworkStatsData networkStatsData;
+    @Getter @Setter private static ReportData reportData;
+    @Getter @Setter private static PunishmentData punishmentData;
 
     public static void load(GamePlugin plugin) {
         javaPlugin = plugin;

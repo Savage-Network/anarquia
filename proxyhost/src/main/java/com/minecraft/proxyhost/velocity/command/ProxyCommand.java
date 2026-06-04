@@ -162,6 +162,7 @@ public final class ProxyCommand implements SimpleCommand {
             default -> src.sendMessage(legacy("&cSub: on|off|toggle|rank|msg|motd1|motd2"));
         }
         publishSettings();
+        com.minecraft.proxyhost.proxy.NetworkPublisher.publishStatusNow();
     }
 
     private void maxPlayers(CommandSource src, ProxySettingsManager s, String[] args) {
@@ -186,11 +187,17 @@ public final class ProxyCommand implements SimpleCommand {
             return;
         }
         String msg = join(args, 1);
+        String sender = src instanceof com.velocitypowered.api.proxy.Player p
+                ? p.getUsername() : "Console";
         Component c = legacy("&6&l" + com.minecraft.proxyhost.Constant.SERVER_NAME
                 + " &8» &f" + msg);
-        Core.getProxy().getAllPlayers().forEach(p -> p.sendMessage(c));
+        Core.getProxy().getAllPlayers().forEach(pl -> pl.sendMessage(c));
         Core.getProxy().getConsoleCommandSource().sendMessage(c);
-        src.sendMessage(legacy("&aAnuncio enviado."));
+        if (Core.getRedis() != null && Core.getRedis().isEnabled()) {
+            Core.getRedis().publish(com.minecraft.proxyhost.Constant.REDIS_NETWORK_ALERT_CHANNEL,
+                    sender + "|" + msg.replace('|', ' '));
+        }
+        src.sendMessage(legacy("&aAnuncio enviado (proxy + Redis)."));
     }
 
     private void status(CommandSource src, ProxySettingsManager s) {

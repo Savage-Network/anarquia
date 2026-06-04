@@ -35,18 +35,17 @@ public final class StaffChatCommand implements SimpleCommand {
             sender.sendMessage(legacy("&cUso: /sc <mensagem...>"));
             return;
         }
-        String prefix = com.minecraft.proxyhost.ProxySettings.STAFFCHAT_PREFIX;
-        String msg = String.join(" ", args);
-        Component formatted = legacy(prefix + "&f" + a.getColoredName() + "&7 (&f"
-                + a.getCurrentServer() + "&7): &f" + msg);
-
-        for (Player p : Core.getProxy().getAllPlayers()) {
-            Account other = Core.getAccountController().of(p.getUniqueId());
-            if (other != null && (other.isStaffer() || p.hasPermission("proxyhost.staffchat"))) {
-                p.sendMessage(formatted);
-            }
+        String msg = String.join(" ", args).replace('|', ' ');
+        String payload = a.getColoredName() + "|" + a.getCurrentServer() + "|" + msg;
+        if (Core.getRedis() != null && Core.getRedis().isEnabled()) {
+            Core.getRedis().publish(com.minecraft.proxyhost.Constant.REDIS_PROXY_STAFFCHAT_CHANNEL, payload);
+            sender.sendMessage(legacy("&7(Mensagem enviada ao staff chat da rede)"));
+        } else {
+            sender.sendMessage(legacy("&cRedis offline — staff chat indisponivel."));
         }
-        Core.getProxy().getConsoleCommandSource().sendMessage(formatted);
+        Core.getProxy().getConsoleCommandSource().sendMessage(legacy(
+                com.minecraft.proxyhost.ProxySettings.STAFFCHAT_PREFIX + "&f" + a.getColoredName()
+                        + " &7(" + a.getCurrentServer() + "): &f" + msg));
     }
 
     private Component legacy(String text) {

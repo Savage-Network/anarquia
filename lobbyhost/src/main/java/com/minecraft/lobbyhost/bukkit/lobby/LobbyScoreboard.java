@@ -1,9 +1,11 @@
 package com.minecraft.lobbyhost.bukkit.lobby;
 
 import com.minecraft.lobbyhost.Core;
+import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
 import com.minecraft.lobbyhost.architect.ServerType;
+import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criteria;
@@ -13,7 +15,6 @@ import org.bukkit.scoreboard.Scoreboard;
 
 /**
  * Scoreboard unico por jogador: sidebar + teams do {@code TagManager}.
- * Evita que tags substituam o board da sidebar (problema comum na migracao).
  */
 public final class LobbyScoreboard {
 
@@ -35,18 +36,21 @@ public final class LobbyScoreboard {
         Scoreboard board = ensure(player);
         Objective obj = board.getObjective(OBJECTIVE_ID);
         if (obj == null) {
-            obj = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, "§b§lLOBBY " + server.name());
+            obj = board.registerNewObjective(
+                    OBJECTIVE_ID,
+                    Criteria.DUMMY,
+                    ModernText.parse(LobbySettings.SIDEBAR_TITLE_MINI
+                            + " <#64748B>" + server.name()));
             obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
 
         Account account = Core.getAccountController().of(player.getUniqueId());
-        
-        // Rank com ícone
+
         String rankDisplay = "§7MEMBER";
         if (account != null) {
             rankDisplay = account.getRank().getType().getColor() + account.getRank().getType().name();
         }
-        
+
         String clanDisplay = "§7Nenhum";
         if (account != null && account.hasClan()) {
             var clan = account.getClan();
@@ -54,27 +58,18 @@ public final class LobbyScoreboard {
                 clanDisplay = ClanTagFormatter.formatBracketed(clan);
             }
         }
-        
-        // Contagem de jogadores online
+
         int online = Bukkit.getOnlinePlayers().size();
-        
-        // Linha 15: espaço em branco
-        setLine(obj, 15, "§7");
-        
-        // Linha 14: Rank com ícone
-        setLine(obj, 14, "§d❈ §fRank: " + rankDisplay);
-        
-        // Linha 13: Clan com ícone
-        setLine(obj, 13, "§3◆ §fClan: " + clanDisplay);
-        
-        // Linha 12: Online com ícone e destaque
-        setLine(obj, 12, "§a⚡ §fOnline: §a" + online);
-        
-        // Linha 11: espaço em branco
-        setLine(obj, 11, "§7 ");
-        
-        // Linha 10: Website
-        setLine(obj, 10, "§esavagemc.net");
+
+        setLine(obj, 15, ModernText.legacy("<#64748B> "));
+        setLine(obj, 14, ModernText.legacy("<#C084FC>❈ <#F1F5F9>Rank: ") + rankDisplay);
+        setLine(obj, 13, ModernText.legacy("<#38BDF8>◆ <#F1F5F9>Clan: ") + clanDisplay);
+        setLine(obj, 12, ModernText.legacy("<!italic><" + ModernText.SUCCESS + ">⚡ <#F1F5F9>Online: <"
+                + ModernText.SUCCESS + ">" + online));
+        setLine(obj, 11, ModernText.legacy("<#64748B> "));
+        setLine(obj, 10, ModernText.legacy("<!italic><" + ModernText.BRAND_B + ">" + LobbySettings.SERVER_ADDRESS));
+        setLine(obj, 9, ModernText.legacy("<!italic><#94A3B8>Loja <" + ModernText.BRAND_B + ">"
+                + LobbySettings.SERVER_STORE_URL));
     }
 
     public static void updateOnlineCount() {
@@ -82,7 +77,8 @@ public final class LobbyScoreboard {
         for (Player player : Bukkit.getOnlinePlayers()) {
             Objective obj = player.getScoreboard().getObjective(OBJECTIVE_ID);
             if (obj != null) {
-                setLine(obj, 12, "§a⚡ §fOnline: §a" + online);
+                setLine(obj, 12, ModernText.legacy("<!italic><" + ModernText.SUCCESS + ">⚡ <#F1F5F9>Online: <"
+                        + ModernText.SUCCESS + ">" + online));
             }
         }
     }

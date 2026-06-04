@@ -42,12 +42,20 @@ public final class Constant {
     public static final String REDIS_ACCOUNT_RANK_UPDATE_CHANNEL = "account-rank-update-channel";
     public static final String REDIS_ACCOUNT_PUNISHMENTS_CHANNEL = "account-punishments-channel";
     public static final String REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL = "account-global-message-channel";
+    public static final String REDIS_NETWORK_ALERT_CHANNEL = "network-alert-channel";
+    public static final String REDIS_STATS_UPDATE_CHANNEL = "stats-update-channel";
+    public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
+    public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
+    public static final String REDIS_NETWORK_REPORT_CHANNEL = "network-report-channel";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,
             REDIS_ACCOUNT_RANK_UPDATE_CHANNEL,
             REDIS_ACCOUNT_PUNISHMENTS_CHANNEL,
-            REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL
+            REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL,
+            REDIS_NETWORK_ALERT_CHANNEL,
+            REDIS_PROXY_STAFFCHAT_CHANNEL,
+            REDIS_NETWORK_REPORT_CHANNEL
     };
 
     /* ----- Banco ----- */
@@ -64,7 +72,9 @@ public final class Constant {
     public static final long CHAT_COOLDOWN_MS = 3_000L;
 
     /** URL/menu da loja exibido em /medal vazio. */
-    public static final String SERVER_STORE = "§6loja.savage.com.br";
+    public static final String SERVER_ADDRESS = GameSettings.SERVER_ADDRESS;
+    public static final String SERVER_STORE_URL = GameSettings.SERVER_STORE_URL;
+    public static final String SERVER_STORE = GameSettings.SERVER_STORE;
 
     /* ----- Clan ----- */
     public static final String CLAN_CHAT_PREFIX = "§8[§3Cla§8] §r";
@@ -81,5 +91,6 @@ public final class Constant {
             "§6§l" + SERVER_NAME.toUpperCase() + "\n\n"
                     + "§cA sua conta esta %s suspensa.\n"
                     + "§cMotivo: %s\n"
-                    + "§cID: %s\n";
+                    + "§cID: %s\n\n"
+                    + "§7Apelo: §e" + GameSettings.SERVER_STORE_URL + "\n";
 }

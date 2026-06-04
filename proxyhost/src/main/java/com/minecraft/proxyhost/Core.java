@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.proxyhost.account.AccountController;
 import com.minecraft.proxyhost.backend.data.AccountData;
+import com.minecraft.proxyhost.backend.data.PlayerAuthData;
+import com.minecraft.proxyhost.backend.data.PunishmentData;
 import com.minecraft.proxyhost.backend.database.HikariProvider;
 import com.minecraft.proxyhost.backend.redis.RedisProvider;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -33,6 +35,8 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static PunishmentData punishmentData;
+    @Getter @Setter private static PlayerAuthData playerAuthData;
 
     public static void load(ProxyHostPlugin pluginInstance, ProxyServer proxyServer, Logger log) {
         plugin = pluginInstance;

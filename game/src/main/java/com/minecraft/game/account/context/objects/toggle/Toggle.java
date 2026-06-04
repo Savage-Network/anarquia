@@ -19,8 +19,14 @@ public class Toggle {
     private boolean showStats = true;
     private boolean showClanTag = true;
     private boolean allowJoinMessage = true;
+    private boolean allowLobbyChat = true;
     private boolean staffChat = false;
     private boolean autoVanish = false;
+
+    private boolean acShowCombatTag = true;
+    private boolean acNotifyOnFlag = false;
+    private boolean acStaffAlerts = true;
+    private boolean acStaffVerbose = false;
 
     private TagPrefix tagPrefix = TagPrefix.DEFAULT;
 }

@@ -70,7 +70,12 @@ public final class GamePlugin extends JavaPlugin {
             redis.init();
             Core.setRedis(redis);
             if (redis.isEnabled()) {
-                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+                redis.subscribe(new AccountRedisListener(this),
+                        Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
+                        Constant.REDIS_NETWORK_ALERT_CHANNEL,
+                        Constant.REDIS_PROXY_STAFFCHAT_CHANNEL,
+                        Constant.REDIS_NETWORK_REPORT_CHANNEL,
+                        Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
             }
 
             // 3) Data layers
@@ -81,6 +86,21 @@ public final class GamePlugin extends JavaPlugin {
             ClanData clanData = new ClanData(database);
             clanData.createTables();
             Core.setClanData(clanData);
+
+            com.minecraft.game.backend.data.NetworkStatsData networkStatsData =
+                    new com.minecraft.game.backend.data.NetworkStatsData(database);
+            networkStatsData.createTables();
+            Core.setNetworkStatsData(networkStatsData);
+
+            com.minecraft.game.backend.data.ReportData reportData =
+                    new com.minecraft.game.backend.data.ReportData(database);
+            reportData.createTables();
+            Core.setReportData(reportData);
+
+            com.minecraft.game.backend.data.PunishmentData punishmentData =
+                    new com.minecraft.game.backend.data.PunishmentData(database);
+            punishmentData.createTables();
+            Core.setPunishmentData(punishmentData);
 
             SignShopData signShopData = new SignShopData(database);
             signShopData.createTables();

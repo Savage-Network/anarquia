@@ -18,4 +18,4 @@ definitions:
     rotate: false
     action:
       type: BUNGEE
-      value: semi-anarquia
+      value: game

@@ -53,6 +53,7 @@ public class Clan {
         if (Core.getClanData() != null) {
             Core.getClanData().save(this);
         }
+        com.minecraft.game.backend.sync.NetworkStatsSync.syncClan(this);
     }
 
     public void disband() {

@@ -3,10 +3,13 @@ package com.minecraft.proxyhost;
 import com.google.inject.Inject;
 import com.minecraft.proxyhost.account.AccountController;
 import com.minecraft.proxyhost.backend.data.AccountData;
+import com.minecraft.proxyhost.backend.data.PlayerAuthData;
+import com.minecraft.proxyhost.backend.data.PunishmentData;
 import com.minecraft.proxyhost.backend.database.HikariProvider;
 import com.minecraft.proxyhost.backend.redis.RedisProvider;
 import com.minecraft.proxyhost.config.ConfigSection;
 import com.minecraft.proxyhost.redis.RedisListener;
+import com.minecraft.proxyhost.proxy.NetworkPublisher;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import com.minecraft.proxyhost.velocity.command.AccountCommand;
 import com.minecraft.proxyhost.velocity.command.ProxyCommand;
@@ -15,6 +18,8 @@ import com.minecraft.proxyhost.velocity.command.StaffChatCommand;
 import com.minecraft.proxyhost.velocity.command.TellCommand;
 import com.minecraft.proxyhost.routing.InitialServerListener;
 import com.minecraft.proxyhost.velocity.listener.LoginListener;
+import com.minecraft.proxyhost.velocity.listener.PunishmentLoginListener;
+import com.minecraft.proxyhost.velocity.command.PunishCommand;
 import com.minecraft.proxyhost.velocity.listener.PluginHiderListener;
 import com.minecraft.proxyhost.velocity.listener.ProxyPingListener;
 import com.velocitypowered.api.event.Subscribe;
@@ -101,6 +106,14 @@ public final class ProxyHostPlugin {
         accountData.createTables();
         Core.setAccountData(accountData);
 
+        PunishmentData punishmentData = new PunishmentData(database);
+        punishmentData.createTables();
+        Core.setPunishmentData(punishmentData);
+
+        PlayerAuthData playerAuthData = new PlayerAuthData(database);
+        playerAuthData.createTables();
+        Core.setPlayerAuthData(playerAuthData);
+
         AccountController controller = new AccountController();
         Core.setAccountController(controller);
 
@@ -109,6 +122,7 @@ public final class ProxyHostPlugin {
 
         // Listeners
         proxy.getEventManager().register(this, new InitialServerListener());
+        proxy.getEventManager().register(this, new PunishmentLoginListener());
         proxy.getEventManager().register(this, new LoginListener());
         proxy.getEventManager().register(this, new ProxyPingListener());
         proxy.getEventManager().register(this, new PluginHiderListener(this));
@@ -120,6 +134,10 @@ public final class ProxyHostPlugin {
         cm.register(cm.metaBuilder("reply").aliases("r").plugin(this).build(), new ReplyCommand());
         cm.register(cm.metaBuilder("staffchat").aliases("sc").plugin(this).build(), new StaffChatCommand());
         cm.register(cm.metaBuilder("proxy").aliases("proxyadmin", "velocity").plugin(this).build(), new ProxyCommand());
+        PunishCommand punish = new PunishCommand();
+        cm.register(cm.metaBuilder("punir").aliases("punish", "p").plugin(this).build(), punish);
+        cm.register(cm.metaBuilder("despunir").aliases("unpunish", "unban", "unmute").plugin(this).build(), punish);
+        cm.register(cm.metaBuilder("cban").plugin(this).build(), punish);
 
         // Redis subscriber - tell e staffchat cross-proxy/cross-server
         if (redis.isEnabled()) {
@@ -127,7 +145,10 @@ public final class ProxyHostPlugin {
                     Constant.REDIS_PROXY_TELL_CHANNEL,
                     Constant.REDIS_PROXY_STAFFCHAT_CHANNEL,
                     Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
-                    Constant.REDIS_PROXY_SETTINGS_CHANNEL);
+                    Constant.REDIS_PROXY_SETTINGS_CHANNEL,
+                    Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
+            NetworkPublisher.start(proxy);
+            NetworkPublisher.publishStatusNow();
         }
 
         long took = System.currentTimeMillis() - start;

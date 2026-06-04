@@ -62,13 +62,20 @@ public final class AuthPlugin extends JavaPlugin {
             redis.init();
             Core.setRedis(redis);
             if (redis.isEnabled()) {
-                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+                redis.subscribe(new AccountRedisListener(this),
+                        Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
+                        Constant.REDIS_NETWORK_ALERT_CHANNEL);
             }
 
             // 3) Data layers
             AccountData accountData = new AccountData(database);
             accountData.createTables();
             Core.setAccountData(accountData);
+
+            com.minecraft.auth.backend.data.AuthData authData = new com.minecraft.auth.backend.data.AuthData(database);
+            authData.createTables();
+            Core.setAuthData(authData);
+            Core.getLogger().info("Tabela player_auth pronta (" + authData.countRegistered() + " registros).");
 
             // 4) Controllers
             Core.setAccountController(new AccountController());

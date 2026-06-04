@@ -36,6 +36,19 @@ commands:
   play:
     description: Abre o menu de selecao de modos
     usage: /play
+  amigo:
+    description: Amigos — pedidos, lista e GUI
+    usage: /amigo [add|aceitar|remover|lista] [nick]
+    aliases: [amigos, friend, friends]
+  party:
+    description: Party leve do lobby
+    usage: /party [criar|convidar|sair|info] [nick]
+    aliases: [p, grupo]
+  anuncio:
+    description: Anuncio global na rede (staff)
+    usage: /anuncio <mensagem>
+    permission: lobbyhost.staff
+    aliases: [broadcast, alerta]
   account:
     description: Perfil da conta ou edicao staff (setrank)
     usage: /account [jogador] | /account setrank <nick> <RANK>
@@ -58,9 +71,55 @@ commands:
     permission: lobbyhost.admin
     aliases: [titulo]
   prefs:
-    description: Preferencias da conta
-    usage: /prefs [list|toggle <chave>]
+    description: Preferencias da conta (menu)
+    usage: /prefs
     aliases: [preferencias]
+  chat:
+    description: Ajuda e bloqueio de chat
+    usage: /chat [help|ignore|unignore|list] [nick]
+    aliases: [c]
+  staffchat:
+    description: Chat da equipe (rede)
+    usage: /sc <mensagem>
+    permission: lobbyhost.staffchat
+    aliases: [sc]
+  leaderboard:
+    description: Rankings globais (kills, money, clãs)
+    usage: /leaderboard
+    aliases: [lb, ranking, top]
+  vanish:
+    description: Modo invisivel (staff)
+    usage: /vanish [on|off]
+    permission: lobbyhost.vanish
+    aliases: [v]
+  report:
+    description: Denuncia um jogador
+    usage: /report [nick] [motivo] [detalhes]
+    aliases: [denunciar, denuncia]
+  reports:
+    description: Gerencia denuncias (staff)
+    usage: /reports [list|info|close|tp] [id]
+    permission: lobbyhost.reports
+    aliases: [denuncias]
+  punir:
+    description: Pune um jogador (ban/mute)
+    usage: /punir <jogador>
+    permission: lobbyhost.punish
+    aliases: [punish, p]
+  despunir:
+    description: Revoga punição por ID
+    usage: /despunir <ID> <motivo>
+    permission: lobbyhost.unpunish
+    aliases: [unpunish, unban, unmute]
+  cban:
+    description: Ban por cheating
+    usage: /cban <nick> <tempo>
+    permission: lobbyhost.cban
+  history:
+    description: Historico de punicoes
+    usage: /history <nick>
+    permission: lobbyhost.punish
+    aliases: [punishments, punicoes]
   skin:
     description: Atualiza ou copia skin da Mojang
     usage: /skin [nick]
@@ -100,5 +159,26 @@ permissions:
     default: false
   lobbyhost.vip:
     default: false
+  lobbyhost.vanish:
+    description: /vanish no lobby
+    default: false
+  lobbyhost.staffchat:
+    description: /sc e alertas de staff chat
+    default: false
+  lobbyhost.report:
+    description: /report e menu de denuncias
+    default: true
+  lobbyhost.reports:
+    description: /reports para staff
+    default: op
+  lobbyhost.punish:
+    description: /punir e /history
+    default: op
+  lobbyhost.unpunish:
+    description: /despunir
+    default: op
+  lobbyhost.cban:
+    description: /cban
+    default: op
   lobbyhost.fly:
     default: false

@@ -33,6 +33,15 @@ commands:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
+  chat:
+    description: Ajuda e bloqueio de chat
+    usage: /chat [help|ignore|unignore|list] [nick]
+    aliases: [c]
+  staffchat:
+    description: Chat da equipe (rede)
+    usage: /sc <mensagem>
+    permission: game.staffchat
+    aliases: [sc]
   kit:
     description: Lista e recebe kits do servidor
     usage: /kit [nome]
@@ -53,6 +62,34 @@ commands:
     description: Chat privado do clã
     usage: /cc <mensagem>
     aliases: [c]
+  report:
+    description: Denuncia um jogador
+    usage: /report <nick> <motivo> [detalhes]
+    aliases: [denunciar, denuncia]
+  reports:
+    description: Gerencia denuncias (staff)
+    usage: /reports [list|info|close|tp] [id]
+    permission: game.reports
+    aliases: [denuncias]
+  punir:
+    description: Pune um jogador (ban/mute)
+    usage: /punir <jogador>
+    permission: game.punish
+    aliases: [punish, p]
+  despunir:
+    description: Revoga punição por ID
+    usage: /despunir <ID> <motivo>
+    permission: game.unpunish
+    aliases: [unpunish, unban, unmute]
+  cban:
+    description: Ban por cheating
+    usage: /cban <nick> <tempo>
+    permission: game.cban
+  history:
+    description: Historico de punicoes
+    usage: /history <nick>
+    permission: game.punish
+    aliases: [punishments, punicoes]
   gamereload:
     description: Recarrega configuracoes do plugin
     usage: /gamereload
@@ -142,6 +179,21 @@ permissions:
   game.shop.create:
     description: Criar lojas de placa
     default: true
+  game.report:
+    description: /report para denunciar jogadores
+    default: true
+  game.reports:
+    description: /reports para staff
+    default: op
+  game.punish:
+    description: /punir e /history
+    default: op
+  game.unpunish:
+    description: /despunir
+    default: op
+  game.cban:
+    description: /cban
+    default: op
 
   # tags - liberadas via LuckPerms; default false
   tag.*:

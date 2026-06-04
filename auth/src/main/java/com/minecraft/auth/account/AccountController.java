@@ -1,6 +1,9 @@
 package com.minecraft.auth.account;
 
 import com.minecraft.auth.Core;
+import com.minecraft.auth.backend.model.PlayerAuth;
+import com.minecraft.auth.service.AuthService;
+import com.minecraft.auth.util.AuthAccountSanitizer;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,8 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Cache em memoria das contas online. Espelha {@code AccountController}
- * do Savage. Operacoes de IO sao delegadas a {@link com.minecraft.auth.backend.data.AccountData}.
+ * Cache em memoria das contas online. Credenciais ficam em {@code player_auth}.
  */
 public final class AccountController {
 
@@ -24,9 +26,6 @@ public final class AccountController {
         return Collections.unmodifiableCollection(cache.values());
     }
 
-    /**
-     * Carrega a conta de forma async. Se nao existir no banco, cria uma nova.
-     */
     public CompletableFuture<Account> load(UUID id, String name) {
         Account cached = cache.get(id);
         if (cached != null) {
@@ -41,6 +40,17 @@ public final class AccountController {
                 return fresh;
             });
             account.setName(name);
+
+            PlayerAuth auth;
+            var authData = Core.getAuthData();
+            if (authData != null) {
+                auth = authData.migrateFromContextIfNeeded(account)
+                        .orElseGet(() -> authData.load(id).orElseGet(() -> PlayerAuth.empty(id)));
+            } else {
+                auth = PlayerAuth.empty(id);
+            }
+            AuthService.getInstance().bind(id, auth);
+
             cache.put(id, account);
             return account;
         });
@@ -49,16 +59,15 @@ public final class AccountController {
     public void unload(UUID id) {
         Account removed = cache.remove(id);
         if (removed != null && removed.isDirty()) {
-            Core.getAccountData().save(removed);
+            persist(removed);
             removed.clearDirty();
         }
     }
 
-    /** Salva todas as contas online de forma sincrona - usado no {@code onDisable}. */
     public void saveAllSync() {
         for (Account account : cache.values()) {
             try {
-                Core.getAccountData().save(account);
+                persist(account);
                 account.clearDirty();
             } catch (Throwable t) {
                 Core.getLogger().warning("Falha ao salvar " + account.getName() + ": " + t.getMessage());
@@ -69,5 +78,10 @@ public final class AccountController {
     public void unloadAll() {
         saveAllSync();
         cache.clear();
+    }
+
+    private static void persist(Account account) {
+        AuthAccountSanitizer.stripSecrets(account.getContext().getAuth());
+        Core.getAccountData().save(account);
     }
 }

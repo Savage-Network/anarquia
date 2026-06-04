@@ -1,5 +1,7 @@
 package com.minecraft.lobbyhost.bukkit.menu;
 
+import com.minecraft.lobbyhost.util.ModernText;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -9,6 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -29,21 +32,57 @@ public final class MenuItem {
         return new MenuItem(material, amount);
     }
 
-    public MenuItem name(String name) {
+    public MenuItem name(String legacyName) {
+        return nameComponent(Component.text(legacyName));
+    }
+
+    public MenuItem miniName(String mini) {
+        return nameComponent(ModernText.noItalic(ModernText.parse(mini)));
+    }
+
+    public MenuItem nameComponent(Component name) {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
+            meta.displayName(ModernText.noItalic(name));
             stack.setItemMeta(meta);
         }
         return this;
     }
 
-    public MenuItem lore(String... lines) {
+    public MenuItem lore(String... legacyLines) {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-            for (String line : lines) lore.add(line);
-            meta.setLore(lore);
+            List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+            for (String line : legacyLines) {
+                lore.add(ModernText.noItalic(Component.text(line)));
+            }
+            meta.lore(lore);
+            stack.setItemMeta(meta);
+        }
+        return this;
+    }
+
+    public MenuItem miniLore(String... miniLines) {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            List<Component> lore = new ArrayList<>();
+            for (String line : miniLines) {
+                if (line == null || line.isEmpty()) {
+                    lore.add(Component.empty());
+                } else {
+                    lore.add(ModernText.noItalic(ModernText.parse(line)));
+                }
+            }
+            meta.lore(lore);
+            stack.setItemMeta(meta);
+        }
+        return this;
+    }
+
+    public MenuItem loreComponents(Component... lines) {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.lore(Arrays.stream(lines).map(ModernText::noItalic).toList());
             stack.setItemMeta(meta);
         }
         return this;

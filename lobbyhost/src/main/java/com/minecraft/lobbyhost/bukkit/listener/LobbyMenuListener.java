@@ -32,6 +32,8 @@ public final class LobbyMenuListener implements Listener {
 
         if ("navigation".equals(holder.getMenuId())) {
             LobbyMenus.handleNavigationClick(player, current);
+        } else if ("profile".equals(holder.getMenuId())) {
+            LobbyMenus.handleProfileClick(player, event.getSlot());
         } else if (holder.getMenuId() != null && holder.getMenuId().startsWith("cosmetics")) {
             com.minecraft.lobbyhost.bukkit.menu.CosmeticMenus.handleClick(player, holder, current, event.getSlot());
         }

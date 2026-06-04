@@ -62,7 +62,9 @@ public final class EventosPlugin extends JavaPlugin {
             redis.init();
             Core.setRedis(redis);
             if (redis.isEnabled()) {
-                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+                redis.subscribe(new AccountRedisListener(this),
+                        Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
+                        Constant.REDIS_NETWORK_ALERT_CHANNEL);
             }
 
             // 3) Data

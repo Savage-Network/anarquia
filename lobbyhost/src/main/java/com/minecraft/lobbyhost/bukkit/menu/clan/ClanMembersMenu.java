@@ -19,7 +19,7 @@ public final class ClanMembersMenu extends Menu {
     private final Clan clan;
 
     public ClanMembersMenu(Player player, Account account, Clan clan, Menu parent) {
-        super(player, "§8§lClã §7| §fMembros", 6, parent);
+        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle("Membros do Clã"), 6, parent);
         this.account = account;
         this.clan = clan;
     }

@@ -17,7 +17,7 @@ public final class ClanColorMenu extends Menu {
     private final Clan clan;
 
     public ClanColorMenu(Player player, Account account, Clan clan, Menu parent) {
-        super(player, "§8§lClã §7| §fCores da Tag", 5, parent);
+        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle("Cores da Tag"), 5, parent);
         this.account = account;
         this.clan = clan;
     }

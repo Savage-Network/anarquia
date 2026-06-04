@@ -149,6 +149,10 @@ public class Account {
         return getRankType().isStaff();
     }
 
+    public com.minecraft.lobbyhost.account.context.objects.punishment.PunishmentHistory getHistory() {
+        return context.getHistory();
+    }
+
     /** Permite chat colorido (rank >= VIP e nao-fake). */
     public boolean isAllowColoredChat() {
         return isVIP() && !isFake();

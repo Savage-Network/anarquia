@@ -67,7 +67,18 @@ public final class TellCommand implements SimpleCommand {
             return;
         }
 
-        String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+        if (!targetAcc.getToggle().isAllowPrivateMessages()) {
+            sender.sendMessage(legacy("&cEsse jogador nao aceita mensagens privadas."));
+            return;
+        }
+
+        if (isBlockedEither(senderAcc, targetAcc)) {
+            sender.sendMessage(legacy("&cNao foi possivel enviar (bloqueio ativo)."));
+            return;
+        }
+
+        String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length))
+                .replace('|', ' ');
 
         Component toTarget = legacy("&8(&fde &7" + senderAcc.getColoredName() + "&8) &7" + message);
         Component toSender = legacy("&8(&fpara &7" + targetAcc.getColoredName() + "&8) &7" + message);
@@ -75,12 +86,27 @@ public final class TellCommand implements SimpleCommand {
         target.sendMessage(toTarget);
         sender.sendMessage(toSender);
 
+        senderAcc.getContext().setLastMessage(target.getUniqueId());
+        targetAcc.getContext().setLastMessage(sender.getUniqueId());
+        senderAcc.markDirty();
+        targetAcc.markDirty();
+
         ReplyCommand.registerLastConversation(sender.getUniqueId(), target.getUniqueId());
         ReplyCommand.registerLastConversation(target.getUniqueId(), sender.getUniqueId());
 
         if (!senderAcc.isVIP()) {
             senderAcc.setCooldown(Constant.TELL_COOLDOWN_KEY, Constant.TELL_COOLDOWN_MS);
         }
+    }
+
+    private boolean isBlockedEither(Account a, Account b) {
+        return hasBlocked(a, b.getId()) || hasBlocked(b, a.getId());
+    }
+
+    private boolean hasBlocked(Account account, java.util.UUID other) {
+        if (account == null || other == null) return false;
+        return account.getContext().getBlocks().stream()
+                .anyMatch(bl -> bl.getId() != null && bl.getId().equals(other));
     }
 
     private Component legacy(String text) {

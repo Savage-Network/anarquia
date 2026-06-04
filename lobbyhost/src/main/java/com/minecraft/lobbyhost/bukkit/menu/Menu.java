@@ -1,5 +1,7 @@
 package com.minecraft.lobbyhost.bukkit.menu;
 
+import com.minecraft.lobbyhost.util.ModernText;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -15,16 +17,20 @@ import java.util.Map;
 public abstract class Menu {
 
     protected final Player player;
-    protected final String title;
+    protected final Component title;
     protected final int rows;
     protected final Menu parent;
 
     private final Map<Integer, MenuItem> contents = new HashMap<>();
     private Inventory inventory;
 
-    protected Menu(Player player, String title, int rows, Menu parent) {
+    protected Menu(Player player, String miniTitle, int rows, Menu parent) {
+        this(player, ModernText.parse(miniTitle), rows, parent);
+    }
+
+    protected Menu(Player player, Component title, int rows, Menu parent) {
         this.player = player;
-        this.title = title;
+        this.title = ModernText.noItalic(title);
         this.rows = rows;
         this.parent = parent;
     }
@@ -39,7 +45,7 @@ public abstract class Menu {
         contents.forEach((slot, item) -> inventory.setItem(slot, item.stack()));
         player.openInventory(inventory);
         MenuManager.track(player, this);
-        player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.6f, 1.2f);
+        player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.5f, 1.35f);
     }
 
     public void reopen() {
@@ -57,7 +63,7 @@ public abstract class Menu {
     }
 
     protected void fillBorder() {
-        MenuItem glass = MenuItem.of(Material.GRAY_STAINED_GLASS_PANE).name(" ");
+        MenuItem glass = MenuItem.of(Material.BLACK_STAINED_GLASS_PANE).miniName("<black>");
         int size = rows * 9;
         for (int i = 0; i < size; i++) {
             int row = i / 9;
@@ -71,23 +77,23 @@ public abstract class Menu {
     protected void back(int slot) {
         if (parent == null) return;
         set(slot, MenuItem.of(Material.ARROW)
-                .name("§aVoltar")
-                .lore("§7Retornar ao menu anterior")
+                .miniName(ModernText.gradient("Voltar", ModernText.ACCENT_A, ModernText.ACCENT_B))
+                .miniLore(ModernText.mini("Retornar ao menu anterior"))
                 .click(p -> parent.open()));
     }
 
     protected void closeButton(int slot) {
         set(slot, MenuItem.of(Material.BARRIER)
-                .name("§cFechar")
+                .miniName("<!italic><" + ModernText.ERROR + "><bold>Fechar</bold>")
                 .click(p -> p.closeInventory()));
     }
 
     protected void clickSound() {
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.8f, 1.4f);
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.5f);
     }
 
     protected void successSound() {
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.6f);
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.45f, 1.7f);
     }
 
     public boolean isThis(Inventory top) {

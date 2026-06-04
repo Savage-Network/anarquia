@@ -1,8 +1,14 @@
 package com.minecraft.game.redis;
 
+import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.GamePlugin;
+import net.kyori.adventure.text.Component;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.bukkit.chat.StaffChatBridge;
+import com.minecraft.game.api.punishment.PunishmentCategory;
+import com.minecraft.game.punishment.PunishmentService;
+import com.minecraft.game.report.ReportService;
 import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,6 +27,56 @@ public final class AccountRedisListener extends JedisPubSub {
 
     @Override
     public void onMessage(String channel, String message) {
+        if (Constant.REDIS_PROXY_STAFFCHAT_CHANNEL.equals(channel)) {
+            String[] parts = message.split("\\|", 3);
+            if (parts.length >= 3) {
+                StaffChatBridge.deliverFromRedis(parts[0], parts[1], parts[2]);
+            }
+            return;
+        }
+        if (Constant.REDIS_NETWORK_REPORT_CHANNEL.equals(channel)) {
+            Bukkit.getScheduler().runTask(plugin, () -> ReportService.deliverFromRedis(message));
+            return;
+        }
+        if (Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL.equals(channel)) {
+            onPunishment(message);
+            return;
+        }
+        if (Constant.REDIS_NETWORK_ALERT_CHANNEL.equals(channel)) {
+            String[] parts = message.split("\\|", 2);
+            String body = parts.length >= 2 ? parts[1] : message;
+            String title = parts.length >= 2 ? parts[0] : Constant.SERVER_NAME;
+            Component c = Component.text("§6§l" + title + " §8» §f" + body.replace('&', '§'));
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(c)));
+            return;
+        }
+        if (Constant.REDIS_ACCOUNT_UPDATE_CHANNEL.equals(channel)) {
+            onAccountUpdate(message);
+        }
+    }
+
+    private void onPunishment(String message) {
+        String[] parts = message.split("\\|", 4);
+        if (parts.length < 4) return;
+        try {
+            PunishmentCategory category = PunishmentCategory.valueOf(parts[0]);
+            UUID target = UUID.fromString(parts[1]);
+            if (!"APPLY".equalsIgnoreCase(parts[3])) return;
+            if (category != PunishmentCategory.BAN) return;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                Player p = Bukkit.getPlayer(target);
+                if (p == null || !p.isOnline()) return;
+                var data = Core.getPunishmentData();
+                if (data == null) return;
+                data.findActive(target, PunishmentCategory.BAN).ifPresent(ban ->
+                        p.kickPlayer(PunishmentService.banKickMessage(ban)));
+            });
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private void onAccountUpdate(String message) {
         try {
             UUID id = UUID.fromString(message.trim());
             Account online = Core.getAccountController().of(id);

@@ -73,7 +73,9 @@ public final class MainArchitect extends Architect {
             PlayerVisibilityService.apply(player);
         }, 2L);
 
-        player.sendMessage(Component.text("§eBem-vindo ao §6§lSAVAGE §e- " + server.name() + "!"));
+        player.sendMessage(com.minecraft.lobbyhost.util.ModernText.parse(
+                "<!italic>Bem-vindo ao " + com.minecraft.lobbyhost.util.ModernText.brandGradient("SAVAGE")
+                + " <#94A3B8>— <#F1F5F9>" + server.name()));
     }
 
     @Override

@@ -1,9 +1,18 @@
-{
-  "server": "HUB",
-  "displayName": "Hub Principal",
-  "locations": [
-    { "name": "spawn",          "world": "world", "x": 0.5,  "y": 100, "z": 0.5,  "yaw": 0,   "pitch": 0 },
-    { "name": "npc_anarquia",   "world": "world", "x": -5.5, "y": -60, "z": 3.5,  "yaw": 0,   "pitch": 0 },
-    { "name": "discord",        "world": "world", "x": 0.5,  "y": 80,  "z": 0.5,  "yaw": 0,   "pitch": 0 }
-  ]
-}
+{
+
+  "server": "HUB",
+
+  "displayName": "Hub Principal",
+
+  "locations": [
+
+    { "name": "spawn",          "world": "world", "x": 0.5,  "y": 100, "z": 0.5,  "yaw": 0,   "pitch": 0 },
+
+    { "name": "npc_anarquia",   "world": "world", "x": -5.5, "y": -60, "z": 3.5,  "yaw": 0,   "pitch": 0 },
+
+    { "name": "discord",        "world": "world", "x": 0.5,  "y": 80,  "z": 0.5,  "yaw": 0,   "pitch": 0 }
+
+  ]
+
+}
+

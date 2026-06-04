@@ -70,7 +70,8 @@ public final class GameScoreboard {
             clearLine(obj, 9);
         }
 
-        setLine(obj, 8, "§esavagemc.net");
+        setLine(obj, 8, "§e" + GameSettings.SERVER_ADDRESS);
+        setLine(obj, 7, "§7Loja: §6" + GameSettings.SERVER_STORE_URL);
     }
 
     public static void refreshOnlineCount() {

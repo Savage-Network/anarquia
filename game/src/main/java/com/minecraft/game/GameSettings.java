@@ -14,13 +14,31 @@ public final class GameSettings {
     public static final long SIDEBAR_UPDATE_TICKS = 20L;
     public static final long TABLIST_UPDATE_TICKS = 40L;
 
-    public static final List<String> TAB_HEADER = List.of("§6§lSAVAGE");
-    public static final List<String> TAB_FOOTER = List.of("§7{online} online §8• §7savagemc.net");
+    public static final String SERVER_ADDRESS = "savagemc.net";
+    public static final String SERVER_STORE_URL = "loja.savagemc.net";
+    public static final String SERVER_STORE = "§6" + SERVER_STORE_URL;
+
+    public static final List<String> TAB_HEADER = List.of(
+            "§6§lSAVAGE",
+            "§7" + SERVER_ADDRESS);
+    public static final List<String> TAB_FOOTER = List.of(
+            "§7{online} online §8• §f" + SERVER_ADDRESS,
+            "§7Loja: §6" + SERVER_STORE_URL);
 
     public static final int SPAWN_PROTECTION_RADIUS = 50;
     public static final int COMBAT_TAG_SECONDS = 15;
     public static final int STARTING_BALANCE = 1000;
     public static final String CURRENCY_SYMBOL = "$";
+
+    public static final String GAME_CHAT_PREFIX = "§8[Anarquia]§r ";
+    public static final String STAFFCHAT_PREFIX = "§6[Staff]§r ";
+    public static final String SERVER_CHAT_ID = "game";
+
+    public static final int CHAT_MAX_LENGTH = 256;
+    public static final long CHAT_REPEAT_WINDOW_MS = 6_000L;
+    public static final int CHAT_MAX_REPEAT = 3;
+    public static final String[] CHAT_STAFF_PREFIXES = {"!", "@"};
+    public static final String CHAT_MENTION_COLOR = "§e";
 
     public static final String SPAWN_WORLD = "world";
     public static final double SPAWN_X = 0.5;

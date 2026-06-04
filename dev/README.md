@@ -47,6 +47,8 @@ cd dev
 
 Conecte no Minecraft **1.21.1** em `localhost` (modo rápido) ou `localhost:25577` (rede via Velocity).
 
+**Produção:** IP `savagemc.net` · Loja `loja.savagemc.net` (constantes em `*Settings.java` / `Constant.java`).
+
 ## Estrutura gerada
 
 ```

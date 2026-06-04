@@ -4,6 +4,8 @@ import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.ProxySettings;
 import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.api.punishment.PunishmentCategory;
+import com.minecraft.proxyhost.punishment.PunishmentService;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -33,6 +35,7 @@ public final class RedisListener extends JedisPubSub {
                 case Constant.REDIS_PROXY_STAFFCHAT_CHANNEL -> onStaffChat(message);
                 case Constant.REDIS_ACCOUNT_UPDATE_CHANNEL -> onAccountUpdate(message);
                 case Constant.REDIS_PROXY_SETTINGS_CHANNEL -> onProxySettings(message);
+                case Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL -> onPunishment(message);
                 default -> Core.getLogger().debug("Redis msg ignorada do canal {}: {}", channel, message);
             }
         } catch (Throwable t) {
@@ -75,6 +78,21 @@ public final class RedisListener extends JedisPubSub {
         if (!"reload".equalsIgnoreCase(message.trim())) return;
         ProxySettingsManager settings = ProxySettingsManager.get();
         if (settings != null) settings.reload();
+    }
+
+    private void onPunishment(String message) {
+        String[] parts = message.split("\\|", 4);
+        if (parts.length < 4) return;
+        try {
+            PunishmentCategory category = PunishmentCategory.valueOf(parts[0]);
+            UUID target = UUID.fromString(parts[1]);
+            if (category != PunishmentCategory.BAN) return;
+            if (!"APPLY".equalsIgnoreCase(parts[3])) return;
+            Core.getProxy().getPlayer(target).ifPresent(p ->
+                    Core.getPunishmentData().findActive(target, PunishmentCategory.BAN).ifPresent(ban ->
+                            p.disconnect(LEGACY.deserialize(PunishmentService.banKickMessage(ban)))));
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     private void onAccountUpdate(String uuid) {

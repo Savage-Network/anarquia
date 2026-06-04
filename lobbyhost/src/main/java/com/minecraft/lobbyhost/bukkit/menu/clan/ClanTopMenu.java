@@ -9,6 +9,11 @@ import com.minecraft.lobbyhost.bukkit.menu.MenuItem;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import com.minecraft.lobbyhost.backend.model.NetworkStatsEntry;
+import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
+import com.minecraft.lobbyhost.leaderboard.LeaderboardType;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public final class ClanTopMenu extends Menu {
@@ -16,7 +21,7 @@ public final class ClanTopMenu extends Menu {
     private final Account account;
 
     public ClanTopMenu(Player player, Account account, Menu parent) {
-        super(player, "§8§lClãs §7| §fRanking", 5, parent);
+        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle("Ranking de Clãs"), 5, parent);
         this.account = account;
     }
 
@@ -24,7 +29,7 @@ public final class ClanTopMenu extends Menu {
     public void build() {
         clear();
 
-        List<Clan> top = Core.getClanData().listTop(7);
+        List<Clan> top = loadTopClans(7);
         int[] slots = {20, 21, 22, 23, 24, 30, 31};
         Material[] icons = {
                 Material.GOLD_BLOCK, Material.IRON_BLOCK, Material.COPPER_BLOCK,
@@ -53,5 +58,22 @@ public final class ClanTopMenu extends Menu {
 
         back(40);
         closeButton(44);
+    }
+
+    private static List<Clan> loadTopClans(int limit) {
+        List<NetworkStatsEntry> stats = LeaderboardCache.get(LeaderboardType.CLANS);
+        List<Clan> out = new ArrayList<>();
+        for (NetworkStatsEntry e : stats) {
+            if (out.size() >= limit) break;
+            if (!e.getStatKey().startsWith("clan:")) continue;
+            String id = e.getStatKey().substring(5);
+            try {
+                Clan clan = Core.getClanData().of(java.util.UUID.fromString(id));
+                if (clan != null) out.add(clan);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        if (out.isEmpty()) return Core.getClanData().listTop(limit);
+        return out;
     }
 }

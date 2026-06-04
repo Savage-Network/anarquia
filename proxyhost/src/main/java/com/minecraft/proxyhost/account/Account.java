@@ -9,6 +9,7 @@ import com.minecraft.proxyhost.account.context.objects.tag.Tag;
 import com.minecraft.proxyhost.account.context.objects.tag.TagRole;
 import com.minecraft.proxyhost.account.context.objects.title.CustomTitle;
 import com.minecraft.proxyhost.account.context.objects.toggle.TagPrefix;
+import com.minecraft.proxyhost.account.context.objects.punishment.PunishmentHistory;
 import com.minecraft.proxyhost.account.context.objects.toggle.Toggle;
 import com.velocitypowered.api.proxy.Player;
 import lombok.Getter;
@@ -130,6 +131,10 @@ public class Account {
 
     public boolean isVIP() { return hasRank(RankType.VIP); }
     public boolean isStaffer() { return getRankType().isStaff(); }
+
+    public PunishmentHistory getHistory() {
+        return context.getHistory();
+    }
 
     public boolean isAllowColoredChat() {
         return isVIP() && !isFake();

@@ -5,6 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.minecraft.lobbyhost.account.AccountController;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
+import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
+import com.minecraft.lobbyhost.backend.data.PunishmentData;
+import com.minecraft.lobbyhost.backend.data.ReportData;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
 import lombok.Getter;
@@ -37,6 +40,9 @@ public final class Core {
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
     @Getter @Setter private static ClanData clanData;
+    @Getter @Setter private static NetworkStatsData networkStatsData;
+    @Getter @Setter private static ReportData reportData;
+    @Getter @Setter private static PunishmentData punishmentData;
 
     public static void load(LobbyHostPlugin plugin) {
         javaPlugin = plugin;

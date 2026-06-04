@@ -1,26 +1,30 @@
 package com.minecraft.lobbyhost.bukkit.lobby;
 
+import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Material;
 
 /**
- * Modos de visibilidade de jogadores no hub (espelho do Savage).
+ * Modos de visibilidade de jogadores no hub.
  */
 public enum PlayerVisibilityMode {
 
-    ALL("§a§lVisibilidade §8| §fTodos", Material.LIME_DYE),
-    FRIENDS_ONLY("§e§lVisibilidade §8| §fAmigos", Material.YELLOW_DYE),
-    NONE("§c§lVisibilidade §8| §fNinguem", Material.GRAY_DYE);
+    ALL(ModernText.gradient("Visibilidade", ModernText.SUCCESS, "#86EFAC") + " <#64748B>| <#F1F5F9>Todos",
+            Material.LIME_DYE),
+    FRIENDS_ONLY(ModernText.gradient("Visibilidade", ModernText.WARN, "#FDE68A") + " <#64748B>| <#F1F5F9>Amigos",
+            Material.YELLOW_DYE),
+    NONE(ModernText.gradient("Visibilidade", ModernText.ERROR, "#FCA5A5") + " <#64748B>| <#F1F5F9>Ninguém",
+            Material.GRAY_DYE);
 
-    private final String displayName;
+    private final String displayNameMini;
     private final Material material;
 
-    PlayerVisibilityMode(String displayName, Material material) {
-        this.displayName = displayName;
+    PlayerVisibilityMode(String displayNameMini, Material material) {
+        this.displayNameMini = displayNameMini;
         this.material = material;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getDisplayNameMini() {
+        return displayNameMini;
     }
 
     public Material getMaterial() {

@@ -19,8 +19,17 @@ public class Toggle {
     private boolean showStats = true;
     private boolean showClanTag = true;
     private boolean allowJoinMessage = true;
+    /** Se false, o jogador nao pode falar no lobby. */
+    private boolean allowLobbyChat = true;
     private boolean staffChat = false;
     private boolean autoVanish = false;
+
+    /** Anticheat / combate — preferencias do jogador. */
+    private boolean acShowCombatTag = true;
+    private boolean acNotifyOnFlag = false;
+    /** Staff: alertas de deteccao do anticheat. */
+    private boolean acStaffAlerts = true;
+    private boolean acStaffVerbose = false;
 
     private TagPrefix tagPrefix = TagPrefix.DEFAULT;
 }

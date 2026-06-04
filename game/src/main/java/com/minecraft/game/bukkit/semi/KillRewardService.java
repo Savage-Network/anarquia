@@ -2,6 +2,7 @@ package com.minecraft.game.bukkit.semi;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.backend.sync.NetworkStatsSync;
 import com.minecraft.game.account.context.objects.stats.GameStats;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -78,6 +79,8 @@ public final class KillRewardService {
 
         killerAcc.markDirty();
         victimAcc.markDirty();
+        NetworkStatsSync.syncPlayer(killerAcc);
+        NetworkStatsSync.syncPlayer(victimAcc);
 
         if (kStats.getKillStreak() >= 5) {
             Bukkit.broadcast(net.kyori.adventure.text.Component.text(

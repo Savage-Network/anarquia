@@ -115,7 +115,8 @@ public final class ProxySettingsManager {
 
     public void resetMotd() {
         motdLine1 = "&6&lSAVAGE &7| &fSemi-Anarquia";
-        motdLine2 = "&7Jogue agora — &6loja.savage.com.br";
+        motdLine2 = "&7" + com.minecraft.proxyhost.ProxySettings.SERVER_ADDRESS
+                + " &8| &6" + com.minecraft.proxyhost.ProxySettings.SERVER_STORE_URL;
         save();
     }
 

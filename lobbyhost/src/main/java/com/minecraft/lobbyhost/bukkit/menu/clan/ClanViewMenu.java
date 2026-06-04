@@ -18,7 +18,7 @@ public final class ClanViewMenu extends Menu {
     private final Clan clan;
 
     public ClanViewMenu(Player player, Account account, Clan clan, Menu parent) {
-        super(player, "§8§lClã §7| §f" + clan.getName(), 4, parent);
+        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle(clan.getName()), 4, parent);
         this.account = account;
         this.clan = clan;
     }

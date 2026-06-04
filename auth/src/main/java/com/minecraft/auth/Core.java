@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.auth.account.AccountController;
 import com.minecraft.auth.backend.data.AccountData;
+import com.minecraft.auth.backend.data.AuthData;
 import com.minecraft.auth.backend.database.HikariProvider;
 import com.minecraft.auth.backend.redis.RedisProvider;
 import lombok.Getter;
@@ -35,6 +36,7 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static AuthData authData;
 
     public static void load(AuthPlugin plugin) {
         javaPlugin = plugin;

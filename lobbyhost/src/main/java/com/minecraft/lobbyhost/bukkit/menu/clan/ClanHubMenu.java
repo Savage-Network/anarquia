@@ -24,7 +24,7 @@ public final class ClanHubMenu extends Menu {
     private final Account account;
 
     public ClanHubMenu(Player player, Account account) {
-        super(player, "§8§lClãs §7| §fPainel", 5, null);
+        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle("Clãs"), 5, null);
         this.account = account;
     }
 

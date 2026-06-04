@@ -4,11 +4,16 @@ import com.minecraft.lobbyhost.account.AccountController;
 import com.minecraft.lobbyhost.architect.ArchitectLoader;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
+import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
+import com.minecraft.lobbyhost.backend.sync.StatsBackfillService;
+import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
 import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
 import com.minecraft.lobbyhost.Constant;
+import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
-import com.minecraft.lobbyhost.redis.AccountRedisListener;
+import com.minecraft.lobbyhost.redis.LobbyRedisSubscriber;
+import com.minecraft.lobbyhost.network.NetworkPollTask;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.bukkit.listener.handler.ListenerHandler;
@@ -72,7 +77,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
             redis.init();
             Core.setRedis(redis);
             if (redis.isEnabled()) {
-                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+                redis.subscribe(new LobbyRedisSubscriber(this), Constant.REDIS_CHANNELS);
+                new NetworkPollTask().runTaskTimerAsynchronously(this,
+                        LobbySettings.NETWORK_POLL_TICKS, LobbySettings.NETWORK_POLL_TICKS);
             }
 
             // 3) Data layers
@@ -83,6 +90,20 @@ public final class LobbyHostPlugin extends JavaPlugin {
             ClanData clanData = new ClanData(database);
             clanData.createTables();
             Core.setClanData(clanData);
+
+            NetworkStatsData networkStatsData = new NetworkStatsData(database);
+            networkStatsData.createTables();
+            Core.setNetworkStatsData(networkStatsData);
+
+            com.minecraft.lobbyhost.backend.data.ReportData reportData =
+                    new com.minecraft.lobbyhost.backend.data.ReportData(database);
+            reportData.createTables();
+            Core.setReportData(reportData);
+
+            com.minecraft.lobbyhost.backend.data.PunishmentData punishmentData =
+                    new com.minecraft.lobbyhost.backend.data.PunishmentData(database);
+            punishmentData.createTables();
+            Core.setPunishmentData(punishmentData);
 
             // 4) Controllers
             Core.setAccountController(new AccountController());
@@ -103,7 +124,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
             // 7) Tag/medal/chat - Fase 2
             TagManager.startAnimationTask(this);
-            AboveNameDisplay.startFollowTask(this);
+            AboveNameDisplay.init(this);
             com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.init();
 
             // 8) Discord hologram (TextDisplay 1.21)
@@ -120,6 +141,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
             // 10) Reload de contas dos online
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->
                     Core.getAccountController().load(p.getUniqueId(), p.getName())));
+
+            StatsBackfillService.runAsync();
+            LeaderboardCache.refreshAll();
 
             getLogger().info("Plugin lobbyhost habilitado em "
                     + (System.currentTimeMillis() - start) + "ms.");

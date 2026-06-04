@@ -7,6 +7,8 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.AccountController;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyScoreboard;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyTabList;
+import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
+import com.minecraft.lobbyhost.LobbySettings;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -22,6 +24,7 @@ public final class TaskManager {
     private BukkitTask autoSaveTask;
     private BukkitTask sidebarTask;
     private BukkitTask tabListTask;
+    private BukkitTask leaderboardTask;
 
     public void start() {
         long sidebarTicks = LobbySettings.SIDEBAR_UPDATE_TICKS;
@@ -31,6 +34,10 @@ public final class TaskManager {
         long tabTicks = LobbySettings.TABLIST_UPDATE_TICKS;
         tabListTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 LobbyTabList::refreshAll, tabTicks, tabTicks);
+
+        long lbTicks = LobbySettings.LEADERBOARD_REFRESH_TICKS;
+        leaderboardTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
+                LeaderboardCache::refreshAll, lbTicks, lbTicks);
         // Auto-save a cada 5 minutos (apenas contas dirty)
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
@@ -59,6 +66,9 @@ public final class TaskManager {
         }
         if (tabListTask != null && !tabListTask.isCancelled()) {
             tabListTask.cancel();
+        }
+        if (leaderboardTask != null && !leaderboardTask.isCancelled()) {
+            leaderboardTask.cancel();
         }
     }
 }

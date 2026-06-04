@@ -3,8 +3,8 @@ package com.minecraft.lobbyhost.display;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
+import com.minecraft.lobbyhost.util.ModernText;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -50,11 +50,15 @@ public final class DiscordHologramManager {
         double z = cfg.getDouble("z", LobbySettings.DEFAULT_SPAWN_Z);
         String url = LobbySettings.DISCORD_URL;
 
-        Location top = new Location(world, x, y + 0.3, z);
-        Location bottom = new Location(world, x, y, z);
-
-        spawned.add(spawnLine(top, Component.text("DISCORD", NamedTextColor.LIGHT_PURPLE)));
-        spawned.add(spawnLine(bottom, Component.text(url, NamedTextColor.AQUA)));
+        spawned.add(spawnLine(new Location(world, x, y + 0.9, z),
+                ModernText.parse("<!italic><gradient:#C084FC:#818CF8><bold>DISCORD</bold></gradient>")));
+        spawned.add(spawnLine(new Location(world, x, y + 0.6, z),
+                ModernText.parse("<!italic><#38BDF8>" + url)));
+        spawned.add(spawnLine(new Location(world, x, y + 0.3, z),
+                ModernText.parse("<!italic><" + ModernText.BRAND_B + ">" + LobbySettings.SERVER_ADDRESS)));
+        spawned.add(spawnLine(new Location(world, x, y, z),
+                ModernText.parse("<!italic><#94A3B8>Loja <" + ModernText.BRAND_B + ">"
+                        + LobbySettings.SERVER_STORE_URL)));
 
         Core.getLogger().info("[DiscordHologram] " + spawned.size() + " linhas em " + worldName
                 + " (" + x + "," + y + "," + z + ")");

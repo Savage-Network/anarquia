@@ -7,6 +7,8 @@ anarquia/                          ← rootProject.name = "anarquia"
 ├── settings.gradle.kts            ← :game, :auth, :lobbyhost, :eventos, :proxyhost
 ├── build.gradle.kts               ← tasks buildAll / cleanAll
 ├── gradlew / gradlew.bat
+├── api/            → API Node.js (MySQL, leitura pública)
+├── discord-bot/    → Bot Discord Node.js (webhooks + slash)
 ├── savage/                        ← Savage 1.8 original (referência; monorepo próprio)
 ├── game/           → game.jar
 ├── auth/           → auth.jar

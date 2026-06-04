@@ -44,7 +44,7 @@ public final class AuthRoutingService {
         }
 
         boolean trustSaved = cfg.getBoolean("routing.trust-saved-auth", true);
-        if (trustSaved && account != null && hasCompletedAuth(account)) {
+        if (trustSaved && account != null && hasCompletedAuth(account, player.getUniqueId())) {
             if (logRouting) {
                 log.info("[routing] {} -> {} (pirata ja autenticado no banco)", player.getUsername(), lobbyServer);
             }
@@ -77,13 +77,14 @@ public final class AuthRoutingService {
         }
     }
 
-    private static boolean hasCompletedAuth(Account account) {
+    private static boolean hasCompletedAuth(Account account, java.util.UUID playerId) {
+        if (Core.getPlayerAuthData() != null && Core.getPlayerAuthData().isRegistered(playerId)) {
+            return true;
+        }
         var auth = account.getContext().getAuth();
         if (auth == null) return false;
         AuthState state = auth.getState();
-        String password = auth.getPassword();
-        boolean hasPassword = password != null && !password.isEmpty();
-        return hasPassword && (state == AuthState.OK || state == AuthState.LOGIN);
+        return state == AuthState.LOGIN || state == AuthState.OK;
     }
 
     public record RoutingDecision(String serverName, RoutingReason reason) {}

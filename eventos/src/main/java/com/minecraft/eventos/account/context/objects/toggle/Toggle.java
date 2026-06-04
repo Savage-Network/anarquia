@@ -22,5 +22,10 @@ public class Toggle {
     private boolean staffChat = false;
     private boolean autoVanish = false;
 
+    private boolean acShowCombatTag = true;
+    private boolean acNotifyOnFlag = false;
+    private boolean acStaffAlerts = true;
+    private boolean acStaffVerbose = false;
+
     private TagPrefix tagPrefix = TagPrefix.DEFAULT;
 }

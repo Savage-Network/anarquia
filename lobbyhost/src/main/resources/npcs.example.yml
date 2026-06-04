@@ -52,7 +52,7 @@ definitions:
       player: _jeb
     action:
       type: MESSAGE
-      value: "&aVisite nosso Discord: discord.gg/savagemc"
+      value: "&aDiscord: &bdiscord.gg/savagemc &8| &esavagemc.net &8| &6loja.savagemc.net"
 
   # ========== NPC PEQUENO (0.75x - DISCRETO) ==========
   npc_loja_cosmeticos:

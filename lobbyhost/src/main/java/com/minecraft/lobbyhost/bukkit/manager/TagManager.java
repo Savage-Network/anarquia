@@ -109,9 +109,18 @@ public final class TagManager {
         return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
     }
 
+    /** Nick puro para nametag empilhado (sem cla — cla vai em linha propria). */
     public static String formatNametagNickLine(Account account) {
         if (account == null) return "";
-        return "§f" + account.getNickname() + suffixOf(account);
+        return "§f" + account.getNickname();
+    }
+
+    public static String formatNametagClanLine(Account account) {
+        if (account == null || account.getToggle() == null || !account.getToggle().isShowClanTag()) {
+            return "";
+        }
+        if (!account.hasClan() || account.getClan() == null) return "";
+        return com.minecraft.lobbyhost.api.clan.ClanTagFormatter.formatBracketed(account.getClan());
     }
 
     public static void updateTag(Account account, Tag newTag) {

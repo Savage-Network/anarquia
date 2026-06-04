@@ -1,8 +1,6 @@
 package com.minecraft.lobbyhost.bukkit.lobby;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,10 +11,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.List;
 
 /**
- * Hotbar padrao do lobby - espelho de {@code Architect.handleHotbar} do Savage.
- *
- * <p>Slot 0 navegacao, 1 cosmeticos, 4 perfil, 7 visibilidade, 8 missoes.
- * Itens sao identificados via PDC nos listeners para abrir o menu correto.
+ * Hotbar padrao do lobby.
  */
 public final class HotbarLayout {
 
@@ -30,37 +25,49 @@ public final class HotbarLayout {
         PlayerInventory inv = player.getInventory();
         inv.clear();
 
-        inv.setItem(0, item(Material.COMPASS, "§a§lServidores",
-                List.of("§7Semi Anarquia e Eventos", "§eClique direito"), PDC_COMPASS));
-        inv.setItem(1, item(Material.NETHER_STAR, "§e§lCosmeticos", List.of("§7Clique direito"), PDC_COSMETIC));
-        
-        // Gadget ativo (Slot 2)
-        com.minecraft.lobbyhost.account.Account account = com.minecraft.lobbyhost.Core.getAccountController().of(player.getUniqueId());
+        inv.setItem(0, item(Material.MAP,
+                ModernText.gradient("Servidores", ModernText.SUCCESS, ModernText.ACCENT_A),
+                List.of(
+                        ModernText.mini("Semi Anarquia e Eventos"),
+                        ModernText.action("Clique direito")
+                ), PDC_COMPASS));
+        inv.setItem(1, item(Material.NETHER_STAR,
+                ModernText.brandGradient("Cosméticos"),
+                List.of(ModernText.action("Clique direito")), PDC_COSMETIC));
+
+        com.minecraft.lobbyhost.account.Account account =
+                com.minecraft.lobbyhost.Core.getAccountController().of(player.getUniqueId());
         if (account != null) {
-            com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget gadget = account.getActiveGadget();
+            var gadget = account.getActiveGadget();
             if (gadget != null) {
-                inv.setItem(2, item(gadget.getMaterial(), "§d§l" + gadget.getDisplayName(), 
-                        List.of("§7Clique direito para usar!", "§7Recarga: §f" + (gadget.getCooldownMs() / 1000.0) + "s"), "lobby_gadget"));
+                inv.setItem(2, item(gadget.getMaterial(),
+                        ModernText.gradient(gadget.getDisplayName(), "#C084FC", "#F472B6"),
+                        List.of(
+                                ModernText.action("Clique direito para usar"),
+                                ModernText.mini("Recarga: " + (gadget.getCooldownMs() / 1000.0) + "s")
+                        ), "lobby_gadget"));
             }
         }
 
-        inv.setItem(4, skull(player, "§b§lPerfil", List.of("§7Clique direito"), PDC_PROFILE));
+        inv.setItem(4, skull(player,
+                ModernText.gradient("Perfil", ModernText.ACCENT_A, ModernText.ACCENT_B),
+                List.of(ModernText.action("Clique direito")), PDC_PROFILE));
         var vis = PlayerVisibilityService.get(player);
-        inv.setItem(7, item(vis.getMaterial(), vis.getDisplayName(),
-                List.of("§7Clique para alternar"), PDC_VISIBILITY));
-        inv.setItem(8, item(Material.CHEST, "§6§lMissoes", List.of("§7Clique direito"), PDC_MISSION));
+        inv.setItem(7, item(vis.getMaterial(), vis.getDisplayNameMini(),
+                List.of(ModernText.mini("Clique para alternar")), PDC_VISIBILITY));
+        inv.setItem(8, item(Material.CHEST,
+                ModernText.brandGradient("Missões"),
+                List.of(ModernText.action("Clique direito")), PDC_MISSION));
 
         inv.setHeldItemSlot(0);
         player.updateInventory();
     }
 
-    private static ItemStack item(Material material, String name, List<String> lore, String pdcKey) {
+    private static ItemStack item(Material material, String miniName, List<String> miniLore, String pdcKey) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(Component.text(name).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore.stream().map(l -> (Component) Component.text(l)
-                .color(NamedTextColor.GRAY)
-                .decoration(TextDecoration.ITALIC, false)).toList());
+        meta.displayName(ModernText.noItalic(ModernText.parse(miniName)));
+        meta.lore(miniLore.stream().map(l -> ModernText.noItalic(ModernText.parse(l))).toList());
         meta.getPersistentDataContainer().set(
                 HotbarKeys.SLOT_KEY,
                 org.bukkit.persistence.PersistentDataType.STRING,
@@ -69,14 +76,12 @@ public final class HotbarLayout {
         return stack;
     }
 
-    private static ItemStack skull(Player owner, String name, List<String> lore, String pdcKey) {
+    private static ItemStack skull(Player owner, String miniName, List<String> miniLore, String pdcKey) {
         ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) stack.getItemMeta();
         meta.setOwningPlayer(owner);
-        meta.displayName(Component.text(name).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore.stream().map(l -> (Component) Component.text(l)
-                .color(NamedTextColor.GRAY)
-                .decoration(TextDecoration.ITALIC, false)).toList());
+        meta.displayName(ModernText.noItalic(ModernText.parse(miniName)));
+        meta.lore(miniLore.stream().map(l -> ModernText.noItalic(ModernText.parse(l))).toList());
         meta.getPersistentDataContainer().set(
                 HotbarKeys.SLOT_KEY,
                 org.bukkit.persistence.PersistentDataType.STRING,

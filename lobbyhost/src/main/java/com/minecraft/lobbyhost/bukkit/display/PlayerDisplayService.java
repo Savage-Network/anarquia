@@ -27,5 +27,6 @@ public final class PlayerDisplayService {
         TagManager.updateTag(account);
         TagManager.updateAllForViewer(player);
         AboveNameDisplay.refresh(player);
+        AboveNameDisplay.refreshAllForViewer(player);
     }
 }

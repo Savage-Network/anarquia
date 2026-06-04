@@ -1,4 +1,4 @@
-# auth.jar — apenas infraestrutura. Regras em AuthSettings.java
+# auth.jar — credenciais na tabela player_auth (nao no JSON accounts)
 # Dev: -Dsavage.dev.bypass-auth=true
 
 database:

@@ -1,7 +1,9 @@
 package com.minecraft.auth.redis;
 
 import com.minecraft.auth.AuthPlugin;
+import com.minecraft.auth.Constant;
 import com.minecraft.auth.Core;
+import net.kyori.adventure.text.Component;
 import com.minecraft.auth.account.Account;
 import com.minecraft.auth.bukkit.manager.PermissionManager;
 import org.bukkit.Bukkit;
@@ -21,6 +23,15 @@ public final class AccountRedisListener extends JedisPubSub {
 
     @Override
     public void onMessage(String channel, String message) {
+        if (Constant.REDIS_NETWORK_ALERT_CHANNEL.equals(channel)) {
+            String[] parts = message.split("\\|", 2);
+            String body = parts.length >= 2 ? parts[1] : message;
+            String title = parts.length >= 2 ? parts[0] : Constant.SERVER_NAME;
+            Component c = Component.text("§6§l" + title + " §8» §f" + body.replace('&', '§'));
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(c)));
+            return;
+        }
         try {
             UUID id = UUID.fromString(message.trim());
             Account online = Core.getAccountController().of(id);

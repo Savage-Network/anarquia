@@ -7,11 +7,13 @@ import com.minecraft.lobbyhost.bukkit.lobby.HotbarLayout;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
 import com.minecraft.lobbyhost.bukkit.menu.LobbyMenus;
 import org.bukkit.Sound;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.concurrent.TimeUnit;
@@ -21,16 +23,27 @@ import java.util.concurrent.TimeUnit;
  */
 public final class HotbarInteractListener implements Listener {
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInteract(PlayerInteractEvent event) {
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
+        EquipmentSlot hand = event.getHand();
+        if (hand == null || hand == EquipmentSlot.OFF_HAND) return;
+
         ItemStack item = event.getItem();
+        if (item == null || item.getType().isAir()) {
+            item = event.getPlayer().getInventory().getItemInMainHand();
+        }
         String slot = HotbarKeys.readSlot(item);
         if (slot == null) return;
 
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+        }
+        event.setUseItemInHand(Event.Result.ALLOW);
         event.setCancelled(true);
+
         var player = event.getPlayer();
 
         switch (slot) {
@@ -52,8 +65,16 @@ public final class HotbarInteractListener implements Listener {
         }
         var mode = PlayerVisibilityService.cycle(player);
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1.2f);
-        player.sendMessage(net.kyori.adventure.text.Component.text(
-                "§7Visibilidade: " + mode.getDisplayName()));
+        Account acc = com.minecraft.lobbyhost.Core.getAccountController().of(player.getUniqueId());
+        int friends = acc != null
+                ? com.minecraft.lobbyhost.social.FriendService.countFriendsOnlineInLobby(acc) : 0;
+        String extra = friends > 0
+                ? " <#64748B>(<" + com.minecraft.lobbyhost.util.ModernText.SUCCESS + ">"
+                + friends + " amigo(s)<#64748B>)"
+                : "";
+        player.sendMessage(com.minecraft.lobbyhost.util.ModernText.parse(
+                com.minecraft.lobbyhost.util.ModernText.mini("Visibilidade: ")
+                        + mode.getDisplayNameMini() + extra));
         if (account != null) {
             long seconds = com.minecraft.lobbyhost.LobbySettings.VISIBILITY_COOLDOWN_SECONDS;
             account.setCooldown(Constant.PLAYERS_VISIBILITY_COOLDOWN_KEY,
