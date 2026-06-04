@@ -1,0 +1,27 @@
+# Precos de venda ao servidor (/sell) — por unidade
+prices:
+  COBBLESTONE: 2
+  DEEPSLATE: 3
+  OAK_LOG: 4
+  SPRUCE_LOG: 4
+  BIRCH_LOG: 4
+  SAND: 3
+  GRAVEL: 2
+  COAL: 8
+  RAW_IRON: 12
+  IRON_INGOT: 18
+  RAW_GOLD: 25
+  GOLD_INGOT: 35
+  DIAMOND: 85
+  EMERALD: 70
+  NETHERITE_SCRAP: 120
+  BLAZE_ROD: 15
+  BONE: 3
+  ROTTEN_FLESH: 2
+  ENDER_PEARL: 40
+  GOLDEN_APPLE: 45
+  ARROW: 1
+  WHEAT: 2
+  CARROT: 3
+  POTATO: 3
+  COOKED_BEEF: 5

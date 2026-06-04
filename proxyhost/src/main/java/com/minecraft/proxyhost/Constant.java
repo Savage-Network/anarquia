@@ -38,6 +38,7 @@ public final class Constant {
     public static final String REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL = "account-global-message-channel";
     public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
     public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
+    public static final String REDIS_PROXY_SETTINGS_CHANNEL = "proxy-settings-channel";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,

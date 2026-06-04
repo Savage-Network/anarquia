@@ -31,7 +31,7 @@ public final class HikariProvider {
     }
 
     public void init() {
-        String raw = config.getString("database.type", "SQLITE");
+        String raw = config.getString("database.type", "MYSQL");
         this.type = DatabaseType.valueOf(raw.toUpperCase());
 
         HikariConfig hikari = new HikariConfig();

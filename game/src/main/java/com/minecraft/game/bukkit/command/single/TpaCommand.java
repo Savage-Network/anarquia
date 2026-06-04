@@ -6,6 +6,7 @@ import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.manager.TeleportManager;
 import com.minecraft.game.bukkit.manager.TeleportRequest;
 import com.minecraft.game.bukkit.manager.TeleportRequestType;
@@ -33,6 +34,11 @@ public final class TpaCommand implements CommandInheritor {
         }
 
         Player sender = ctx.player();
+        if (CombatTagManager.isTagged(sender)) {
+            ctx.reply(CombatTagManager.blockedMessage(sender));
+            return;
+        }
+
         Player target = Bukkit.getPlayer(ctx.getArgs()[0]);
 
         if (target == null || !target.isOnline()) {
@@ -45,7 +51,6 @@ public final class TpaCommand implements CommandInheritor {
             return;
         }
 
-        // Cooldown de comando de tpa (5s)
         if (account.hasCooldown("tpa-cmd")) {
             long left = account.getCooldownRemaining("tpa-cmd");
             ctx.reply("§cAguarde " + String.format("%.1f", left / 1000.0) + "s para enviar outro pedido de teleporte.");
@@ -80,6 +85,11 @@ public final class TpaCommand implements CommandInheritor {
         }
 
         Player sender = ctx.player();
+        if (CombatTagManager.isTagged(sender)) {
+            ctx.reply(CombatTagManager.blockedMessage(sender));
+            return;
+        }
+
         Player target = Bukkit.getPlayer(ctx.getArgs()[0]);
 
         if (target == null || !target.isOnline()) {
@@ -92,7 +102,6 @@ public final class TpaCommand implements CommandInheritor {
             return;
         }
 
-        // Cooldown de comando de tpa (5s)
         if (account.hasCooldown("tpa-cmd")) {
             long left = account.getCooldownRemaining("tpa-cmd");
             ctx.reply("§cAguarde " + String.format("%.1f", left / 1000.0) + "s para enviar outro pedido de teleporte.");
@@ -119,6 +128,10 @@ public final class TpaCommand implements CommandInheritor {
     @Command(name = "tpaccept", aliases = {"tpaceitar"}, playerOnly = true, description = "Aceita uma solicitação de teleporte pendente", usage = "/tpaccept [jogador]")
     public void tpaccept(BukkitCommandContext ctx) {
         Player target = ctx.player();
+        if (CombatTagManager.isTagged(target)) {
+            ctx.reply(CombatTagManager.blockedMessage(target));
+            return;
+        }
         TeleportRequest request;
 
         if (ctx.getArgs().length == 0) {
@@ -144,6 +157,10 @@ public final class TpaCommand implements CommandInheritor {
         if (sender == null || !sender.isOnline()) {
             ctx.reply("§cO remetente do teleporte está offline.");
             TeleportManager.removeRequest(request);
+            return;
+        }
+        if (CombatTagManager.isTagged(sender)) {
+            ctx.reply("§cO jogador esta em combate.");
             return;
         }
 

@@ -2,6 +2,7 @@ package com.minecraft.game.bukkit.command.single;
 
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import org.bukkit.Bukkit;
@@ -25,6 +26,11 @@ public final class RtpCommand implements CommandInheritor {
         if (account == null) { ctx.reply("§cConta nao carregada."); return; }
 
         Player player = ctx.player();
+
+        if (CombatTagManager.isTagged(player)) {
+            ctx.reply(CombatTagManager.blockedMessage(player));
+            return;
+        }
 
         // Cooldown de 30 segundos (Staff/Op isento)
         if (!player.isOp() && account.hasCooldown("rtp-cmd")) {

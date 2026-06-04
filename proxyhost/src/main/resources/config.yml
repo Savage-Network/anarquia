@@ -15,15 +15,16 @@ dev:
   enabled: false
 
 database:
-  type: "SQLITE"  # MYSQL | SQLITE
-  sqlite-file: "proxyhost.db"
+  type: MYSQL
   mysql:
-    host: "127.0.0.1"
+    host: mysql52-farm1.kinghost.net
     port: 3306
-    database: "game"
-    username: "root"
-    password: ""
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
     pool-size: 10
+  # Dev local (quando type: SQLITE) — relativo a plugins/proxyhost/
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
   enabled: false
@@ -44,3 +45,11 @@ staffchat:
 staff-alerts:
   staff-login: true
   staff-quit: true
+
+# MOTD dinamico (editavel in-game: /proxy motd ...)
+motd:
+  default-max-display: 100
+
+# Manutencao por rank (defaults; estado real em proxy-settings.yml)
+maintenance:
+  default-min-rank: HELPER

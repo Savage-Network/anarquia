@@ -7,11 +7,14 @@ import com.minecraft.proxyhost.backend.database.HikariProvider;
 import com.minecraft.proxyhost.backend.redis.RedisProvider;
 import com.minecraft.proxyhost.config.ConfigSection;
 import com.minecraft.proxyhost.redis.RedisListener;
+import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import com.minecraft.proxyhost.velocity.command.AccountCommand;
+import com.minecraft.proxyhost.velocity.command.ProxyCommand;
 import com.minecraft.proxyhost.velocity.command.ReplyCommand;
 import com.minecraft.proxyhost.velocity.command.StaffChatCommand;
 import com.minecraft.proxyhost.velocity.command.TellCommand;
 import com.minecraft.proxyhost.velocity.listener.LoginListener;
+import com.minecraft.proxyhost.velocity.listener.ProxyPingListener;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -37,7 +40,7 @@ import java.util.Map;
         id = "proxyhost",
         name = "ProxyHost",
         version = "1.0.0",
-        description = "Proxy host (Savage anarquia) - account routing, /tell, /staffchat, /account.",
+        description = "Proxy host (Savage anarquia) - MOTD, manutencao, /tell, /staffchat, /account.",
         authors = {"savage-anarquia"}
 )
 public final class ProxyHostPlugin {
@@ -68,7 +71,24 @@ public final class ProxyHostPlugin {
         }
 
         HikariProvider database = new HikariProvider(config, dataDirectory);
-        database.init();
+        try {
+            database.init();
+        } catch (Exception mysqlError) {
+            boolean devMode = config.getBoolean("dev.enabled", false);
+            if (devMode && !"SQLITE".equalsIgnoreCase(config.getString("database.type", "MYSQL"))) {
+                logger.warn("MySQL indisponivel ({}). Tentando SQLite de dev...", mysqlError.getMessage());
+                try {
+                    database.initDevSqliteFallback();
+                } catch (Exception sqliteError) {
+                    logger.error("Falha MySQL e SQLite. MySQL: {}", mysqlError.getMessage());
+                    logger.error("SQLite: {}", sqliteError.getMessage(), sqliteError);
+                    return;
+                }
+            } else {
+                logger.error("Falha ao conectar banco de dados: {}", mysqlError.getMessage(), mysqlError);
+                return;
+            }
+        }
         Core.setDatabase(database);
 
         RedisProvider redis = new RedisProvider(config);
@@ -82,8 +102,12 @@ public final class ProxyHostPlugin {
         AccountController controller = new AccountController();
         Core.setAccountController(controller);
 
+        ProxySettingsManager proxySettings = new ProxySettingsManager(dataDirectory);
+        proxySettings.load();
+
         // Listeners
         proxy.getEventManager().register(this, new LoginListener());
+        proxy.getEventManager().register(this, new ProxyPingListener());
 
         // Comandos
         var cm = proxy.getCommandManager();
@@ -91,13 +115,15 @@ public final class ProxyHostPlugin {
         cm.register(cm.metaBuilder("tell").aliases("msg", "w", "pm").plugin(this).build(), new TellCommand());
         cm.register(cm.metaBuilder("reply").aliases("r").plugin(this).build(), new ReplyCommand());
         cm.register(cm.metaBuilder("staffchat").aliases("sc").plugin(this).build(), new StaffChatCommand());
+        cm.register(cm.metaBuilder("proxy").aliases("proxyadmin", "velocity").plugin(this).build(), new ProxyCommand());
 
         // Redis subscriber - tell e staffchat cross-proxy/cross-server
         if (redis.isEnabled()) {
             redis.subscribe(new RedisListener(),
                     Constant.REDIS_PROXY_TELL_CHANNEL,
                     Constant.REDIS_PROXY_STAFFCHAT_CHANNEL,
-                    Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+                    Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
+                    Constant.REDIS_PROXY_SETTINGS_CHANNEL);
         }
 
         long took = System.currentTimeMillis() - start;
@@ -106,6 +132,9 @@ public final class ProxyHostPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
+        if (ProxySettingsManager.get() != null) {
+            ProxySettingsManager.get().save();
+        }
         Core.unload();
         logger.info("proxyhost desabilitado.");
     }

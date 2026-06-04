@@ -45,20 +45,15 @@ discord:
 
 # ----- comum -----
 database:
-  type: SQLITE
-  sqlite-file: plugins/lobbyhost/lobbyhost.db
+  type: MYSQL
   mysql:
-    host: 127.0.0.1
+    host: mysql52-farm1.kinghost.net
     port: 3306
-    database: lobbyhost
-    username: root
-    password: ""
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
     pool-size: 10
-    properties:
-      useSSL: false
-      useUnicode: true
-      characterEncoding: UTF-8
-      serverTimezone: UTC
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
   enabled: false

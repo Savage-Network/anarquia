@@ -26,7 +26,8 @@ Objetivo: liberdade de sobrevivência + PvP + economia, **sem** anarquia total �
 | Conta + persistência (SQLite/MySQL) | ✅ Fase 1 |
 | Tags, medalhas, prefs, tab/nametag | ✅ Parcial (Fase 2) |
 | **Clãs** (GUI, chat `/cc`, DB compartilhado com lobby) | ✅ Implementado |
-| PvP, spawn, economia, eventos, homes, proteção | 📋 Este documento + roadmap abaixo |
+| PvP, combat tag, spawn, economia, homes, warps, bounty, kits | ✅ Base implementada no `game.jar` |
+| Eventos automáticos, proteção de base, trade | 📋 Roadmap abaixo |
 | Redis cross-server | 🔧 Infra pronta, canais a definir |
 
 ---

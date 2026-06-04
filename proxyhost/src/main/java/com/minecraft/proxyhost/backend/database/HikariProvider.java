@@ -30,13 +30,30 @@ public final class HikariProvider {
     }
 
     public void init() {
-        String raw = config.getString("database.type", "SQLITE");
+        String raw = config.getString("database.type", "MYSQL");
         this.type = DatabaseType.valueOf(raw.toUpperCase());
+        connect(buildConfig(type));
+    }
 
+    /**
+     * Quando {@code dev.enabled=true} e MySQL falha, usa SQLite compartilhado (dev/runtime/shared).
+     */
+    public void initDevSqliteFallback() {
+        this.type = DatabaseType.SQLITE;
+        connect(buildConfig(DatabaseType.SQLITE));
+        Core.getLogger().warn("Proxyhost usando SQLite de dev: {}", jdbcUrlForLog(type));
+    }
+
+    private void connect(HikariConfig hikari) {
+        this.dataSource = new HikariDataSource(hikari);
+        Core.getLogger().info("Banco de dados conectado: {} ({})", type, jdbcUrlForLog(type));
+    }
+
+    private HikariConfig buildConfig(DatabaseType dbType) {
         HikariConfig hikari = new HikariConfig();
         hikari.setPoolName("proxyhost-pool");
 
-        switch (type) {
+        switch (dbType) {
             case MYSQL -> {
                 String host = config.getString("database.mysql.host", "127.0.0.1");
                 int port = config.getInt("database.mysql.port", 3306);
@@ -59,8 +76,7 @@ public final class HikariProvider {
                 hikari.addDataSourceProperty("rewriteBatchedStatements", "true");
             }
             case SQLITE -> {
-                String relative = config.getString("database.sqlite-file", "proxyhost.db");
-                File file = dataDirectory.resolve(relative).toFile();
+                File file = resolveSqliteFile();
                 if (file.getParentFile() != null && !file.getParentFile().exists()) {
                     file.getParentFile().mkdirs();
                 }
@@ -69,9 +85,22 @@ public final class HikariProvider {
                 hikari.setMaximumPoolSize(1);
             }
         }
+        return hikari;
+    }
 
-        this.dataSource = new HikariDataSource(hikari);
-        Core.getLogger().info("Banco de dados conectado: " + type);
+    private File resolveSqliteFile() {
+        String relative = config.getString("database.sqlite-file", "../../shared/anarquia-dev.db");
+        return dataDirectory.resolve(relative).normalize().toFile();
+    }
+
+    private String jdbcUrlForLog(DatabaseType dbType) {
+        if (dbType == DatabaseType.MYSQL) {
+            String host = config.getString("database.mysql.host", "?");
+            int port = config.getInt("database.mysql.port", 3306);
+            String db = config.getString("database.mysql.database", "?");
+            return host + ":" + port + "/" + db;
+        }
+        return resolveSqliteFile().getAbsolutePath();
     }
 
     public Connection getConnection() throws SQLException {

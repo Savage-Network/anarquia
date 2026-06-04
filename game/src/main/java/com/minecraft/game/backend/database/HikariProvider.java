@@ -31,7 +31,7 @@ public final class HikariProvider {
     }
 
     public void init() {
-        String raw = config.getString("database.type", "SQLITE");
+        String raw = config.getString("database.type", "MYSQL");
         this.type = DatabaseType.valueOf(raw.toUpperCase());
 
         HikariConfig hikari = new HikariConfig();
@@ -61,7 +61,7 @@ public final class HikariProvider {
                 hikari.addDataSourceProperty("rewriteBatchedStatements", "true");
             }
             case SQLITE -> {
-                String relative = config.getString("database.sqlite-file", "plugins/game/game.db");
+                String relative = config.getString("database.sqlite-file", "../../shared/anarquia-dev.db");
                 File file = new File(relative);
                 if (!file.getParentFile().exists() && !file.getParentFile().mkdirs()) {
                     plugin.getLogger().warning("Falha ao criar diretorio para SQLite: " + file.getParent());

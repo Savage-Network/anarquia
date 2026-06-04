@@ -1,0 +1,115 @@
+# Kits do servidor semi-anarquia (recarregavel com /gamereload)
+#
+# permission: vazio = todos; ou no Bukkit (ex: game.kit.vip)
+# min-rank: rank minimo na hierarquia (MEMBER, VIP, ...)
+# cooldown-seconds: tempo entre usos do mesmo kit
+
+kits:
+  iniciante:
+    display-name: "&aKit Iniciante"
+    min-rank: MEMBER
+    permission: ""
+    cooldown-seconds: 86400
+    clear-inventory: true
+    items:
+      - material: STONE_SWORD
+        amount: 1
+        slot: 0
+      - material: STONE_PICKAXE
+        amount: 1
+        slot: 1
+      - material: STONE_AXE
+        amount: 1
+        slot: 2
+      - material: BREAD
+        amount: 16
+        slot: 8
+    armor:
+      helmet: LEATHER_HELMET
+      chestplate: LEATHER_CHESTPLATE
+      leggings: LEATHER_LEGGINGS
+      boots: LEATHER_BOOTS
+
+  pvp:
+    display-name: "&cKit PvP"
+    min-rank: MEMBER
+    permission: ""
+    cooldown-seconds: 3600
+    clear-inventory: true
+    items:
+      - material: IRON_SWORD
+        amount: 1
+        slot: 0
+        enchantments:
+          SHARPNESS: 1
+      - material: BOW
+        amount: 1
+        slot: 1
+      - material: ARROW
+        amount: 32
+        slot: 9
+      - material: GOLDEN_APPLE
+        amount: 4
+        slot: 2
+      - material: COOKED_BEEF
+        amount: 16
+        slot: 8
+    armor:
+      helmet: IRON_HELMET
+      chestplate: IRON_CHESTPLATE
+      leggings: IRON_LEGGINGS
+      boots: IRON_BOOTS
+
+  vip:
+    display-name: "&6Kit VIP"
+    min-rank: VIP
+    permission: ""
+    cooldown-seconds: 1800
+    clear-inventory: true
+    items:
+      - material: DIAMOND_SWORD
+        amount: 1
+        slot: 0
+        enchantments:
+          SHARPNESS: 2
+          UNBREAKING: 2
+      - material: DIAMOND_PICKAXE
+        amount: 1
+        slot: 1
+        enchantments:
+          EFFICIENCY: 3
+          UNBREAKING: 2
+      - material: GOLDEN_APPLE
+        amount: 8
+        slot: 2
+      - material: ENDER_PEARL
+        amount: 4
+        slot: 3
+      - material: COOKED_BEEF
+        amount: 32
+        slot: 8
+    armor:
+      helmet: DIAMOND_HELMET
+      chestplate: DIAMOND_CHESTPLATE
+      leggings: DIAMOND_LEGGINGS
+      boots: DIAMOND_BOOTS
+
+  staff:
+    display-name: "&9Kit Staff"
+    min-rank: HELPER
+    permission: ""
+    cooldown-seconds: 300
+    clear-inventory: false
+    items:
+      - material: NETHERITE_SWORD
+        amount: 1
+        slot: 0
+        enchantments:
+          SHARPNESS: 3
+          UNBREAKING: 3
+      - material: GOLDEN_APPLE
+        amount: 16
+        slot: 1
+      - material: ENDER_PEARL
+        amount: 16
+        slot: 2

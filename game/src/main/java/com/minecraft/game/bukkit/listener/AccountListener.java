@@ -59,9 +59,10 @@ public final class AccountListener implements Listener {
             }
         }
 
-        // Mensagem de join basica
         Component msg = Component.text("§e+ §a" + player.getName() + " §7entrou no servidor.");
         event.joinMessage(msg);
+
+        player.sendMessage("§6§lSEMI-ANARQUIA §7| §f/loja §7| §f/sell §7| §f/ah §7| §f/kit §7| §f/spawn");
 
         // Tab + nametag para todos os viewers (com TagPrefix individual)
         final Account loaded = account;

@@ -8,6 +8,8 @@ import com.minecraft.game.account.context.objects.clan.ClanMetadata;
 import com.minecraft.game.account.context.objects.cosmetic.CosmeticEntry;
 import com.minecraft.game.account.context.objects.fake.Fake;
 import com.minecraft.game.account.context.objects.friend.FriendMetadata;
+import com.minecraft.game.account.context.objects.home.HomeMetadata;
+import com.minecraft.game.account.context.objects.stats.GameStats;
 import com.minecraft.game.account.context.objects.joinmessage.JoinMessageMetadata;
 import com.minecraft.game.account.context.objects.medal.Medal;
 import com.minecraft.game.account.context.objects.permission.Permission;
@@ -55,6 +57,8 @@ public class AccountContext {
 
     private AuthMetadata auth = new AuthMetadata();
     private ClanMetadata clan = new ClanMetadata();
+    private GameStats gameStats = new GameStats();
+    private HomeMetadata homes = new HomeMetadata();
     private JoinMessageMetadata joinMessage = new JoinMessageMetadata();
     private ImageAuraMetadata imageAura = new ImageAuraMetadata();
 

@@ -1,0 +1,67 @@
+# Loja do servidor (GUI) — /shop ou /loja gui
+categories:
+  blocos:
+    name: "&7Blocos basicos"
+    icon: COBBLESTONE
+    slot: 10
+    items:
+      - material: COBBLESTONE
+        amount: 64
+        price: 120
+      - material: OAK_LOG
+        amount: 32
+        price: 200
+      - material: GLASS
+        amount: 32
+        price: 150
+      - material: OBSIDIAN
+        amount: 8
+        price: 800
+  comida:
+    name: "&6Comida"
+    icon: COOKED_BEEF
+    slot: 12
+    items:
+      - material: BREAD
+        amount: 16
+        price: 80
+      - material: COOKED_BEEF
+        amount: 32
+        price: 240
+      - material: GOLDEN_APPLE
+        amount: 4
+        price: 600
+  pvp:
+    name: "&cPvP"
+    icon: IRON_SWORD
+    slot: 14
+    items:
+      - material: IRON_SWORD
+        amount: 1
+        price: 350
+      - material: BOW
+        amount: 1
+        price: 280
+      - material: ARROW
+        amount: 64
+        price: 120
+      - material: ENDER_PEARL
+        amount: 4
+        price: 500
+  ferramentas:
+    name: "&bFerramentas"
+    icon: IRON_PICKAXE
+    slot: 16
+    items:
+      - material: IRON_PICKAXE
+        amount: 1
+        price: 400
+      - material: IRON_AXE
+        amount: 1
+        price: 350
+      - material: SHEARS
+        amount: 1
+        price: 100
+      - material: TORCH
+        amount: 64
+        price: 90

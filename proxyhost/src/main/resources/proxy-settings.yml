@@ -1,0 +1,20 @@
+# Configuracao dinamica do proxy (editavel in-game via /proxy).
+# Placeholders no MOTD: {online} {max} {name} {maintenance}
+
+motd:
+  line1: "&6&lSAVAGE &7| &fSemi-Anarquia"
+  line2: "&7Jogue agora — &6loja.savage.com.br"
+  max-players: -1
+  hide-sample: false
+
+maintenance:
+  enabled: false
+  min-rank: HELPER
+  motd-line1: "&c&lMANUTENCAO"
+  motd-line2: "&7Apenas staff autorizado pode entrar."
+  kick-message:
+    - "&6&lSAVAGE"
+    - ""
+    - "&cO servidor esta em manutencao."
+    - "&7Apenas membros da equipe podem entrar."
+    - "&7Volte em breve!"

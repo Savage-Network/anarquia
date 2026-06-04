@@ -8,9 +8,11 @@ routing:
 dev:
   enabled: true
 
+# Dev local: SQLite compartilhado (velocity/shared/anarquia-dev.db).
+# Se type: MYSQL falhar com dev.enabled=true, o plugin tenta este SQLite automaticamente.
 database:
   type: SQLITE
-  sqlite-file: shared/anarquia-dev.db
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
   enabled: false
@@ -20,3 +22,9 @@ tell:
 
 staffchat:
   enabled: true
+
+motd:
+  default-max-display: 100
+
+maintenance:
+  default-min-rank: HELPER

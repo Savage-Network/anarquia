@@ -3,6 +3,7 @@ package com.minecraft.proxyhost.velocity.listener;
 import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
@@ -16,6 +17,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Carrega/descarrega a {@link Account} no proxy. Decide o servidor inicial:
@@ -27,8 +29,30 @@ import java.util.Optional;
  */
 public final class LoginListener {
 
+    @Subscribe(order = PostOrder.FIRST)
+    public void onLoginMaintenance(LoginEvent event) {
+        ProxySettingsManager settings = ProxySettingsManager.get();
+        if (settings == null || !settings.isMaintenanceEnabled()) return;
+
+        Player player = event.getPlayer();
+        try {
+            Account account = Core.getAccountController()
+                    .load(player.getUniqueId(), player.getUsername())
+                    .get(10, TimeUnit.SECONDS);
+            if (!settings.canJoin(account, player)) {
+                event.setResult(LoginEvent.ComponentResult.denied(settings.maintenanceKickComponent()));
+            }
+        } catch (Exception e) {
+            Core.getLogger().warn("Manutencao: falha ao carregar conta de {}: {}",
+                    player.getUsername(), e.getMessage());
+            event.setResult(LoginEvent.ComponentResult.denied(
+                    Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE).color(NamedTextColor.RED)));
+        }
+    }
+
     @Subscribe(order = PostOrder.LATE)
     public void onLogin(LoginEvent event) {
+        if (!event.getResult().isAllowed()) return;
         Player player = event.getPlayer();
         Core.getAccountController().load(player.getUniqueId(), player.getUsername())
                 .thenAccept(account -> {

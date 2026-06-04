@@ -200,6 +200,29 @@ public class Account {
     }
 
     /* ================================================================
+     * Semi-anarquia (stats, homes)
+     * ============================================================= */
+
+    public com.minecraft.game.account.context.objects.stats.GameStats getGameStats() {
+        if (context.getGameStats() == null) {
+            context.setGameStats(new com.minecraft.game.account.context.objects.stats.GameStats());
+        }
+        return context.getGameStats();
+    }
+
+    public com.minecraft.game.account.context.objects.home.HomeMetadata getHomes() {
+        if (context.getHomes() == null) {
+            context.setHomes(new com.minecraft.game.account.context.objects.home.HomeMetadata());
+        }
+        return context.getHomes();
+    }
+
+    public double getKdr() {
+        int d = getGameStats().getDeaths();
+        return d == 0 ? getGameStats().getKills() : (double) getGameStats().getKills() / d;
+    }
+
+    /* ================================================================
      * Skin
      * ============================================================= */
 

@@ -11,21 +11,15 @@ server:
   allow-nether: true
 
 database:
-  # Tipos suportados: SQLITE, MYSQL
-  type: SQLITE
-  sqlite-file: plugins/game/game.db
+  type: MYSQL
   mysql:
-    host: 127.0.0.1
+    host: mysql52-farm1.kinghost.net
     port: 3306
-    database: game
-    username: root
-    password: ""
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
     pool-size: 10
-    properties:
-      useSSL: false
-      useUnicode: true
-      characterEncoding: UTF-8
-      serverTimezone: UTC
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
   enabled: false
@@ -61,6 +55,50 @@ cosmetics:
 economy:
   starting-balance: 1000
   currency-symbol: "$"
+
+semi-anarchy:
+  spawn:
+    world: world
+    x: 0.5
+    y: 64.0
+    z: 0.5
+    yaw: 0
+    pitch: 0
+  kill-reward-base: 200
+  kill-streak-bonus: 50
+  max-kill-streak-bonus: 200
+  home-cooldown-seconds: 30
+  home-cooldown-vip-seconds: 15
+  spawn-cooldown-seconds: 30
+  warp-cooldown-seconds: 5
+  bounty-min: 500
+  bounty-tax-percent: 10
+
+sign-shops:
+  enabled: false
+  max-price-per-unit: 1000000
+  tax-percent: 2
+  headers:
+    - "[Loja]"
+    - "[Shop]"
+  server-headers:
+    - "[LojaServer]"
+    - "[ShopServer]"
+    - "[LojaAdmin]"
+  buy-words:
+    - "Comprar"
+    - "Buy"
+    - "C"
+  sell-words:
+    - "Vender"
+    - "Sell"
+    - "V"
+
+auction:
+  max-listings: 5
+  duration-hours: 48
+  tax-percent: 5
+  listing-fee: 50
 
 discord:
   punishments-webhook: ""

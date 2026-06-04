@@ -1,0 +1,48 @@
+package com.minecraft.game.bukkit.command.single;
+
+import com.minecraft.game.account.Account;
+import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
+import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.bukkit.shop.gui.AuctionBrowseMenu;
+import com.minecraft.game.bukkit.shop.gui.ShopHubMenu;
+import com.minecraft.game.bukkit.shop.auction.AuctionManager;
+import org.bukkit.entity.Player;
+
+public final class AuctionCommand implements CommandInheritor {
+
+    @Command(name = "ah", aliases = {"leilao", "auction"}, playerOnly = true,
+            description = "Leilao entre jogadores", usage = "/ah [vender <preco>|gui]")
+    public void execute(BukkitCommandContext ctx) {
+        Account account = ctx.account().orElse(null);
+        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        Player player = ctx.player();
+
+        if (ctx.getArgs().length == 0) {
+            new AuctionBrowseMenu(player, account, new ShopHubMenu(player, account), 0).open();
+            return;
+        }
+
+        if (ctx.getArgs()[0].equalsIgnoreCase("gui")) {
+            new AuctionBrowseMenu(player, account, new ShopHubMenu(player, account), 0).open();
+            return;
+        }
+
+        if (ctx.getArgs()[0].equalsIgnoreCase("vender") || ctx.getArgs()[0].equalsIgnoreCase("sell")) {
+            if (ctx.getArgs().length < 2) {
+                ctx.reply("§cUso: /ah vender <preco>");
+                return;
+            }
+            try {
+                int price = Integer.parseInt(ctx.getArgs()[1]);
+                ctx.reply(AuctionManager.listHand(player, price));
+            } catch (NumberFormatException e) {
+                ctx.reply("§cPreco invalido.");
+            }
+            return;
+        }
+
+        ctx.reply("§7/ah §f- abrir leilao");
+        ctx.reply("§7/ah vender <preco> §f- anunciar item na mao");
+    }
+}

@@ -32,8 +32,15 @@ discord:
     z: 0.5
 
 database:
-  type: SQLITE
-  sqlite-file: shared/anarquia-dev.db
+  type: MYSQL
+  mysql:
+    host: mysql52-farm1.kinghost.net
+    port: 3306
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
+    pool-size: 10
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
   enabled: false

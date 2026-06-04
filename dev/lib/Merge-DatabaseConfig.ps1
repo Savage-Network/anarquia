@@ -24,6 +24,11 @@ $dbBody = Get-Content $DbFile -Encoding UTF8 |
     Where-Object { $_ -notmatch '^\s*#' -and $_.Trim() -ne '' } |
     ForEach-Object { "  $_" }
 
+$tipo = ($dbBody | Where-Object { $_ -match 'type:\s*(\S+)' } | ForEach-Object { $_ -replace '.*type:\s*','' }) | Select-Object -First 1
+if ($tipo -and $tipo -notin @('MYSQL', 'SQLITE')) {
+    Write-Host "[AVISO] database.yml: type deve ser MYSQL ou SQLITE (atual: $tipo)" -ForegroundColor Yellow
+}
+
 function Update-ConfigDatabase {
     param([string]$ConfigPath)
 

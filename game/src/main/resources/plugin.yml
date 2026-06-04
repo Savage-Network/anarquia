@@ -9,9 +9,9 @@ load: STARTUP
 
 commands:
   account:
-    description: Mostra informacoes da sua conta
-    usage: /account [jogador]
-    aliases: [perfil, conta]
+    description: Perfil da conta ou edicao staff (setrank)
+    usage: /account [jogador] | /account setrank <nick> <RANK>
+    aliases: [perfil, conta, a]
   tag:
     description: Lista/escolhe a sua tag
     usage: /tag [nome]
@@ -33,6 +33,10 @@ commands:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
+  kit:
+    description: Lista e recebe kits do servidor
+    usage: /kit [nome]
+    aliases: [kits]
   skin:
     description: Atualiza ou copia skin da Mojang
     usage: /skin [nick]
@@ -53,6 +57,64 @@ commands:
     description: Recarrega configuracoes do plugin
     usage: /gamereload
     permission: game.admin
+  sethome:
+    description: Define uma home
+    usage: /sethome [nome]
+  delhome:
+    description: Remove uma home
+    usage: /delhome [nome]
+  homes:
+    description: Lista suas homes
+    usage: /homes
+  home:
+    description: Teleporta para uma home
+    usage: /home [nome]
+  money:
+    description: Mostra saldo
+    usage: /money [jogador]
+    aliases: [saldo, balance, bal]
+  pay:
+    description: Transfere dinheiro
+    usage: /pay <jogador> <valor>
+  spawn:
+    description: Volta ao spawn protegido
+    usage: /spawn
+  warp:
+    description: Teleporta para um warp
+    usage: /warp <nome>
+  top:
+    description: Ranking dos jogadores online
+    usage: /top <kills|deaths|kdr|money>
+    aliases: [ranking, leaderboard]
+  bounty:
+    description: Coloca recompensa na cabeca de um jogador
+    usage: /bounty <jogador> [valor]
+    aliases: [recompensa]
+  loja:
+    description: Central de economia (GUI, placa, leilao)
+    usage: /loja [gui|placa|reload]
+    aliases: [shop, mercado]
+  sell:
+    description: Vende itens ao servidor
+    usage: /sell
+    aliases: [vender, venda]
+  ah:
+    description: Leilao entre jogadores
+    usage: /ah [vender <preco>]
+    aliases: [leilao, auction]
+  trade:
+    description: Troca segura entre jogadores
+    usage: /trade <jogador|aceitar|recusar>
+    aliases: [troca, trocar]
+  rtp:
+    description: Teleporte aleatorio
+    usage: /rtp
+  tpa:
+    description: Pedido de teleporte
+    usage: /tpa <jogador>
+  tpaccept:
+    description: Aceita teleporte
+    usage: /tpaccept [jogador]
 
 permissions:
   game.*:
@@ -68,6 +130,18 @@ permissions:
     default: false
   game.vip:
     default: false
+  game.kit.vip:
+    description: Kit VIP
+    default: false
+  game.kit.staff:
+    description: Kit Staff
+    default: false
+  game.shop.admin:
+    description: Criar lojas do servidor (estoque infinito)
+    default: op
+  game.shop.create:
+    description: Criar lojas de placa
+    default: true
 
   # tags - liberadas via LuckPerms; default false
   tag.*:

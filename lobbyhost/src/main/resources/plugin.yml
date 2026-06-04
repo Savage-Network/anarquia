@@ -37,9 +37,9 @@ commands:
     description: Abre o menu de selecao de modos
     usage: /play
   account:
-    description: Mostra informacoes da sua conta
-    usage: /account [jogador]
-    aliases: [perfil, conta]
+    description: Perfil da conta ou edicao staff (setrank)
+    usage: /account [jogador] | /account setrank <nick> <RANK>
+    aliases: [perfil, conta, a]
   tag:
     description: Lista/escolhe a sua tag
     usage: /tag [nome]

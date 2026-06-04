@@ -3,12 +3,21 @@ package com.minecraft.game;
 import com.minecraft.game.account.AccountController;
 import com.minecraft.game.backend.data.AccountData;
 import com.minecraft.game.backend.data.ClanData;
+import com.minecraft.game.backend.data.AuctionData;
+import com.minecraft.game.backend.data.SignShopData;
+import com.minecraft.game.bukkit.shop.SignShopConfig;
+import com.minecraft.game.bukkit.shop.auction.AuctionManager;
+import com.minecraft.game.bukkit.shop.catalog.SellCatalog;
+import com.minecraft.game.bukkit.shop.catalog.ServerShopCatalog;
 import com.minecraft.game.bukkit.menu.listener.MenuListener;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.backend.redis.RedisProvider;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.listener.handler.ListenerHandler;
+import com.minecraft.game.bukkit.kit.KitManager;
+import com.minecraft.game.bukkit.semi.CombatTagManager;
+import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
 import com.minecraft.game.bukkit.manager.TagManager;
 import com.minecraft.game.bukkit.manager.TaskManager;
 import lombok.Getter;
@@ -68,12 +77,35 @@ public final class GamePlugin extends JavaPlugin {
             clanData.createTables();
             Core.setClanData(clanData);
 
+            SignShopData signShopData = new SignShopData(database);
+            signShopData.createTables();
+            signShopData.loadAll();
+            Core.setSignShopData(signShopData);
+            SignShopConfig.load(this);
+
+            AuctionData auctionData = new AuctionData(database);
+            auctionData.createTables();
+            auctionData.loadAll();
+            Core.setAuctionData(auctionData);
+            AuctionManager.configure(
+                    getConfig().getInt("auction.max-listings", 5),
+                    getConfig().getInt("auction.duration-hours", 48),
+                    getConfig().getInt("auction.tax-percent", 5),
+                    getConfig().getInt("auction.listing-fee", 50));
+
+            ServerShopCatalog.load(this);
+            SellCatalog.load(this);
+
             // 4) Controllers
             Core.setAccountController(new AccountController());
 
             // 5) Task manager (save periodico)
             taskManager = new TaskManager(this);
             taskManager.start();
+
+            SemiAnarchyConfig.load(this);
+            KitManager.load(this);
+            CombatTagManager.startActionBarTask(this);
 
             TagManager.startAnimationTask(this);
             AboveNameDisplay.startFollowTask(this);
@@ -117,6 +149,13 @@ public final class GamePlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
-        getLogger().info("Configuracoes recarregadas.");
+        SemiAnarchyConfig.reload(this);
+        SignShopConfig.load(this);
+        if (Core.getSignShopData() != null) Core.getSignShopData().loadAll();
+        if (Core.getAuctionData() != null) Core.getAuctionData().loadAll();
+        ServerShopCatalog.load(this);
+        SellCatalog.load(this);
+        KitManager.load(this);
+        getLogger().info("Configuracoes, kits e semi-anarquia recarregados.");
     }
 }

@@ -3,22 +3,29 @@ server:
   mode: AUTH
 
 dev:
-  bypass-auth: true
+  bypass-auth: false
 
 auth:
-  max-attempts: 99
-  timeout-seconds: 0
-  min-password-length: 3
-  captcha-enabled: false
+  max-attempts: 5
+  timeout-seconds: 60
+  min-password-length: 4
+  use-steve-skin: true
+  captcha-enabled: true
   validation-port: 0
 
 post-login:
   target-server: lobby
-  delay-ticks: 20
+  delay-ticks: 10
 
 database:
-  type: SQLITE
-  sqlite-file: shared/anarquia-dev.db
+  type: MYSQL
+  mysql:
+    host: mysql52-farm1.kinghost.net
+    port: 3306
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
+    pool-size: 10
 
 redis:
   enabled: false

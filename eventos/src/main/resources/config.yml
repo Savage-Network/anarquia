@@ -34,11 +34,11 @@ database:
   type: SQLITE
   sqlite-file: plugins/eventos/eventos.db
   mysql:
-    host: 127.0.0.1
+    host: mysql52-farm1.kinghost.net
     port: 3306
-    database: eventos
-    username: root
-    password: ""
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
     pool-size: 10
     properties:
       useSSL: false

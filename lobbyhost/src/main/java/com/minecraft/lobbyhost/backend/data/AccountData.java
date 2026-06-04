@@ -124,4 +124,25 @@ public final class AccountData {
             }
         });
     }
+
+    public Optional<Account> loadByName(String name) {
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT id, name, data FROM accounts WHERE LOWER(name) = ? LIMIT 1")) {
+            ps.setString(1, name.toLowerCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                UUID id = UUID.fromString(rs.getString("id"));
+                String n = rs.getString("name");
+                String json = rs.getString("data");
+                AccountContext ctx = Core.GSON.fromJson(json, AccountContext.class);
+                Account account = new Account(id, n);
+                account.replaceContext(ctx != null ? ctx : new AccountContext());
+                return Optional.of(account);
+            }
+        } catch (SQLException e) {
+            Core.getLogger().severe("Erro ao carregar conta por nome " + name + ": " + e.getMessage());
+            return Optional.empty();
+        }
+    }
 }

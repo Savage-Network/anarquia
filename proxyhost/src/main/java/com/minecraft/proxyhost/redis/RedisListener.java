@@ -3,6 +3,7 @@ package com.minecraft.proxyhost.redis;
 import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import redis.clients.jedis.JedisPubSub;
@@ -30,6 +31,7 @@ public final class RedisListener extends JedisPubSub {
                 case Constant.REDIS_PROXY_TELL_CHANNEL -> onTell(message);
                 case Constant.REDIS_PROXY_STAFFCHAT_CHANNEL -> onStaffChat(message);
                 case Constant.REDIS_ACCOUNT_UPDATE_CHANNEL -> onAccountUpdate(message);
+                case Constant.REDIS_PROXY_SETTINGS_CHANNEL -> onProxySettings(message);
                 default -> Core.getLogger().debug("Redis msg ignorada do canal {}: {}", channel, message);
             }
         } catch (Throwable t) {
@@ -66,6 +68,12 @@ public final class RedisListener extends JedisPubSub {
                 p.sendMessage(formatted);
             }
         });
+    }
+
+    private void onProxySettings(String message) {
+        if (!"reload".equalsIgnoreCase(message.trim())) return;
+        ProxySettingsManager settings = ProxySettingsManager.get();
+        if (settings != null) settings.reload();
     }
 
     private void onAccountUpdate(String uuid) {
