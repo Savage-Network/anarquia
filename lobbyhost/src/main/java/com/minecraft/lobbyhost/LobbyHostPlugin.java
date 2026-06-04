@@ -99,6 +99,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
             // 7) Tag/medal/chat - Fase 2
             TagManager.startAnimationTask(this);
             AboveNameDisplay.startFollowTask(this);
+            com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.init();
 
             // 8) Discord hologram (TextDisplay 1.21)
             DiscordHologramManager.initialize();
@@ -131,6 +132,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
         DiscordHologramManager.shutdown();
         AboveNameDisplay.shutdown();
         TagManager.stopAnimationTask();
+        com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.shutdown();
 
         if (architectLoader != null) architectLoader.unload();
         if (taskManager != null) taskManager.stop();

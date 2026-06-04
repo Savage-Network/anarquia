@@ -75,9 +75,13 @@ public final class GamePlugin extends JavaPlugin {
             taskManager = new TaskManager(this);
             taskManager.start();
 
-            // 6) Tag animation + AboveName follow (Paper 1.21)
             TagManager.startAnimationTask(this);
             AboveNameDisplay.startFollowTask(this);
+
+            // 6.5) Task de limpeza de requests de teleporte expirados
+            getServer().getScheduler().runTaskTimer(this,
+                    com.minecraft.game.bukkit.manager.TeleportManager::cleanupExpiredRequests,
+                    200L, 200L);
 
             // 7) Scan automatico (igual Savage)
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");

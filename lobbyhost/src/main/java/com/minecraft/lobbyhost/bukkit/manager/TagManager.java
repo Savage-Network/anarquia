@@ -152,10 +152,19 @@ public final class TagManager {
      * ============================================================= */
 
     public static String getAdjustedPrefix(TagPrefix viewerStyle, Tag tag, UUID targetId) {
+        String titlePrefix = "";
+        com.minecraft.lobbyhost.account.Account targetAcc = com.minecraft.lobbyhost.Core.getAccountController().of(targetId);
+        if (targetAcc != null) {
+            com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle title = targetAcc.getActiveCosmeticTitle();
+            if (title != null) {
+                titlePrefix = title.getDisplayName() + " §r";
+            }
+        }
+
         if (tag.isAnimated() && !tag.getAnimationFrames().isEmpty()) {
             int state = animationState.getOrDefault(targetId, 0);
             int idx = Math.floorMod(state, tag.getAnimationFrames().size());
-            return tag.getAnimationFrames().get(idx);
+            return titlePrefix + tag.getAnimationFrames().get(idx);
         }
         if (tag.hasAlternates() && viewerStyle == TagPrefix.DEFAULT) {
             int state = animationState.getOrDefault(targetId, 0);
@@ -164,9 +173,9 @@ public final class TagManager {
                     tag.getAlternatePrefix() != null ? tag.getAlternatePrefix() : tag.getPrefix(),
                     tag.getThirdPrefix() != null ? tag.getThirdPrefix() : tag.getPrefix()
             };
-            return frames[Math.floorMod(state, frames.length)];
+            return titlePrefix + frames[Math.floorMod(state, frames.length)];
         }
-        return tag.getByPrefix(viewerStyle);
+        return titlePrefix + tag.getByPrefix(viewerStyle);
     }
 
     private static String suffixOf(Account account) {

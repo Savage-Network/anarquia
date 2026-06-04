@@ -45,7 +45,8 @@ public final class HikariProvider {
                 String pass = config.getString("database.mysql.password", "");
                 int pool = config.getInt("database.mysql.pool-size", 10);
 
-                hikari.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + db);
+                hikari.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + db
+                        + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
                 hikari.setUsername(user);
                 hikari.setPassword(pass);
                 hikari.setMaximumPoolSize(pool);

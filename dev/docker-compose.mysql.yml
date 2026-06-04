@@ -1,0 +1,22 @@
+# MySQL local para dev (requer Docker Desktop)
+# Subir: docker compose -f dev/docker-compose.mysql.yml up -d
+# Depois: gradlew setPlayerRank
+#        dev\APLICAR-BANCO.bat
+#        reiniciar servidores
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: anarquia-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: anarquia
+    ports:
+      - "3306:3306"
+    volumes:
+      - anarquia_mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  anarquia_mysql_data:

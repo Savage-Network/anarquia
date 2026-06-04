@@ -203,6 +203,11 @@ public class Account {
         return context.getSkin();
     }
 
+    public void setSkin(com.minecraft.lobbyhost.account.context.objects.skin.SkinMetadata skin) {
+        context.setSkin(skin != null ? skin : new com.minecraft.lobbyhost.account.context.objects.skin.SkinMetadata());
+        markDirty();
+    }
+
     /* ================================================================
      * Tag
      * ============================================================= */
@@ -520,6 +525,110 @@ public class Account {
 
     public List<String> getActiveCollectibles() { return context.getActiveCollectibles(); }
     public List<String> getFavoriteCollectibles() { return context.getFavoriteCollectibles(); }
+    public List<com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticEntry> getCollectibles() { return context.getCollectibles(); }
+
+    public com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape getActiveCape() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("cape:"))
+                .map(c -> com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape.fromId(c.substring(5)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveCape(com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape cape) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("cape:"));
+        if (cape != null) {
+            getActiveCollectibles().add("cape:" + cape.getId());
+        }
+        markDirty();
+    }
+
+    public com.minecraft.lobbyhost.account.context.objects.cosmetic.ParticleEffect getActiveParticle() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("particle:"))
+                .map(c -> com.minecraft.lobbyhost.account.context.objects.cosmetic.ParticleEffect.fromId(c.substring(9)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveParticle(com.minecraft.lobbyhost.account.context.objects.cosmetic.ParticleEffect particle) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("particle:"));
+        if (particle != null) {
+            getActiveCollectibles().add("particle:" + particle.getId());
+        }
+        markDirty();
+    }
+
+    public com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle getActiveCosmeticTitle() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("title:"))
+                .map(c -> com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle.fromId(c.substring(6)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveCosmeticTitle(com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle title) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("title:"));
+        if (title != null) {
+            getActiveCollectibles().add("title:" + title.getId());
+        }
+        markDirty();
+    }
+
+    public com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget getActiveGadget() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("gadget:"))
+                .map(c -> com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget.fromId(c.substring(7)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveGadget(com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget gadget) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("gadget:"));
+        if (gadget != null) {
+            getActiveCollectibles().add("gadget:" + gadget.getId());
+        }
+        markDirty();
+    }
+
+    public boolean hasCape(com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape cape) {
+        if (cape == null) return true;
+        if (hasRank(cape.getRequiredRank())) return true;
+        if (hasPermission(cape.getPermission())) return true;
+        return isUnlocked("cape:" + cape.getId());
+    }
+
+    public boolean hasParticle(com.minecraft.lobbyhost.account.context.objects.cosmetic.ParticleEffect particle) {
+        if (particle == null) return true;
+        if (hasRank(particle.getRequiredRank())) return true;
+        if (hasPermission(particle.getPermission())) return true;
+        return isUnlocked("particle:" + particle.getId());
+    }
+
+    public boolean hasCosmeticTitle(com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle title) {
+        if (title == null) return true;
+        if (hasRank(title.getRequiredRank())) return true;
+        if (hasPermission(title.getPermission())) return true;
+        return isUnlocked("title:" + title.getId());
+    }
+
+    public boolean hasGadget(com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget gadget) {
+        if (gadget == null) return true;
+        if (hasRank(gadget.getRequiredRank())) return true;
+        if (hasPermission(gadget.getPermission())) return true;
+        return isUnlocked("gadget:" + gadget.getId());
+    }
+
+    public boolean isUnlocked(String identifier) {
+        return getCollectibles().stream().anyMatch(e -> e.getIdentifier().equalsIgnoreCase(identifier));
+    }
+
+    public void unlockCosmetic(String identifier) {
+        if (!isUnlocked(identifier)) {
+            getCollectibles().add(new com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticEntry(identifier));
+            markDirty();
+        }
+    }
 
     public boolean isPremium() { return context.isPremium(); }
     public void setPremium(boolean premium) { context.setPremium(premium); markDirty(); }

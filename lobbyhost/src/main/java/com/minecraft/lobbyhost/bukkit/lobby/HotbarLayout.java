@@ -32,6 +32,17 @@ public final class HotbarLayout {
 
         inv.setItem(0, item(Material.COMPASS, "§a§lNavegacao", List.of("§7Clique direito"), PDC_COMPASS));
         inv.setItem(1, item(Material.NETHER_STAR, "§e§lCosmeticos", List.of("§7Clique direito"), PDC_COSMETIC));
+        
+        // Gadget ativo (Slot 2)
+        com.minecraft.lobbyhost.account.Account account = com.minecraft.lobbyhost.Core.getAccountController().of(player.getUniqueId());
+        if (account != null) {
+            com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget gadget = account.getActiveGadget();
+            if (gadget != null) {
+                inv.setItem(2, item(gadget.getMaterial(), "§d§l" + gadget.getDisplayName(), 
+                        List.of("§7Clique direito para usar!", "§7Recarga: §f" + (gadget.getCooldownMs() / 1000.0) + "s"), "lobby_gadget"));
+            }
+        }
+
         inv.setItem(4, skull(player, "§b§lPerfil", List.of("§7Clique direito"), PDC_PROFILE));
         var vis = PlayerVisibilityService.get(player);
         inv.setItem(7, item(vis.getMaterial(), vis.getDisplayName(),

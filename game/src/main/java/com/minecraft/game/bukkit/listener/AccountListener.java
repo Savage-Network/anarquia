@@ -7,6 +7,7 @@ import com.minecraft.game.api.clan.ClanSync;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.manager.PermissionManager;
 import com.minecraft.game.bukkit.manager.TagManager;
+import com.minecraft.game.bukkit.skin.SkinService;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -67,9 +68,10 @@ public final class AccountListener implements Listener {
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (player.isOnline()) {
                 PermissionManager.loadPermissions(player);
+                SkinService.refresh(loaded, player);
+                SkinService.refreshFromMojangIfStale(loaded, player);
                 ClanSync.refresh(loaded);
                 TagManager.updateTag(loaded);
-                // re-render dos demais sob o ponto de vista DESTE viewer
                 TagManager.updateAllForViewer(player);
                 AboveNameDisplay.refresh(player);
             }

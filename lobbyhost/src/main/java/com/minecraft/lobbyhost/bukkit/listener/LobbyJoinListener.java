@@ -11,6 +11,7 @@ import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
 import com.minecraft.lobbyhost.bukkit.manager.PermissionManager;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
+import com.minecraft.lobbyhost.bukkit.skin.SkinService;
 import com.minecraft.lobbyhost.bukkit.menu.LobbyMenuHolder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -69,6 +70,8 @@ public final class LobbyJoinListener implements Listener {
             PlayerVisibilityService.onPlayerJoin(player);
             Account account = Core.getAccountController().of(player.getUniqueId());
             if (account == null) return;
+            SkinService.refresh(account, player);
+            SkinService.refreshFromMojangIfStale(account, player);
             ClanSync.refresh(account);
             TagManager.updateTag(account);
             TagManager.updateAllForViewer(player);

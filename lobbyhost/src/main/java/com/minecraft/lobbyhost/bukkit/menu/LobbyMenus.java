@@ -76,15 +76,7 @@ public final class LobbyMenus {
     }
 
     public static void openCosmetics(Player player) {
-        LobbyMenuHolder holder = new LobbyMenuHolder("cosmetics");
-        Inventory inv = Bukkit.createInventory(holder, 27,
-                Component.text("Cosmeticos").color(NamedTextColor.YELLOW)
-                        .decoration(TextDecoration.ITALIC, false));
-        holder.bind(inv);
-        inv.setItem(13, labeled(Material.NETHER_STAR, "§e§lEm breve",
-                List.of("§7Cosmeticos serao adicionados", "§7na proxima fase.")));
-        inv.setItem(22, labeled(Material.BARRIER, "§cFechar", List.of()));
-        player.openInventory(inv);
+        CosmeticMenus.openMainMenu(player);
     }
 
     public static void openMissions(Player player) {

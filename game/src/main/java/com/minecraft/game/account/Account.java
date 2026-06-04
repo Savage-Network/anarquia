@@ -200,6 +200,19 @@ public class Account {
     }
 
     /* ================================================================
+     * Skin
+     * ============================================================= */
+
+    public com.minecraft.game.account.context.objects.skin.SkinMetadata getSkin() {
+        return context.getSkin();
+    }
+
+    public void setSkin(com.minecraft.game.account.context.objects.skin.SkinMetadata skin) {
+        context.setSkin(skin != null ? skin : new com.minecraft.game.account.context.objects.skin.SkinMetadata());
+        markDirty();
+    }
+
+    /* ================================================================
      * Tag
      * ============================================================= */
 

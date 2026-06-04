@@ -32,17 +32,6 @@ public enum Tag {
     /* ---------- NONE (sem rank) ---------- */
     MEMBER ("Membro", "Z", "§7",            "§7", RankType.MEMBER, TagRole.NONE),
 
-    /* ---------- COLORED (cores puras - desativadas para quem tem rank) ---------- */
-    BLUE      ("Azul",    "Y", "§9",       "§9", RankType.MEMBER, TagRole.COLORED),
-    YEL       ("Amarelo", "Y", "§e",       "§e", RankType.MEMBER, TagRole.COLORED),
-    ORAN      ("Laranja", "Y", "§6",       "§6", RankType.MEMBER, TagRole.COLORED),
-    PURP      ("Roxo",    "Y", "§5",       "§5", RankType.MEMBER, TagRole.COLORED),
-    AQUA      ("Agua",    "Y", "§b",       "§b", RankType.MEMBER, TagRole.COLORED),
-    WHIT      ("Branco",  "Y", "§f",       "§f", RankType.MEMBER, TagRole.COLORED),
-    GRAY      ("Cinza",   "Y", "§7",       "§7", RankType.MEMBER, TagRole.COLORED),
-    MASKED    ("Mascarada","Y","§8",       "§8", RankType.MEMBER, TagRole.COLORED),
-    SPECTATOR ("Espectador","Y","§8",      "§8", RankType.MEMBER, TagRole.COLORED),
-
     /* ---------- VIP ---------- */
     VIP        ("VIP",      "V", "§a§lVIP §a",          "§a", RankType.VIP,        TagRole.VIP),
     NATIVE     ("Native",   "U", "§b§lNATIVE §b",       "§b", RankType.NATIVE,     TagRole.VIP),

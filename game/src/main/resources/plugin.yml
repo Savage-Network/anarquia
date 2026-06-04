@@ -33,6 +33,10 @@ commands:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
+  skin:
+    description: Atualiza ou copia skin da Mojang
+    usage: /skin [nick]
+    aliases: [skinchanger, updateskin]
   clan:
     description: Sistema de clãs com painel GUI
     usage: /clan [subcomando]

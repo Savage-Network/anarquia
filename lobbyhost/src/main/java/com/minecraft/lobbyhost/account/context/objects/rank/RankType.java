@@ -49,6 +49,10 @@ public enum RankType {
         return isAtLeast(BUILDER);
     }
 
+    public String getDisplayName() {
+        return name().charAt(0) + name().substring(1).toLowerCase().replace('_', ' ');
+    }
+
     /** Nos aplicados no Bukkit via {@code PermissionAttachment}. */
     public java.util.List<String> getPermissionNodes() {
         java.util.List<String> nodes = new java.util.ArrayList<>();

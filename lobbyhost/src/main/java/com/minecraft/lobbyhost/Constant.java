@@ -57,6 +57,9 @@ public final class Constant {
     /** Cooldown padrao do {@code /tag} (em ms). */
     public static final long TAG_CHANGE_COOLDOWN_MS = 5_000L;
 
+    /** Cooldown do {@code /skin} (em ms). */
+    public static final long SKIN_CHANGE_COOLDOWN_MS = 30_000L;
+
     /** Cooldown do chat para nao-VIP (em ms). */
     public static final long CHAT_COOLDOWN_MS = 3_000L;
 

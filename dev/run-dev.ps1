@@ -96,6 +96,8 @@ function Sync-DevPlugins {
         $remap = Join-Path $Runtime "$srv\plugins\.paper-remapped"
         if (Test-Path $remap) { Remove-Item $remap -Recurse -Force }
     }
+
+    & (Join-Path $DevRoot "lib\Merge-DatabaseConfig.ps1") -DevRoot $DevRoot
     Write-Host "Sync OK." -ForegroundColor Green
 }
 
@@ -107,11 +109,13 @@ function Start-DevServer {
         exit 1
     }
     if (-not (Test-Path (Join-Path $fullDir "velocity.jar")) -and $Name -eq "velocity") {
-        Write-Host "Falta velocity.jar — rode setup-local.ps1" -ForegroundColor Red
+        Write-Host "Falta velocity.jar - rode setup-local.ps1" -ForegroundColor Red
         exit 1
     }
-    $logOut = Join-Path $fullDir "logs\console-live.log"
-    $logErr = Join-Path $fullDir "logs\console-live-err.log"
+    $logDir = Join-Path $fullDir "logs"
+    New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+    $logOut = Join-Path $logDir "console-live.log"
+    $logErr = Join-Path $logDir "console-live-err.log"
     if ($Name -eq "velocity") {
         $argList = @("-Xms$JAVA_XMS", "-Xmx$JAVA_XMX", "--enable-native-access=ALL-UNNAMED", "-jar", "velocity.jar")
     } else {
@@ -150,4 +154,4 @@ Start-Sleep -Seconds 10
 Write-Host ""
 Write-Host "Conecte Minecraft 1.21.1 (offline): localhost:$PORT_VELOCITY" -ForegroundColor Green
 Write-Host "Logs: dev/runtime/*/logs/console-live.log"
-Write-Host "Parar:  powershell -File dev/run-dev.ps1 -StopOnly"
+Write-Host 'Parar: powershell -File dev/run-dev.ps1 -StopOnly'
