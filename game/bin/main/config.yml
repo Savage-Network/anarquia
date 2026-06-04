@@ -1,0 +1,68 @@
+# =====================================================================
+# game.jar  -  servidor semi-anarquia (Paper 1.21)
+# =====================================================================
+
+server:
+  plugin-name: game
+  mode: GAME
+  spawn-protection-radius: 50
+  combat-tag-seconds: 15
+  allow-end: true
+  allow-nether: true
+
+database:
+  # Tipos suportados: SQLITE, MYSQL
+  type: SQLITE
+  sqlite-file: plugins/game/game.db
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database: game
+    username: root
+    password: ""
+    pool-size: 10
+    properties:
+      useSSL: false
+      useUnicode: true
+      characterEncoding: UTF-8
+      serverTimezone: UTC
+
+redis:
+  enabled: false
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  database: 0
+  ssl: false
+
+display:
+  use-text-display-nametags: true
+  nametag-offset-y: 0.35
+  max-displays-per-player: 12
+
+tags:
+  change-cooldown-seconds: 5
+  animate-staff-tags: true
+
+events:
+  enabled: true
+  auto-schedule: true
+  announce-minutes-before: 5
+
+anticheat:
+  enabled: true
+  alert-staff: true
+  discord-webhook: ""
+
+cosmetics:
+  enabled: true
+  max-image-size: 96
+
+economy:
+  starting-balance: 1000
+  currency-symbol: "$"
+
+discord:
+  punishments-webhook: ""
+  events-webhook: ""
+  anticheat-webhook: ""

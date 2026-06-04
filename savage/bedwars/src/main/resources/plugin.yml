@@ -1,0 +1,6 @@
+name: bedwars
+author: [zrfadev, desenhar, henriaum]
+version: 0.0.1
+main: com.minecraft.arcade.bedwars.BedWars
+depend:
+  - SlimeWorldManager

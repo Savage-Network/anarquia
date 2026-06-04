@@ -1,0 +1,24 @@
+server:
+  plugin-name: auth
+  mode: AUTH
+
+dev:
+  bypass-auth: true
+
+auth:
+  max-attempts: 99
+  timeout-seconds: 0
+  min-password-length: 3
+  captcha-enabled: false
+  validation-port: 0
+
+post-login:
+  target-server: lobby
+  delay-ticks: 20
+
+database:
+  type: SQLITE
+  sqlite-file: shared/anarquia-dev.db
+
+redis:
+  enabled: false

@@ -1,0 +1,6 @@
+name: pvp
+version: 0.0.1
+authors: [Gabriel Martins, Guitho]
+main: com.hish.arcade.pvp.PvP
+depend:
+  - SlimeWorldManager

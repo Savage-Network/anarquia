@@ -1,0 +1,29 @@
+{
+  "server": "HUB_HUNGERGAMES",
+  "locations": [
+    {
+      "name": "spawn",
+      "x": 0.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": 0,
+      "pitch": 0
+    },
+    {
+      "name": "npc_stats",
+      "x": 5.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": -90,
+      "pitch": 0
+    },
+    {
+      "name": "npc_solo",
+      "x": -5.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": 90,
+      "pitch": 0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+package com.minecraft.arcade.eggwars.event;
+
+import com.minecraft.arcade.eggwars.arcade.arena.Arena;
+import com.minecraft.arcade.eggwars.structure.team.Team;
+import com.minecraft.core.bukkit.event.EventHandler;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
+@Getter
+@AllArgsConstructor
+public class PlayerEggBreakEvent extends EventHandler {
+
+    private final Player player;
+
+    private final Arena arena;
+    private final Team team, eggTeam;
+
+    private final Location location;
+}

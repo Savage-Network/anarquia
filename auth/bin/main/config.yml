@@ -1,0 +1,54 @@
+# =====================================================================
+# auth.jar  -  servidor de login/registro (Paper 1.21)
+# =====================================================================
+
+server:
+  plugin-name: auth
+  mode: AUTH
+
+dev:
+  bypass-auth: false
+
+auth:
+  # Numero maximo de tentativas de login antes do kick
+  max-attempts: 5
+  # Segundos para autenticar antes do kick automatico (0 = desativado)
+  timeout-seconds: 60
+  # Tamanho minimo de senha
+  min-password-length: 4
+  # Skin generica enquanto nao autenticar
+  use-steve-skin: true
+  # Habilita captcha visual no registro
+  captcha-enabled: true
+  # Porta do servidor HTTP de validacao (0 = desativado)
+  validation-port: 0
+
+# Para onde mandar apos autenticar com sucesso
+post-login:
+  # Em rede com proxy, usa /server <name>; em single, teleporta para world spawn
+  target-server: lobby
+  delay-ticks: 10
+
+database:
+  type: SQLITE
+  sqlite-file: plugins/auth/auth.db
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database: auth
+    username: root
+    password: ""
+    pool-size: 10
+    properties:
+      useSSL: false
+      useUnicode: true
+      characterEncoding: UTF-8
+      serverTimezone: UTC
+
+redis:
+  enabled: false
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  database: 0
+  ssl: false

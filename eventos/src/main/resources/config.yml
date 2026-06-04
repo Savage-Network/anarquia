@@ -1,0 +1,55 @@
+# =====================================================================
+# eventos.jar  -  servidor de eventos staff (Paper 1.21)
+# =====================================================================
+
+server:
+  plugin-name: eventos
+  mode: EVENTOS
+
+event:
+  # Limites de jogadores
+  min-players: 2
+  max-players: 50
+  # Countdown de inicio (segundos)
+  starting-countdown: 30
+  # Countdown de fim (segundos)
+  ending-countdown: 10
+  # Para onde mandar ao terminar
+  post-end-target: lobby
+  # Y minimo de eliminacao (sumo)
+  die-y: 50
+
+# ServerOptions equivalentes do Savage
+rules:
+  damage-enabled: true
+  food-enabled: false
+  drop-item-enabled: false
+  chat-enabled: true
+  block-place: false
+  block-break: false
+  bucket-enabled: false
+  block-interaction-enabled: true
+
+database:
+  type: SQLITE
+  sqlite-file: plugins/eventos/eventos.db
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    database: eventos
+    username: root
+    password: ""
+    pool-size: 10
+    properties:
+      useSSL: false
+      useUnicode: true
+      characterEncoding: UTF-8
+      serverTimezone: UTC
+
+redis:
+  enabled: false
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  database: 0
+  ssl: false

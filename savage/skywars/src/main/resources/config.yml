@@ -1,0 +1,18 @@
+modes:
+  Solo:
+    directory: solo
+    min: 4
+    max: 4
+  Duo:
+    directory: duo
+    min: 4
+    max: 4
+  Trio:
+    directory: trio
+    min: 4
+    max: 4
+  Quartet:
+    directory: quartet
+    min: 4
+    max: 4
+

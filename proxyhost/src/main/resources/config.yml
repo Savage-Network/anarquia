@@ -1,0 +1,46 @@
+## proxyhost (Velocity) - configuracao principal.
+## A tabela `accounts` deve apontar para o MESMO banco usado pelos plugins game/lobbyhost/eventos
+## para que tags, ranks e medalhas sejam compartilhados.
+
+server:
+  name: "Savage"
+
+routing:
+  auth-server: "auth"
+  default-fallback: "lobby"
+  on-disconnect-target: ""
+
+# Testes locais: pula roteamento para auth (vai direto ao lobby)
+dev:
+  enabled: false
+
+database:
+  type: "SQLITE"  # MYSQL | SQLITE
+  sqlite-file: "proxyhost.db"
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    database: "game"
+    username: "root"
+    password: ""
+    pool-size: 10
+
+redis:
+  enabled: false
+  host: "127.0.0.1"
+  port: 6379
+  database: 0
+  ssl: false
+  password: ""
+
+tell:
+  enabled: true
+  cooldown-ms: 1500
+
+staffchat:
+  enabled: true
+  prefix: "&6[STAFF] "
+
+staff-alerts:
+  staff-login: true
+  staff-quit: true

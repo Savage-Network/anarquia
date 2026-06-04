@@ -1,0 +1,16 @@
+Auras de imagem (partículas acima da cabeça)
+============================================
+
+Coloque aqui imagens PNG para presets do servidor.
+
+Presets opcionais:
+  yin_yang.png
+  estrela.png
+
+Exemplo para "Yin-Yang":
+  yin_yang.png
+
+Recomendado: fundo transparente, 64x64 a 128x128 pixels.
+
+Jogadores também podem usar imagens do Imgur com:
+  /aura link https://i.imgur.com/SEU_ID.png

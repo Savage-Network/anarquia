@@ -1,0 +1,45 @@
+name: auth
+version: '${version}'
+main: com.minecraft.auth.AuthPlugin
+api-version: '1.21'
+authors: [SavageLabs]
+description: Servidor de login/registro (Paper 1.21)
+softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
+load: STARTUP
+
+commands:
+  login:
+    description: Faz login na sua conta
+    usage: /login <senha>
+    aliases: [logar, entrar]
+  register:
+    description: Registra uma nova conta
+    usage: /register <senha> <confirmar>
+    aliases: [registrar, registar]
+  changepassword:
+    description: Altera a senha da sua conta
+    usage: /changepassword <senha_atual> <nova_senha>
+    aliases: [trocarsenha]
+  account:
+    description: Mostra informacoes da sua conta
+    usage: /account [jogador]
+    aliases: [perfil, conta]
+    permission: auth.staff
+  authreload:
+    description: Recarrega configuracoes do plugin
+    usage: /authreload
+    permission: auth.admin
+
+permissions:
+  auth.*:
+    description: Acesso total
+    default: op
+    children:
+      auth.admin: true
+      auth.staff: true
+  auth.admin:
+    default: op
+  auth.staff:
+    default: false
+  auth.bypass.captcha:
+    default: false

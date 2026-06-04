@@ -1,0 +1,7 @@
+name: skywars
+author: guitho
+version: 1.0.0
+main: com.minecraft.arcade.skywars.SkyWars
+depend:
+  - SlimeWorldManager
+

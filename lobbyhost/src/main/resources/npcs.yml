@@ -1,0 +1,66 @@
+# NPCs do hub — Display entities 1.21 (Interaction + ItemDisplay + TextDisplay)
+# location = chave em architect.json
+
+enabled: true
+click-cooldown-ms: 500
+
+definitions:
+  npc_bw:
+    location: npc_bw
+    display-name: BedWars
+    hologram:
+      - "&b&lBedWars"
+      - "&7Clique para entrar!"
+    skin:
+      player: Bobinho_
+    action:
+      type: BUNGEE
+      value: lobby-bedwars
+
+  npc_duels:
+    location: npc_duels
+    display-name: Duels
+    hologram:
+      - "&c&lDuels"
+      - "&7Clique para entrar!"
+    skin:
+      player: MikeHwak001
+    action:
+      type: BUNGEE
+      value: lobby-duels
+
+  npc_ew:
+    location: npc_ew
+    display-name: EggWars
+    hologram:
+      - "&e&lEggWars"
+      - "&7Clique para entrar!"
+    skin:
+      player: _Flanty_
+    action:
+      type: BUNGEE
+      value: lobby-eggwars
+
+  npc_sw:
+    location: npc_sw
+    display-name: SkyWars
+    hologram:
+      - "&a&lSkyWars"
+      - "&7Clique para entrar!"
+    skin:
+      player: DrKapdor
+    action:
+      type: BUNGEE
+      value: lobby-skywars
+
+  npc_tb:
+    location: npc_tb
+    display-name: The Bridge
+    hologram:
+      - "&9&lThe Bridge"
+      - "&7Clique para entrar!"
+    skin:
+      player: spaceGurlSky
+    action:
+      type: BUNGEE
+      value: lobby-bridge

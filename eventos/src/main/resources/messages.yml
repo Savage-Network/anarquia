@@ -1,0 +1,17 @@
+prefix: "<gold><bold>SAVAGE</bold></gold> <gray>» </gray>"
+
+account:
+  loading: "<gray>Carregando sua conta..."
+  load-failed: "<red>Ocorreu um erro ao carregar sua conta. Tente reconectar."
+  saved: "<green>Sua conta foi salva com sucesso."
+  info-header: "<gold><bold>━━━━━ Conta ━━━━━"
+  info-line: "<yellow>{key}: <white>{value}"
+
+command:
+  no-permission: "<red>Voce nao tem permissao para usar este comando."
+  player-only: "<red>Apenas jogadores podem usar este comando."
+  player-not-found: "<red>Jogador {target} nao encontrado."
+  reloaded: "<green>Configuracoes recarregadas."
+
+errors:
+  internal: "<red>Erro interno. Contate a administracao."

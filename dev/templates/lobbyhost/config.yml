@@ -1,0 +1,39 @@
+server:
+  plugin-name: lobbyhost
+  mode: HUB
+  display-name: "Hub DEV"
+
+architect:
+  config-file: plugins/lobbyhost/architect.json
+  default-spawn:
+    world: world
+    x: 0.5
+    y: 100
+    z: 0.5
+    yaw: 0
+    pitch: 0
+
+hotbar:
+  enabled: true
+  clear-on-join: true
+
+sidebar:
+  enabled: true
+  title: "§6§lSAVAGE §7(DEV)"
+  update-ticks: 20
+
+discord:
+  url: "discord.gg/savagemc"
+  hologram:
+    enabled: true
+    world: world
+    x: 0.5
+    y: 103
+    z: 0.5
+
+database:
+  type: SQLITE
+  sqlite-file: shared/anarquia-dev.db
+
+redis:
+  enabled: false

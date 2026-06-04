@@ -1,0 +1,7 @@
+name: Core
+authors: [zrfadev, desenhar, henriaum]
+version: 0.0.1
+description: Core SavageLabs para servidor de jogo (SnakeSpigot / ecossistema Spigot).
+main: com.minecraft.core.bukkit.BukkitCore
+depend:
+  - ProtocolLib

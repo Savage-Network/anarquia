@@ -1,0 +1,53 @@
+{
+  "server": "HUB",
+  "locations": [
+    {
+      "name": "spawn",
+      "x": 0.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": 0,
+      "pitch": 0
+    },
+    {
+      "name": "npc_bw",
+      "x": 10.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": -90,
+      "pitch": 0
+    },
+    {
+      "name": "npc_duels",
+      "x": 5.5,
+      "y": 100,
+      "z": 5.5,
+      "yaw": -135,
+      "pitch": 0
+    },
+    {
+      "name": "npc_ew",
+      "x": 0.5,
+      "y": 100,
+      "z": 10.5,
+      "yaw": 180,
+      "pitch": 0
+    },
+    {
+      "name": "npc_skywars",
+      "x": -5.5,
+      "y": 100,
+      "z": 5.5,
+      "yaw": 135,
+      "pitch": 0
+    },
+    {
+      "name": "npc_tb",
+      "x": -10.5,
+      "y": 100,
+      "z": 0.5,
+      "yaw": 90,
+      "pitch": 0
+    }
+  ]
+}

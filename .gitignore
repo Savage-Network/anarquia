@@ -1,0 +1,11 @@
+# Ambiente local
+dev/runtime/
+dev/secrets/
+
+# Build
+**/build/
+.gradle/
+
+# IDE
+.idea/
+*.iml

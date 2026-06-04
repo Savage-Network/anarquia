@@ -1,0 +1,60 @@
+name: game
+version: '${version}'
+main: com.minecraft.game.GamePlugin
+api-version: '1.21'
+authors: [SavageLabs]
+description: Servidor semi-anarquia (plugin unico estilo Savage)
+softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
+load: STARTUP
+
+commands:
+  account:
+    description: Mostra informacoes da sua conta
+    usage: /account [jogador]
+    aliases: [perfil, conta]
+  tag:
+    description: Lista/escolhe a sua tag
+    usage: /tag [nome]
+    aliases: [tags]
+  medal:
+    description: Lista/escolhe a sua medalha
+    usage: /medal [nome]
+    aliases: [medalha, medalhas]
+  prefixtype:
+    description: Define o modo de exibicao das tags
+    usage: /prefixtype [modo]
+    aliases: [prefixo, modotag]
+  customtitle:
+    description: Define titulo flutuante acima do nick
+    usage: /customtitle <texto|remover>
+    permission: game.admin
+    aliases: [titulo]
+  prefs:
+    description: Preferencias da conta
+    usage: /prefs [list|toggle <chave>]
+    aliases: [preferencias]
+  gamereload:
+    description: Recarrega configuracoes do plugin
+    usage: /gamereload
+    permission: game.admin
+
+permissions:
+  game.*:
+    description: Acesso total
+    default: op
+    children:
+      game.admin: true
+      game.staff: true
+      game.vip: true
+  game.admin:
+    default: op
+  game.staff:
+    default: false
+  game.vip:
+    default: false
+
+  # tags - liberadas via LuckPerms; default false
+  tag.*:
+    default: false
+  medal.*:
+    default: false

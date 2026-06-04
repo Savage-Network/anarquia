@@ -1,0 +1,6 @@
+name: thebridge
+author: guitho
+version: 0.0.1
+main: com.minecraft.arcade.thebridge.TheBridge
+depend:
+  - SlimeWorldManager

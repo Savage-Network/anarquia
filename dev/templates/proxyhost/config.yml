@@ -1,0 +1,22 @@
+server:
+  name: "Savage DEV"
+
+routing:
+  auth-server: "auth"
+  default-fallback: "lobby"
+
+dev:
+  enabled: true
+
+database:
+  type: SQLITE
+  sqlite-file: shared/anarquia-dev.db
+
+redis:
+  enabled: false
+
+tell:
+  enabled: true
+
+staffchat:
+  enabled: true

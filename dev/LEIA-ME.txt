@@ -1,0 +1,39 @@
+ANARQUIA - TESTES LOCAIS (Paper 1.21.1)
+======================================
+
+PRIMEIRA VEZ (instala tudo):
+  Duplo-clique: install-all.bat
+  Ou na raiz do projeto: INSTALAR-DEV.bat
+
+TESTE RAPIDO (lobby + NPCs):
+  start-quick.bat
+  Ou na raiz: TESTAR-LOBBY.bat
+  Minecraft 1.21.1 -> localhost:25565 (modo offline)
+
+REDE COMPLETA (Velocity):
+  start-network.bat
+  Ou na raiz: TESTAR-REDE.bat
+  Minecraft 1.21.1 -> localhost:25577
+
+APENAS ATUALIZAR PLUGINS (apos mudar codigo):
+  sync-plugins.bat
+
+REBAIXAR SERVIDORES (Paper/Velocity):
+  setup-local.bat
+
+PORTAS (editar local.env.bat):
+  Quick lobby:  25565
+  Auth:         25566
+  Lobby:        25567
+  Game:         25568
+  Velocity:     25577
+
+REQUISITOS:
+  - Java 21 no PATH
+  - Internet na primeira instalacao (download Paper)
+  - Cliente Minecraft 1.21.1
+
+COMANDOS NO JOGO (lobby):
+  /npc list
+  /tag
+  /fly (com permissao)

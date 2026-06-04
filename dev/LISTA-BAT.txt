@@ -1,0 +1,24 @@
+ARQUIVOS .BAT - TESTES LOCAIS 1.21.1
+====================================
+
+PRIMEIRA VEZ (tudo automatico):
+  install-all.bat       Baixa Paper + Velocity, compila plugins, copia configs
+
+TESTAR:
+  start-quick.bat       Lobby sozinho (NPCs) -> localhost:25565
+  start-network.bat     Rede completa -> localhost:25577
+
+MANUTENCAO:
+  setup-local.bat       Re-baixa Paper/Velocity
+  sync-plugins.bat      Recompila e copia JARs
+  ATUALIZAR-PLUGINS.bat = sync-plugins.bat
+
+CONFIG:
+  local.env.bat         Portas e memoria Java
+
+NA RAIZ DO PROJETO (anarquia/):
+  INSTALAR-DEV.bat      = dev\install-all.bat
+  TESTAR-LOBBY.bat      Instala se preciso + lobby
+  TESTAR-REDE.bat       Instala se preciso + rede
+
+CLIENTE: Minecraft 1.21.1, modo offline

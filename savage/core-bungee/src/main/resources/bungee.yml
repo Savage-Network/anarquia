@@ -1,0 +1,4 @@
+name: core-bungee
+version: 1.0.0
+main: com.minecraft.core.bungee.BungeeCore
+description: Core SavageLabs para proxy (MonkeyCord / ecossistema Bungee).

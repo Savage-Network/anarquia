@@ -1,0 +1,10 @@
+server:
+  plugin-name: game
+  mode: SEMI_ANARCHY
+
+database:
+  type: SQLITE
+  sqlite-file: shared/anarquia-dev.db
+
+redis:
+  enabled: false

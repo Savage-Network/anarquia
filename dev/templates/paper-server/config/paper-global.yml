@@ -1,0 +1,7 @@
+proxies:
+  velocity:
+    enabled: true
+    online-mode: false
+    secret: "anarquia-dev-secret-change-me"
+
+# Mesmo valor em dev/templates/velocity/velocity.toml [forwarding].secret
