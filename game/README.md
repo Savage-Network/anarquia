@@ -1,7 +1,7 @@
 # game — plugin único (Paper 1.21, Java 21)
 
 Servidor **semi-anarquia** estilo Savage Network, consolidado em **1 JAR** (`game.jar`).
-Toda a especificação completa esta em `../savage/docs/PROMPT-SEMIANARQUIA-1.21-COMPLETO.md`.
+**Game design completo (PvP, economia, eventos, temporadas):** [`docs/SEMI-ANARQUIA-DESIGN.md`](docs/SEMI-ANARQUIA-DESIGN.md)
 
 ## Status atual — Fase 1
 
@@ -107,7 +107,7 @@ game/
 | **4** | 21 categorias de cosméticos, `CollectibleController` reflection, `ImageAuraEngine` (DUST 1.21) |
 | **5** | `DisplayManager` + ItemDisplay pets/balões/asas + TextDisplay nametags |
 | **6** | Eventos Savage (Sumo/Skit/Team/Variable) + KOTH/Envoy/Boss |
-| **7** | Friend, Party, Clan, Block, Report (`FriendData`, `ClanData`) |
+| **7** | Friend, Party, **Clan** ✅ (base), alianças/rivalidades/guerra, Block, Report |
 | **8** | Punições, `/cban`, anticheat (`AnticheatEngine`), Discord webhook |
 | **9** | Survival (`/home`, `/rtp`, `/kit`, `/pay`, combat tag), economy, codes, GameStats |
 | **10** | Hologramas leaderboard, NPCs Interaction, PlaceholderAPI expansion, polish, stress test |

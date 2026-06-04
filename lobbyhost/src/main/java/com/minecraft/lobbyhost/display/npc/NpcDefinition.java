@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * Definicao estatica de um NPC de lobby (carregada de {@code npcs.yml}).
+ * 
+ * Suporta escala customizavel (padrao 1.5x) e diferentes tipos de display (cabeca, picareta, etc).
  */
 @Getter
 @Builder
@@ -24,9 +26,14 @@ public final class NpcDefinition {
     /** Textura base64 (opcional, sobrescreve skinPlayer). */
     private final String skinTexture;
     private final String skinSignature;
+    /** Tipo de item customizado (ex: DIAMOND_PICKAXE, DIAMOND_SWORD, etc). Se definido, sobrescreve skin. */
+    private final String customItem;
     @Builder.Default
     private final NpcActionType actionType = NpcActionType.MESSAGE;
     private final String actionValue;
+    /** Escala do NPC (1.0 = tamanho normal, 1.5 = 50% maior). */
+    @Builder.Default
+    private final float scale = 1.5f;
 
     public static NpcDefinition fromConfig(String id, org.bukkit.configuration.ConfigurationSection sec) {
         if (sec == null) return null;
@@ -45,6 +52,12 @@ public final class NpcDefinition {
         String player = skin != null ? skin.getString("player", "Steve") : "Steve";
         String texture = skin != null ? skin.getString("texture", "") : "";
         String signature = skin != null ? skin.getString("signature", "") : "";
+        
+        // Item customizado (ex: DIAMOND_PICKAXE)
+        String customItem = sec.getString("custom-item", null);
+        
+        // Suporte para escala customizável (padrão 1.5x)
+        float scale = (float) sec.getDouble("scale", 1.5);
 
         return NpcDefinition.builder()
                 .id(id)
@@ -54,8 +67,10 @@ public final class NpcDefinition {
                 .skinPlayer(player)
                 .skinTexture(texture)
                 .skinSignature(signature)
+                .customItem(customItem)
                 .actionType(type)
                 .actionValue(sec.getString("action.value", ""))
+                .scale(scale)
                 .build();
     }
 }

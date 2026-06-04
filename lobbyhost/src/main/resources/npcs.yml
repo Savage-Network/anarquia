@@ -1,5 +1,6 @@
 # NPCs do hub — Display entities 1.21 (Interaction + ItemDisplay + TextDisplay)
 # location = chave em architect.json
+# scale = tamanho do NPC (1.0 = normal, 1.5 = 50% maior - PADRÃO, 2.0 = dobro do tamanho)
 
 enabled: true
 click-cooldown-ms: 500
@@ -13,6 +14,7 @@ definitions:
       - "&7Clique para entrar!"
     skin:
       player: Bobinho_
+    scale: 1.5  # 1.5x maior que um jogador normal
     action:
       type: BUNGEE
       value: lobby-bedwars
@@ -25,6 +27,7 @@ definitions:
       - "&7Clique para entrar!"
     skin:
       player: MikeHwak001
+    scale: 1.5 # NPCs são 1.5x maiores por padrão
     action:
       type: BUNGEE
       value: lobby-duels
@@ -37,6 +40,7 @@ definitions:
       - "&7Clique para entrar!"
     skin:
       player: _Flanty_
+    scale: 1.5
     action:
       type: BUNGEE
       value: lobby-eggwars
@@ -49,6 +53,7 @@ definitions:
       - "&7Clique para entrar!"
     skin:
       player: DrKapdor
+    scale: 1.5
     action:
       type: BUNGEE
       value: lobby-skywars
@@ -61,6 +66,21 @@ definitions:
       - "&7Clique para entrar!"
     skin:
       player: spaceGurlSky
+    scale: 1.5
     action:
       type: BUNGEE
       value: lobby-bridge
+
+  npc_anarquia:
+    location: npc_anarquia
+    display-name: Semi Anarquia
+    hologram:
+      - "&4&lSEMI ANARQUIA"
+      - "&c&lSobreviva se puder!"
+      - "&7Clique para entrar"
+    skin:
+      player: desenharWASD
+    scale: 1.5
+    action:
+      type: BUNGEE
+      value: semi-anarquia

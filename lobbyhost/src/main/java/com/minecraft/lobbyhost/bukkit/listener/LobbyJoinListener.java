@@ -4,6 +4,8 @@ import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.api.clan.ClanSync;
+import com.minecraft.lobbyhost.bukkit.menu.MenuManager;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
@@ -67,6 +69,7 @@ public final class LobbyJoinListener implements Listener {
             PlayerVisibilityService.onPlayerJoin(player);
             Account account = Core.getAccountController().of(player.getUniqueId());
             if (account == null) return;
+            ClanSync.refresh(account);
             TagManager.updateTag(account);
             TagManager.updateAllForViewer(player);
             AboveNameDisplay.refresh(player);
@@ -109,6 +112,7 @@ public final class LobbyJoinListener implements Listener {
     @EventHandler public void onClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p)) return;
         if (e.getView().getTopInventory().getHolder() instanceof LobbyMenuHolder) return;
+        if (MenuManager.get(p) != null) return;
         if (!p.hasPermission("lobbyhost.staff")) e.setCancelled(true);
     }
 

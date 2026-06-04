@@ -25,12 +25,15 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Gerencia spawn/remocao de {@link LobbyNpc}s a partir de {@code npcs.yml}
  * e chaves de localizacao do {@code architect.json}.
+ * 
+ * Inclui sistema de rotação automática para NPCs com itens customizados.
  */
 public final class NpcManager {
 
     private static final Map<String, LobbyNpc> spawned = new ConcurrentHashMap<>();
     private static final Map<String, NpcDefinition> definitions = new HashMap<>();
     private static long clickCooldownMs = 500L;
+    private static org.bukkit.scheduler.BukkitTask rotationTask;
 
     private NpcManager() {}
 
@@ -75,6 +78,7 @@ public final class NpcManager {
             Location loc = signed.toBukkit();
             if (loc.getWorld() == null) continue;
             try {
+                // Usa automaticamente a escala definida no NpcDefinition (padrão 1.5x)
                 LobbyNpc npc = new LobbyNpc(def, loc);
                 spawned.put(def.getId().toLowerCase(), npc);
             } catch (Throwable t) {
@@ -82,12 +86,77 @@ public final class NpcManager {
             }
         }
         Core.getLogger().info("[NpcManager] " + spawned.size() + " NPCs ativos no mundo.");
+        
+        // Inicia rotação para NPCs com itens customizados
+        startRotationTask();
     }
 
     public static void unloadAll() {
+        stopRotationTask();
         for (LobbyNpc npc : spawned.values()) npc.remove();
         spawned.clear();
         cleanupOrphans();
+    }
+    
+    /**
+     * Inicia task de rotação para NPCs com itens customizados
+     */
+    private static void startRotationTask() {
+        stopRotationTask();
+        
+        LobbyHostPlugin plugin = Core.getJavaPlugin();
+        if (plugin == null) return;
+        
+        rotationTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (LobbyNpc npc : spawned.values()) {
+                // Rotaciona apenas NPCs com customItem definido
+                if (npc.getDefinition().getCustomItem() != null && !npc.getDefinition().getCustomItem().isBlank()) {
+                    rotateNpc(npc);
+                }
+            }
+        }, 1L, 1L); // Atualiza a cada tick para rotação suave
+    }
+    
+    /**
+     * Para a task de rotação
+     */
+    private static void stopRotationTask() {
+        if (rotationTask != null && !rotationTask.isCancelled()) {
+            rotationTask.cancel();
+            rotationTask = null;
+        }
+    }
+    
+    /**
+     * Rotaciona um NPC no eixo Y (giro horizontal)
+     */
+    private static void rotateNpc(LobbyNpc npc) {
+        org.bukkit.entity.ItemDisplay display = npc.getItemDisplay();
+        if (display == null || display.isDead()) return;
+        
+        try {
+            org.bukkit.util.Transformation transform = display.getTransformation();
+            
+            // Rotação suave: 2 graus por tick = 360 graus em 3 segundos (180 ticks)
+            float rotationSpeed = (float) Math.toRadians(2.0);
+            
+            // Quaternion para rotação no eixo Y
+            org.joml.Quaternionf currentRotation = new org.joml.Quaternionf(transform.getLeftRotation());
+            org.joml.Quaternionf yRotation = new org.joml.Quaternionf().rotateY(rotationSpeed);
+            currentRotation.mul(yRotation);
+            
+            // Aplica nova transformação
+            org.bukkit.util.Transformation newTransform = new org.bukkit.util.Transformation(
+                transform.getTranslation(),
+                currentRotation,
+                transform.getScale(),
+                transform.getRightRotation()
+            );
+            
+            display.setTransformation(newTransform);
+        } catch (Exception e) {
+            // Silenciosamente ignora erros (entidade pode ter sido removida)
+        }
     }
 
     /** Remove entidades NPC restantes (reload seguro). */

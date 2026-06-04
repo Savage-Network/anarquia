@@ -2,6 +2,8 @@ package com.minecraft.game;
 
 import com.minecraft.game.account.AccountController;
 import com.minecraft.game.backend.data.AccountData;
+import com.minecraft.game.backend.data.ClanData;
+import com.minecraft.game.bukkit.menu.listener.MenuListener;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.backend.redis.RedisProvider;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandHandler;
@@ -62,6 +64,10 @@ public final class GamePlugin extends JavaPlugin {
             accountData.createTables();
             Core.setAccountData(accountData);
 
+            ClanData clanData = new ClanData(database);
+            clanData.createTables();
+            Core.setClanData(clanData);
+
             // 4) Controllers
             Core.setAccountController(new AccountController());
 
@@ -76,6 +82,7 @@ public final class GamePlugin extends JavaPlugin {
             // 7) Scan automatico (igual Savage)
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
+            getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
             // 7) Carregar contas dos jogadores ja online (reload)
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->

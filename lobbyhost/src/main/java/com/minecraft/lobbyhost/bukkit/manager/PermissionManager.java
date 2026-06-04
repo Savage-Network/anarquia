@@ -1,7 +1,6 @@
 package com.minecraft.lobbyhost.bukkit.manager;
 
 import com.minecraft.lobbyhost.Core;
-import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.rank.Rank;
 import org.bukkit.entity.Player;
@@ -9,12 +8,16 @@ import org.bukkit.permissions.PermissionAttachment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Sincroniza permissoes da {@link Account} com Bukkit ({@code PermissionAttachment}).
  * Espelho de {@code PermissionManager} do Savage core-bukkit.
  */
 public final class PermissionManager {
+
+    private static final ConcurrentHashMap<UUID, PermissionAttachment> ATTACHMENTS = new ConcurrentHashMap<>();
 
     private PermissionManager() {}
 
@@ -26,6 +29,7 @@ public final class PermissionManager {
         account.refreshPermissions();
 
         PermissionAttachment attachment = player.addAttachment(Core.getJavaPlugin());
+        ATTACHMENTS.put(player.getUniqueId(), attachment);
         List<String> nodes = new ArrayList<>();
 
         nodes.addAll(account.getRankType().getPermissionNodes());
@@ -47,10 +51,8 @@ public final class PermissionManager {
     }
 
     public static void unloadPermissions(Player player) {
-        for (PermissionAttachment attachment : new java.util.HashSet<>(player.getEffectivePermissions()).stream()
-                .map(org.bukkit.permissions.PermissionAttachmentInfo::getAttachment)
-                .filter(a -> a != null && a.getPlugin() instanceof LobbyHostPlugin)
-                .toList()) {
+        PermissionAttachment attachment = ATTACHMENTS.remove(player.getUniqueId());
+        if (attachment != null) {
             attachment.remove();
         }
     }

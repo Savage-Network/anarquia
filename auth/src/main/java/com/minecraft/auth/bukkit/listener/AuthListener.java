@@ -4,6 +4,7 @@ import com.minecraft.auth.Constant;
 import com.minecraft.auth.Core;
 import com.minecraft.auth.account.Account;
 import com.minecraft.auth.service.AuthService;
+import com.minecraft.auth.bukkit.manager.PermissionManager;
 import com.minecraft.auth.util.AuthRedirects;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -73,6 +74,8 @@ public final class AuthListener implements Listener {
             return;
         }
 
+        PermissionManager.loadPermissions(player);
+
         if (Core.getJavaPlugin().getConfig().getBoolean("dev.bypass-auth", false)) {
             AuthService svc = AuthService.getInstance();
             if (!svc.isRegistered(account)) {
@@ -105,6 +108,7 @@ public final class AuthListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         event.quitMessage(null);
+        PermissionManager.unloadPermissions(event.getPlayer());
         AuthService.getInstance().clear(event.getPlayer().getUniqueId());
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),
                 () -> Core.getAccountController().unload(event.getPlayer().getUniqueId()));

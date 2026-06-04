@@ -3,7 +3,9 @@ package com.minecraft.game.bukkit.listener;
 import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.api.clan.ClanSync;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
+import com.minecraft.game.bukkit.manager.PermissionManager;
 import com.minecraft.game.bukkit.manager.TagManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -64,6 +66,8 @@ public final class AccountListener implements Listener {
         final Account loaded = account;
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (player.isOnline()) {
+                PermissionManager.loadPermissions(player);
+                ClanSync.refresh(loaded);
                 TagManager.updateTag(loaded);
                 // re-render dos demais sob o ponto de vista DESTE viewer
                 TagManager.updateAllForViewer(player);
@@ -78,6 +82,7 @@ public final class AccountListener implements Listener {
 
         event.quitMessage(Component.text("§e- §c" + player.getName() + " §7saiu do servidor."));
 
+        PermissionManager.unloadPermissions(player);
         TagManager.removeTag(player);
         AboveNameDisplay.remove(player);
 

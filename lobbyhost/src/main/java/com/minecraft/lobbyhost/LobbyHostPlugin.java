@@ -3,6 +3,8 @@ package com.minecraft.lobbyhost;
 import com.minecraft.lobbyhost.account.AccountController;
 import com.minecraft.lobbyhost.architect.ArchitectLoader;
 import com.minecraft.lobbyhost.backend.data.AccountData;
+import com.minecraft.lobbyhost.backend.data.ClanData;
+import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandHandler;
@@ -11,6 +13,7 @@ import com.minecraft.lobbyhost.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import com.minecraft.lobbyhost.bukkit.manager.TaskManager;
 import com.minecraft.lobbyhost.display.DiscordHologramManager;
+import com.minecraft.lobbyhost.display.npc.HardcodedNpcs;
 import com.minecraft.lobbyhost.display.npc.NpcManager;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -72,6 +75,10 @@ public final class LobbyHostPlugin extends JavaPlugin {
             accountData.createTables();
             Core.setAccountData(accountData);
 
+            ClanData clanData = new ClanData(database);
+            clanData.createTables();
+            Core.setClanData(clanData);
+
             // 4) Controllers
             Core.setAccountController(new AccountController());
 
@@ -86,6 +93,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
             architectLoader.load();
             architectLoader.getArchitect().load();
 
+            // 6.5) NPCs hardcoded diretamente no código (não dependem de YAML)
+            HardcodedNpcs.spawnAll();
+
             // 7) Tag/medal/chat - Fase 2
             TagManager.startAnimationTask(this);
             AboveNameDisplay.startFollowTask(this);
@@ -99,6 +109,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
             // 9) Scan automatico
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
+            getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
             // 10) Reload de contas dos online
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->
@@ -115,6 +126,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HardcodedNpcs.removeAll();
         NpcManager.unloadAll();
         DiscordHologramManager.shutdown();
         AboveNameDisplay.shutdown();

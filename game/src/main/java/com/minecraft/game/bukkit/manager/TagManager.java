@@ -175,11 +175,7 @@ public final class TagManager {
     }
 
     private static String suffixOf(Account account) {
-        if (account.getToggle() == null || !account.getToggle().isShowClanTag()) return "";
-        String clanTag = account.getContext().getClan() != null
-                ? account.getContext().getClan().getTag() : null;
-        if (clanTag == null || clanTag.isEmpty()) return "";
-        return " §7[" + clanTag + "§7]";
+        return account.getFormattedClanTagSuffix();
     }
 
     private static String truncateSuffix(String s) {

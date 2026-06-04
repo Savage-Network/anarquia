@@ -48,4 +48,44 @@ public enum RankType {
     public boolean isStaff() {
         return isAtLeast(BUILDER);
     }
+
+    public java.util.List<String> getPermissionNodes() {
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add(permission);
+        if (isStaff()) {
+            nodes.add("auth.staff");
+            nodes.add("game.staff");
+        }
+        if (isAtLeast(ADMIN)) {
+            nodes.add("auth.admin");
+            nodes.add("auth.*");
+            nodes.add("game.admin");
+            nodes.add("game.*");
+        }
+        if (this == OWNER || this == DIRETOR || this == VERMELHO) {
+            nodes.add("*");
+        }
+        return nodes;
+    }
+
+    public boolean grants(String key) {
+        if (key == null || key.isEmpty()) return false;
+        for (String node : getPermissionNodes()) {
+            if (matchesPermission(node, key)) return true;
+        }
+        return false;
+    }
+
+    static boolean matchesPermission(String held, String required) {
+        if (held == null || required == null) return false;
+        if ("*".equals(held)) return true;
+        if (held.equalsIgnoreCase(required)) return true;
+        if (held.endsWith(".*")) {
+            String prefix = held.substring(0, held.length() - 2);
+            return required.length() >= prefix.length()
+                    && required.regionMatches(true, 0, prefix, 0, prefix.length())
+                    && (required.length() == prefix.length() || required.charAt(prefix.length()) == '.');
+        }
+        return false;
+    }
 }

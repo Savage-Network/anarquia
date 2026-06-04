@@ -120,6 +120,42 @@ public class Account {
     public void setRank(Rank rank) {
         context.getRankInfo().setRank(rank);
         markDirty();
+        if (isOnline()) {
+            com.minecraft.auth.bukkit.manager.PermissionManager.loadPermissions(player());
+        }
+    }
+
+    public boolean hasPermission(String key) {
+        if (key == null || key.isEmpty()) return false;
+        refreshPermissions();
+        if (getRankType().grants(key)) return true;
+        for (Rank rank : getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() != null && rank.getType().grants(key)) {
+                return true;
+            }
+        }
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && p.getKey().equalsIgnoreCase(key));
+    }
+
+    public java.util.List<com.minecraft.auth.account.context.objects.permission.Permission> getPermissions() {
+        return context.getPermissions();
+    }
+
+    public java.util.List<Rank> getAvailableRanks() {
+        return context.getRankInfo().getAvailableRanks();
+    }
+
+    public void refreshPermissions() {
+        var it = getPermissions().iterator();
+        boolean changed = false;
+        while (it.hasNext()) {
+            if (it.next().hasExpired()) {
+                it.remove();
+                changed = true;
+            }
+        }
+        if (changed) markDirty();
     }
 
     /* ----- tag/medal ----- */

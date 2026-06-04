@@ -1,7 +1,13 @@
 package com.minecraft.game.account;
 
+import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.context.AccountContext;
+import com.minecraft.game.account.context.objects.clan.ClanMetadata;
+import com.minecraft.game.api.clan.Clan;
+import com.minecraft.game.api.clan.ClanRole;
+import com.minecraft.game.api.clan.ClanSync;
+import com.minecraft.game.api.clan.ClanTagFormatter;
 import com.minecraft.game.account.context.objects.medal.Medal;
 import com.minecraft.game.account.context.objects.rank.Rank;
 import com.minecraft.game.account.context.objects.rank.RankType;
@@ -90,6 +96,12 @@ public class Account {
         send(Component.text(legacy));
     }
 
+    public void send(String... lines) {
+        for (String line : lines) {
+            if (line != null) send(line);
+        }
+    }
+
     public void sound(Sound sound) {
         Player p = player();
         if (p != null) p.playSound(p.getLocation(), sound, 1f, 1f);
@@ -145,13 +157,46 @@ public class Account {
     public void setRank(Rank rank) {
         context.getRankInfo().setRank(rank);
         markDirty();
+        if (isOnline()) {
+            com.minecraft.game.bukkit.manager.PermissionManager.loadPermissions(player());
+        }
     }
 
-    /** Permission gate; aceita {@code null}. Em Paper 1.21 consulta o player online. */
-    public boolean hasPermission(String node) {
-        if (node == null || node.isEmpty()) return false;
-        Player p = player();
-        return p != null && p.hasPermission(node);
+    /**
+     * Permissao logica: rank ativo, ranks disponiveis e permissoes extras na conta.
+     * Comandos usam isto; Bukkit e sincronizado via {@code PermissionManager}.
+     */
+    public boolean hasPermission(String key) {
+        if (key == null || key.isEmpty()) return false;
+        refreshPermissions();
+        if (getRankType().grants(key)) return true;
+        for (Rank rank : getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() != null && rank.getType().grants(key)) {
+                return true;
+            }
+        }
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && p.getKey().equalsIgnoreCase(key));
+    }
+
+    public java.util.List<com.minecraft.game.account.context.objects.permission.Permission> getPermissions() {
+        return context.getPermissions();
+    }
+
+    public java.util.List<Rank> getAvailableRanks() {
+        return context.getRankInfo().getAvailableRanks();
+    }
+
+    public void refreshPermissions() {
+        var it = getPermissions().iterator();
+        boolean changed = false;
+        while (it.hasNext()) {
+            if (it.next().hasExpired()) {
+                it.remove();
+                changed = true;
+            }
+        }
+        if (changed) markDirty();
     }
 
     /* ================================================================
@@ -481,5 +526,54 @@ public class Account {
 
     public void save() {
         Core.getAccountData().saveAsync(this).thenRun(this::clearDirty);
+    }
+
+    /* ================================================================
+     * Clan
+     * ============================================================= */
+
+    public Clan getClan() {
+        if (Core.getClanData() == null) return null;
+        ClanMetadata meta = context.getClan();
+        if (meta == null || meta.getId() == null || meta.getId().equals(Constant.DEFAULT_ID)) {
+            return null;
+        }
+        return Core.getClanData().of(meta.getId());
+    }
+
+    public boolean hasClan() {
+        return getClan() != null;
+    }
+
+    public boolean isClanLeader() {
+        return hasClan() && getClan().isLeader(id);
+    }
+
+    public boolean hasClanRole(ClanRole minimum) {
+        if (!hasClan()) return false;
+        var member = getClan().getMember(id);
+        return member != null && member.hasRole(minimum);
+    }
+
+    public void joinClan(Clan clan) {
+        ClanMetadata meta = context.getClan();
+        meta.setId(clan.getId());
+        meta.setTag(clan.getTagWithoutColors());
+        meta.setLastUpdate(System.currentTimeMillis());
+        markDirty();
+        ClanSync.refresh(this);
+    }
+
+    public void leaveClanSilent() {
+        ClanMetadata meta = context.getClan();
+        meta.setId(Constant.DEFAULT_ID);
+        meta.setTag("");
+        meta.setLastUpdate(System.currentTimeMillis());
+        markDirty();
+        ClanSync.refresh(this);
+    }
+
+    public String getFormattedClanTagSuffix() {
+        return ClanTagFormatter.formatSuffix(this);
     }
 }

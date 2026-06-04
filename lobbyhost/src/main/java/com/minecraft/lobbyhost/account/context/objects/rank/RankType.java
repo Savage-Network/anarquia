@@ -51,16 +51,45 @@ public enum RankType {
 
     /** Nos aplicados no Bukkit via {@code PermissionAttachment}. */
     public java.util.List<String> getPermissionNodes() {
-        if (this == OWNER || this == ADMIN || this == DIRETOR) {
-            return java.util.List.of("*");
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add(permission);
+
+        if (isAtLeast(VIP)) {
+            nodes.add("game.vip");
+            nodes.add("lobbyhost.vip");
         }
-        return java.util.List.of(permission);
+        if (isStaff()) {
+            nodes.add("game.staff");
+            nodes.add("lobbyhost.staff");
+        }
+        if (isAtLeast(ADMIN)) {
+            nodes.add("game.admin");
+            nodes.add("game.*");
+            nodes.add("lobbyhost.admin");
+        }
+        if (this == OWNER || this == DIRETOR || this == VERMELHO) {
+            nodes.add("*");
+        }
+        return nodes;
     }
 
     public boolean grants(String key) {
         if (key == null || key.isEmpty()) return false;
         for (String node : getPermissionNodes()) {
-            if ("*".equals(node) || node.equalsIgnoreCase(key)) return true;
+            if (matchesPermission(node, key)) return true;
+        }
+        return false;
+    }
+
+    static boolean matchesPermission(String held, String required) {
+        if (held == null || required == null) return false;
+        if ("*".equals(held)) return true;
+        if (held.equalsIgnoreCase(required)) return true;
+        if (held.endsWith(".*")) {
+            String prefix = held.substring(0, held.length() - 2);
+            return required.length() >= prefix.length()
+                    && required.regionMatches(true, 0, prefix, 0, prefix.length())
+                    && (required.length() == prefix.length() || required.charAt(prefix.length()) == '.');
         }
         return false;
     }

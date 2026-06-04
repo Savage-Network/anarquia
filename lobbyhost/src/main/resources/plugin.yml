@@ -61,6 +61,18 @@ commands:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
+  clan:
+    description: Sistema de clãs com painel GUI
+    usage: /clan [subcomando]
+    aliases: [cla]
+  clantag:
+    description: Altera a cor da clantag do seu clã
+    usage: /clantag <cor>
+    aliases: [clancor]
+  cc:
+    description: Chat privado do clã
+    usage: /cc <mensagem>
+    aliases: [c]
   lobbyreload:
     description: Recarrega configuracoes do plugin
     usage: /lobbyreload

@@ -176,9 +176,16 @@ public final class BukkitCommandHandler {
                 return true;
             }
 
-            if (!annotation.permission().isEmpty() && !sender.hasPermission(annotation.permission())) {
-                sender.sendMessage("§cVoce nao tem permissao para usar este comando.");
-                return true;
+            if (!annotation.permission().isEmpty()) {
+                boolean allowed = sender.hasPermission(annotation.permission());
+                if (!allowed && ctx.isPlayer()) {
+                    Account account = ctx.account().orElse(null);
+                    allowed = account != null && account.hasPermission(annotation.permission());
+                }
+                if (!allowed) {
+                    sender.sendMessage("§cVoce nao tem permissao para usar este comando.");
+                    return true;
+                }
             }
 
             if (ctx.isPlayer() && annotation.rank() != RankType.MEMBER) {

@@ -48,4 +48,50 @@ public enum RankType {
     public boolean isStaff() {
         return isAtLeast(BUILDER);
     }
+
+    /**
+     * Nos Bukkit aplicados via {@link com.minecraft.game.bukkit.manager.PermissionManager}.
+     * Inclui permissoes herdadas da hierarquia (VIP, staff, admin).
+     */
+    public java.util.List<String> getPermissionNodes() {
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add(permission);
+
+        if (isAtLeast(VIP)) {
+            nodes.add("game.vip");
+        }
+        if (isStaff()) {
+            nodes.add("game.staff");
+        }
+        if (isAtLeast(ADMIN)) {
+            nodes.add("game.admin");
+            nodes.add("game.*");
+        }
+        if (this == OWNER || this == DIRETOR || this == VERMELHO) {
+            nodes.add("*");
+        }
+        return nodes;
+    }
+
+    /** Verifica se este rank concede o no (suporta {@code game.*} e {@code *}). */
+    public boolean grants(String key) {
+        if (key == null || key.isEmpty()) return false;
+        for (String node : getPermissionNodes()) {
+            if (matchesPermission(node, key)) return true;
+        }
+        return false;
+    }
+
+    static boolean matchesPermission(String held, String required) {
+        if (held == null || required == null) return false;
+        if ("*".equals(held)) return true;
+        if (held.equalsIgnoreCase(required)) return true;
+        if (held.endsWith(".*")) {
+            String prefix = held.substring(0, held.length() - 2);
+            return required.length() >= prefix.length()
+                    && required.regionMatches(true, 0, prefix, 0, prefix.length())
+                    && (required.length() == prefix.length() || required.charAt(prefix.length()) == '.');
+        }
+        return false;
+    }
 }

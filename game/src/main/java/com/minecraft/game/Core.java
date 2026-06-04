@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.game.account.AccountController;
 import com.minecraft.game.backend.data.AccountData;
+import com.minecraft.game.backend.data.ClanData;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.backend.redis.RedisProvider;
 import lombok.Getter;
@@ -35,6 +36,7 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static ClanData clanData;
 
     public static void load(GamePlugin plugin) {
         javaPlugin = plugin;

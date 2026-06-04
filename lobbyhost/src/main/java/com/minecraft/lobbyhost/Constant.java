@@ -63,6 +63,14 @@ public final class Constant {
     /** URL/menu da loja exibido em /medal vazio. */
     public static final String SERVER_STORE = "§6loja.savage.com.br";
 
+    /* ----- Clan ----- */
+    public static final String CLAN_CHAT_PREFIX = "§8[§3Cla§8] §r";
+    public static final int CLAN_MAX_MEMBERS = 15;
+    public static final int CLAN_NAME_MIN = 3;
+    public static final int CLAN_NAME_MAX = 12;
+    public static final int CLAN_TAG_MIN = 2;
+    public static final int CLAN_TAG_MAX = 5;
+
     /* ----- Mensagens ----- */
     public static final String ACCOUNT_LOAD_FAILED_MESSAGE = "§cOcorreu um erro ao tentar carregar a sua conta!";
 

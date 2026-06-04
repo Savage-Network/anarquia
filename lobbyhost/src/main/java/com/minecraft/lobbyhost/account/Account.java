@@ -1,7 +1,13 @@
 package com.minecraft.lobbyhost.account;
 
+import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.context.AccountContext;
+import com.minecraft.lobbyhost.account.context.objects.clan.ClanMetadata;
+import com.minecraft.lobbyhost.api.clan.Clan;
+import com.minecraft.lobbyhost.api.clan.ClanRole;
+import com.minecraft.lobbyhost.api.clan.ClanSync;
+import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
 import com.minecraft.lobbyhost.account.context.objects.medal.Medal;
 import com.minecraft.lobbyhost.account.context.objects.rank.Rank;
 import com.minecraft.lobbyhost.account.context.objects.rank.RankType;
@@ -90,6 +96,12 @@ public class Account {
         send(Component.text(legacy));
     }
 
+    public void send(String... lines) {
+        for (String line : lines) {
+            if (line != null) send(line);
+        }
+    }
+
     public void sound(Sound sound) {
         Player p = player();
         if (p != null) p.playSound(p.getLocation(), sound, 1f, 1f);
@@ -145,6 +157,9 @@ public class Account {
     public void setRank(Rank rank) {
         context.getRankInfo().setRank(rank);
         markDirty();
+        if (isOnline()) {
+            com.minecraft.lobbyhost.bukkit.manager.PermissionManager.loadPermissions(player());
+        }
     }
 
     /**
@@ -519,5 +534,54 @@ public class Account {
 
     public void save() {
         Core.getAccountData().saveAsync(this).thenRun(this::clearDirty);
+    }
+
+    /* ================================================================
+     * Clan
+     * ============================================================= */
+
+    public Clan getClan() {
+        if (Core.getClanData() == null) return null;
+        ClanMetadata meta = context.getClan();
+        if (meta == null || meta.getId() == null || meta.getId().equals(Constant.DEFAULT_ID)) {
+            return null;
+        }
+        return Core.getClanData().of(meta.getId());
+    }
+
+    public boolean hasClan() {
+        return getClan() != null;
+    }
+
+    public boolean isClanLeader() {
+        return hasClan() && getClan().isLeader(id);
+    }
+
+    public boolean hasClanRole(ClanRole minimum) {
+        if (!hasClan()) return false;
+        var member = getClan().getMember(id);
+        return member != null && member.hasRole(minimum);
+    }
+
+    public void joinClan(Clan clan) {
+        ClanMetadata meta = context.getClan();
+        meta.setId(clan.getId());
+        meta.setTag(clan.getTagWithoutColors());
+        meta.setLastUpdate(System.currentTimeMillis());
+        markDirty();
+        ClanSync.refresh(this);
+    }
+
+    public void leaveClanSilent() {
+        ClanMetadata meta = context.getClan();
+        meta.setId(Constant.DEFAULT_ID);
+        meta.setTag("");
+        meta.setLastUpdate(System.currentTimeMillis());
+        markDirty();
+        ClanSync.refresh(this);
+    }
+
+    public String getFormattedClanTagSuffix() {
+        return ClanTagFormatter.formatSuffix(this);
     }
 }

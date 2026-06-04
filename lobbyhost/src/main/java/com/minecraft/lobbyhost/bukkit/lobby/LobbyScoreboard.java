@@ -2,6 +2,7 @@ package com.minecraft.lobbyhost.bukkit.lobby;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
 import com.minecraft.lobbyhost.architect.ServerType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -34,26 +35,46 @@ public final class LobbyScoreboard {
         Scoreboard board = ensure(player);
         Objective obj = board.getObjective(OBJECTIVE_ID);
         if (obj == null) {
-            obj = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, "§2§lSAVAGE");
+            obj = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, "§b§lLOBBY " + server.name());
             obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         }
 
         Account account = Core.getAccountController().of(player.getUniqueId());
-        String rankName = account != null ? account.getRank().getType().getColor()
-                + account.getRank().getType().name() : "§7MEMBER";
-        String clan = "§cNenhum";
-        if (account != null && account.getContext().getClan() != null) {
-            String tag = account.getContext().getClan().getTag();
-            if (tag != null && !tag.isBlank()) clan = tag.trim();
+        
+        // Rank com ícone
+        String rankDisplay = "§7MEMBER";
+        if (account != null) {
+            rankDisplay = account.getRank().getType().getColor() + account.getRank().getType().name();
         }
-
+        
+        String clanDisplay = "§7Nenhum";
+        if (account != null && account.hasClan()) {
+            var clan = account.getClan();
+            if (clan != null) {
+                clanDisplay = ClanTagFormatter.formatBracketed(clan);
+            }
+        }
+        
+        // Contagem de jogadores online
+        int online = Bukkit.getOnlinePlayers().size();
+        
+        // Linha 15: espaço em branco
         setLine(obj, 15, "§7");
-        setLine(obj, 14, "§eRank: " + rankName);
-        setLine(obj, 13, "§eLobby: §7#" + server.name());
-        setLine(obj, 12, "§eClan: " + clan);
-        setLine(obj, 11, "§eJogadores: §f" + Bukkit.getOnlinePlayers().size());
-        setLine(obj, 10, "§7 ");
-        setLine(obj, 9, "§6savagemc.net");
+        
+        // Linha 14: Rank com ícone
+        setLine(obj, 14, "§d❈ §fRank: " + rankDisplay);
+        
+        // Linha 13: Clan com ícone
+        setLine(obj, 13, "§3◆ §fClan: " + clanDisplay);
+        
+        // Linha 12: Online com ícone e destaque
+        setLine(obj, 12, "§a⚡ §fOnline: §a" + online);
+        
+        // Linha 11: espaço em branco
+        setLine(obj, 11, "§7 ");
+        
+        // Linha 10: Website
+        setLine(obj, 10, "§esavagemc.net");
     }
 
     public static void updateOnlineCount() {
@@ -61,7 +82,7 @@ public final class LobbyScoreboard {
         for (Player player : Bukkit.getOnlinePlayers()) {
             Objective obj = player.getScoreboard().getObjective(OBJECTIVE_ID);
             if (obj != null) {
-                setLine(obj, 11, "§eJogadores: §f" + online);
+                setLine(obj, 12, "§a⚡ §fOnline: §a" + online);
             }
         }
     }
