@@ -1,6 +1,7 @@
 package com.minecraft.game.account;
 
 import com.minecraft.game.Core;
+import com.minecraft.game.GameSettings;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,10 +38,7 @@ public final class AccountController {
         return Core.getAccountData().loadAsync(id).thenApply(opt -> {
             Account account = opt.orElseGet(() -> {
                 Account fresh = new Account(id, name);
-                if (Core.getJavaPlugin() != null) {
-                    int start = Core.getJavaPlugin().getConfig().getInt("economy.starting-balance", 1000);
-                    fresh.setGolds(start);
-                }
+                fresh.setGolds(GameSettings.STARTING_BALANCE);
                 Core.getAccountData().saveAsync(fresh);
                 return fresh;
             });

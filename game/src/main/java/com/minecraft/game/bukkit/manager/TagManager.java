@@ -2,6 +2,8 @@ package com.minecraft.game.bukkit.manager;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.bukkit.display.AboveNameDisplay;
+import com.minecraft.game.bukkit.display.GameScoreboard;
 import com.minecraft.game.account.context.objects.tag.Tag;
 import com.minecraft.game.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
@@ -89,6 +91,30 @@ public final class TagManager {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             applyTagForViewer(viewer, target);
         }
+        AboveNameDisplay.refresh(target);
+    }
+
+    /** Linha unica (legado). */
+    public static String formatNametagLine(Account account) {
+        if (account == null) return "";
+        String prefix = formatNametagPrefixLine(account);
+        String nick = formatNametagNickLine(account);
+        if (prefix.isBlank()) return nick;
+        return prefix + nick;
+    }
+
+    /** Linha da tag (prefixo colorido). */
+    public static String formatNametagPrefixLine(Account account) {
+        if (account == null) return "";
+        Tag tag = account.getTag();
+        if (tag == null) return "";
+        return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
+    }
+
+    /** Linha do nick (+ cla). */
+    public static String formatNametagNickLine(Account account) {
+        if (account == null) return "";
+        return "§f" + account.getNickname() + suffixOf(account);
     }
 
     public static void updateTag(Account account, Tag newTag) {
@@ -116,12 +142,7 @@ public final class TagManager {
         Account targetAcc = Core.getAccountController().of(target.getUniqueId());
         if (viewerAcc == null || targetAcc == null) return;
 
-        Scoreboard board = viewer.getScoreboard();
-        // O viewer deve ter um scoreboard proprio. Se nao tiver, criamos um.
-        if (board == null || board.equals(Bukkit.getScoreboardManager().getMainScoreboard())) {
-            board = Bukkit.getScoreboardManager().getNewScoreboard();
-            viewer.setScoreboard(board);
-        }
+        Scoreboard board = GameScoreboard.ensure(viewer);
 
         Tag tag = targetAcc.getTag();
         String teamName = sanitize("tag_" + tag.getOrder() + "_" + target.getEntityId());
@@ -133,6 +154,8 @@ public final class TagManager {
 
         team.prefix(Component.text(prefix));
         team.suffix(Component.text(suffix));
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
     }

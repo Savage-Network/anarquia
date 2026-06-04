@@ -8,6 +8,7 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.lobby.HotbarLayout;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyScoreboard;
+import com.minecraft.lobbyhost.bukkit.lobby.LobbyTabList;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import org.bukkit.Bukkit;
@@ -59,6 +60,7 @@ public final class MainArchitect extends Architect {
         LobbyPlayerSetup.apply(player, account);
 
         handleSidebar(player);
+        LobbyTabList.apply(player);
         if (account != null) {
             TagManager.updateTag(account);
         }

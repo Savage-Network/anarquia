@@ -1,22 +1,3 @@
-server:
-  plugin-name: auth
-  mode: AUTH
-
-dev:
-  bypass-auth: false
-
-auth:
-  max-attempts: 5
-  timeout-seconds: 60
-  min-password-length: 4
-  use-steve-skin: true
-  captcha-enabled: true
-  validation-port: 0
-
-post-login:
-  target-server: lobby
-  delay-ticks: 10
-
 database:
   type: MYSQL
   mysql:
@@ -25,7 +6,10 @@ database:
     database: zrfa04
     username: zrfa04
     password: "savagemcanarchy67"
-    pool-size: 10
+  sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
-  enabled: false
+  enabled: true
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

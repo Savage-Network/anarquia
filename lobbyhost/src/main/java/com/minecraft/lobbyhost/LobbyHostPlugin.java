@@ -6,7 +6,9 @@ import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
 import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
+import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
+import com.minecraft.lobbyhost.redis.AccountRedisListener;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.bukkit.listener.handler.ListenerHandler;
@@ -69,6 +71,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
             RedisProvider redis = new RedisProvider(this, config);
             redis.init();
             Core.setRedis(redis);
+            if (redis.isEnabled()) {
+                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+            }
 
             // 3) Data layers
             AccountData accountData = new AccountData(database);

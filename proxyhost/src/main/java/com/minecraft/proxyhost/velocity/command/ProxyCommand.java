@@ -186,7 +186,7 @@ public final class ProxyCommand implements SimpleCommand {
             return;
         }
         String msg = join(args, 1);
-        Component c = legacy("&6&l" + Core.getPlugin().getConfig().getString("server.name", "Savage")
+        Component c = legacy("&6&l" + com.minecraft.proxyhost.Constant.SERVER_NAME
                 + " &8» &f" + msg);
         Core.getProxy().getAllPlayers().forEach(p -> p.sendMessage(c));
         Core.getProxy().getConsoleCommandSource().sendMessage(c);

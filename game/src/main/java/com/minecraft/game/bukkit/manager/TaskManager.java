@@ -2,24 +2,34 @@ package com.minecraft.game.bukkit.manager;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.GamePlugin;
+import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.account.AccountController;
+import com.minecraft.game.bukkit.display.GameScoreboard;
+import com.minecraft.game.bukkit.display.GameTabList;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.scheduler.BukkitTask;
 
-/**
- * Mantem as tasks periodicas do plugin. Fase 1 cobre apenas o auto-save;
- * Fase 2 adiciona animacao de tags, follow de displays, etc.
- */
 @RequiredArgsConstructor
 public final class TaskManager {
 
     private final GamePlugin plugin;
 
     private BukkitTask autoSaveTask;
+    private BukkitTask sidebarTask;
+    private BukkitTask tabListTask;
 
     public void start() {
-        // Auto-save a cada 5 minutos (apenas contas dirty)
+        long sidebarTicks = GameSettings.SIDEBAR_UPDATE_TICKS;
+        sidebarTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            GameScoreboard.refreshOnlineCount();
+            GameScoreboard.refreshCombatTags();
+        }, sidebarTicks, sidebarTicks);
+
+        long tabTicks = GameSettings.TABLIST_UPDATE_TICKS;
+        tabListTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                GameTabList::refreshAll, tabTicks, tabTicks);
+
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             AccountController controller = Core.getAccountController();
@@ -39,8 +49,8 @@ public final class TaskManager {
     }
 
     public void stop() {
-        if (autoSaveTask != null && !autoSaveTask.isCancelled()) {
-            autoSaveTask.cancel();
-        }
+        if (autoSaveTask != null && !autoSaveTask.isCancelled()) autoSaveTask.cancel();
+        if (sidebarTask != null && !sidebarTask.isCancelled()) sidebarTask.cancel();
+        if (tabListTask != null && !tabListTask.isCancelled()) tabListTask.cancel();
     }
 }

@@ -133,7 +133,7 @@ public final class Game {
         teamSelect = false;
 
         // Devolver todos ao hub
-        String target = Core.getJavaPlugin().getConfig().getString("event.post-end-target", "lobby");
+        String target = com.minecraft.eventos.EventosSettings.POST_END_TARGET;
         for (Player p : Bukkit.getOnlinePlayers()) {
             try {
                 java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();

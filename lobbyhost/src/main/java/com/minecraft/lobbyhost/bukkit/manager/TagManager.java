@@ -2,6 +2,7 @@ package com.minecraft.lobbyhost.bukkit.manager;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.account.context.objects.tag.Tag;
 import com.minecraft.lobbyhost.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
@@ -89,6 +90,28 @@ public final class TagManager {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             applyTagForViewer(viewer, target);
         }
+        AboveNameDisplay.refresh(target);
+    }
+
+    /** Linha exibida acima da cabeca: tag + nick (+ cla). */
+    public static String formatNametagLine(Account account) {
+        if (account == null) return "";
+        String prefix = formatNametagPrefixLine(account);
+        String nick = formatNametagNickLine(account);
+        if (prefix.isBlank()) return nick;
+        return prefix + nick;
+    }
+
+    public static String formatNametagPrefixLine(Account account) {
+        if (account == null) return "";
+        Tag tag = account.getTag();
+        if (tag == null) return "";
+        return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
+    }
+
+    public static String formatNametagNickLine(Account account) {
+        if (account == null) return "";
+        return "§f" + account.getNickname() + suffixOf(account);
     }
 
     public static void updateTag(Account account, Tag newTag) {
@@ -128,6 +151,8 @@ public final class TagManager {
 
         team.prefix(Component.text(prefix));
         team.suffix(Component.text(suffix));
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
     }

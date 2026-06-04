@@ -3,6 +3,7 @@ package com.minecraft.eventos.bukkit.listener;
 import com.minecraft.eventos.Constant;
 import com.minecraft.eventos.Core;
 import com.minecraft.eventos.EventosPlugin;
+import com.minecraft.eventos.EventosSettings;
 import com.minecraft.eventos.account.Account;
 import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
 import com.minecraft.eventos.bukkit.manager.TagManager;
@@ -109,11 +110,11 @@ public final class EventosListener implements Listener {
     /* ----- rules: config.yml ----- */
 
     private boolean ruleBlocksBuild() {
-        return !Core.getJavaPlugin().getConfig().getBoolean("rules.block-place", false);
+        return !EventosSettings.RULE_BLOCK_PLACE;
     }
 
     private boolean ruleBlocksBreak() {
-        return !Core.getJavaPlugin().getConfig().getBoolean("rules.block-break", false);
+        return !EventosSettings.RULE_BLOCK_BREAK;
     }
 
     @EventHandler public void onPlace(BlockPlaceEvent e) {
@@ -123,18 +124,18 @@ public final class EventosListener implements Listener {
         if (ruleBlocksBreak() && !e.getPlayer().hasPermission("eventos.admin")) e.setCancelled(true);
     }
     @EventHandler public void onDrop(PlayerDropItemEvent e) {
-        if (!Core.getJavaPlugin().getConfig().getBoolean("rules.drop-item-enabled", false)) e.setCancelled(true);
+        if (!EventosSettings.RULE_DROP_ITEMS) e.setCancelled(true);
     }
     @EventHandler public void onBucketFill(PlayerBucketFillEvent e) {
-        if (!Core.getJavaPlugin().getConfig().getBoolean("rules.bucket-enabled", false)) e.setCancelled(true);
+        if (!EventosSettings.RULE_BUCKETS) e.setCancelled(true);
     }
     @EventHandler public void onBucketEmpty(PlayerBucketEmptyEvent e) {
-        if (!Core.getJavaPlugin().getConfig().getBoolean("rules.bucket-enabled", false)) e.setCancelled(true);
+        if (!EventosSettings.RULE_BUCKETS) e.setCancelled(true);
     }
     @EventHandler public void onDamage(EntityDamageEvent e) {
-        if (!Core.getJavaPlugin().getConfig().getBoolean("rules.damage-enabled", true)) e.setCancelled(true);
+        if (!EventosSettings.RULE_DAMAGE) e.setCancelled(true);
     }
     @EventHandler public void onFood(FoodLevelChangeEvent e) {
-        if (!Core.getJavaPlugin().getConfig().getBoolean("rules.food-enabled", false)) e.setCancelled(true);
+        if (!EventosSettings.RULE_FOOD) e.setCancelled(true);
     }
 }

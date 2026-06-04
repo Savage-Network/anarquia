@@ -3,11 +3,10 @@ package com.minecraft.game.bukkit.listener;
 import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
-import com.minecraft.game.api.clan.ClanSync;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
+import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import com.minecraft.game.bukkit.manager.PermissionManager;
 import com.minecraft.game.bukkit.manager.TagManager;
-import com.minecraft.game.bukkit.skin.SkinService;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -67,14 +66,13 @@ public final class AccountListener implements Listener {
         // Tab + nametag para todos os viewers (com TagPrefix individual)
         final Account loaded = account;
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
-            if (player.isOnline()) {
-                PermissionManager.loadPermissions(player);
-                SkinService.refresh(loaded, player);
-                SkinService.refreshFromMojangIfStale(loaded, player);
-                ClanSync.refresh(loaded);
-                TagManager.updateTag(loaded);
-                TagManager.updateAllForViewer(player);
-                AboveNameDisplay.refresh(player);
+            if (!player.isOnline()) return;
+            PlayerDisplayService.applyAll(loaded, player);
+            com.minecraft.game.bukkit.skin.SkinService.refreshFromMojangIfStale(loaded, player);
+            for (Player other : Bukkit.getOnlinePlayers()) {
+                if (other.equals(player)) continue;
+                Account otherAcc = Core.getAccountController().of(other.getUniqueId());
+                if (otherAcc != null) TagManager.applyTagForViewer(player, other);
             }
         }, 5L);
     }

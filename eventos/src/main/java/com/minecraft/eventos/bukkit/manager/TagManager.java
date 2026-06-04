@@ -2,6 +2,7 @@ package com.minecraft.eventos.bukkit.manager;
 
 import com.minecraft.eventos.Core;
 import com.minecraft.eventos.account.Account;
+import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
 import com.minecraft.eventos.account.context.objects.tag.Tag;
 import com.minecraft.eventos.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
@@ -89,6 +90,19 @@ public final class TagManager {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             applyTagForViewer(viewer, target);
         }
+        AboveNameDisplay.refresh(target);
+    }
+
+    public static String formatNametagPrefixLine(Account account) {
+        if (account == null) return "";
+        Tag tag = account.getTag();
+        if (tag == null) return "";
+        return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
+    }
+
+    public static String formatNametagNickLine(Account account) {
+        if (account == null) return "";
+        return "§f" + account.getNickname() + suffixOf(account);
     }
 
     public static void updateTag(Account account, Tag newTag) {
@@ -133,6 +147,8 @@ public final class TagManager {
 
         team.prefix(Component.text(prefix));
         team.suffix(Component.text(suffix));
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
     }

@@ -1,5 +1,6 @@
 package com.minecraft.proxyhost.velocity.command;
 
+import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.account.context.objects.medal.Medal;
@@ -183,7 +184,12 @@ public final class AccountCommand implements SimpleCommand {
             if (opt.isEmpty()) { src.sendMessage(legacy("&cConta nao encontrada.")); return; }
             Account a = opt.get();
             action.accept(a);
-            Core.getAccountData().saveAsync(a).thenRun(a::clearDirty);
+            Core.getAccountData().saveAsync(a).thenRun(() -> {
+                a.clearDirty();
+                if (Core.getRedis() != null && Core.getRedis().isEnabled()) {
+                    Core.getRedis().publish(Constant.REDIS_ACCOUNT_UPDATE_CHANNEL, a.getId().toString());
+                }
+            });
         });
     }
 

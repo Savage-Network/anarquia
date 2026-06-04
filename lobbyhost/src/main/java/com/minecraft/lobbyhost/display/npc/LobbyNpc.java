@@ -13,6 +13,7 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,21 +98,24 @@ public final class LobbyNpc {
         }
 
         final ItemStack headStack = displayItem;
+        final boolean rotating = definition.isRotate();
         ItemDisplay headDisplay = base.getWorld().spawn(headLoc, ItemDisplay.class, id -> {
             id.setItemStack(headStack);
-            id.setBillboard(Display.Billboard.CENTER);
+            id.setBillboard(rotating ? Display.Billboard.CENTER : Display.Billboard.FIXED);
             id.setPersistent(false);
-            
-            // Aplica transformação de escala
+
             Transformation transform = id.getTransformation();
             Vector3f newScale = new Vector3f(scale, scale, scale);
+            Quaternionf rotation = rotating
+                    ? transform.getLeftRotation()
+                    : new Quaternionf().rotateY((float) Math.toRadians(yaw));
             id.setTransformation(new Transformation(
                 transform.getTranslation(),
-                transform.getLeftRotation(),
+                rotation,
                 newScale,
                 transform.getRightRotation()
             ));
-            
+
             id.getPersistentDataContainer().set(NPC_ID_KEY, PersistentDataType.STRING, definition.getId());
         });
         entityIds.add(headDisplay.getUniqueId());

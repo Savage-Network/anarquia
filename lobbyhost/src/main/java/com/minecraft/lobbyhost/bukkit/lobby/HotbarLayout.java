@@ -30,7 +30,8 @@ public final class HotbarLayout {
         PlayerInventory inv = player.getInventory();
         inv.clear();
 
-        inv.setItem(0, item(Material.COMPASS, "§a§lNavegacao", List.of("§7Clique direito"), PDC_COMPASS));
+        inv.setItem(0, item(Material.COMPASS, "§a§lServidores",
+                List.of("§7Semi Anarquia e Eventos", "§eClique direito"), PDC_COMPASS));
         inv.setItem(1, item(Material.NETHER_STAR, "§e§lCosmeticos", List.of("§7Clique direito"), PDC_COSMETIC));
         
         // Gadget ativo (Slot 2)

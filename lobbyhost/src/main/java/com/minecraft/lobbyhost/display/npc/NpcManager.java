@@ -2,6 +2,7 @@ package com.minecraft.lobbyhost.display.npc;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
+import com.minecraft.lobbyhost.util.BungeeCordUtil;
 import com.minecraft.lobbyhost.architect.Architect;
 import com.minecraft.lobbyhost.architect.SignedLocation;
 import net.kyori.adventure.text.Component;
@@ -87,8 +88,7 @@ public final class NpcManager {
         }
         Core.getLogger().info("[NpcManager] " + spawned.size() + " NPCs ativos no mundo.");
         
-        // Inicia rotação para NPCs com itens customizados
-        startRotationTask();
+        startRotationTaskIfNeeded();
     }
 
     public static void unloadAll() {
@@ -98,23 +98,23 @@ public final class NpcManager {
         cleanupOrphans();
     }
     
-    /**
-     * Inicia task de rotação para NPCs com itens customizados
-     */
-    private static void startRotationTask() {
+    /** Inicia rotação apenas se algum NPC tiver {@code rotate: true} no YAML. */
+    private static void startRotationTaskIfNeeded() {
         stopRotationTask();
-        
+        boolean anyRotating = spawned.values().stream()
+                .anyMatch(n -> n.getDefinition().isRotate());
+        if (!anyRotating) return;
+
         LobbyHostPlugin plugin = Core.getJavaPlugin();
         if (plugin == null) return;
-        
+
         rotationTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (LobbyNpc npc : spawned.values()) {
-                // Rotaciona apenas NPCs com customItem definido
-                if (npc.getDefinition().getCustomItem() != null && !npc.getDefinition().getCustomItem().isBlank()) {
+                if (npc.getDefinition().isRotate()) {
                     rotateNpc(npc);
                 }
             }
-        }, 1L, 1L); // Atualiza a cada tick para rotação suave
+        }, 1L, 2L);
     }
     
     /**
@@ -214,8 +214,7 @@ public final class NpcManager {
                 }
                 LobbyHostPlugin plugin = Core.getJavaPlugin();
                 if (plugin == null) return;
-                player.sendPluginMessage(plugin, "BungeeCord",
-                        ("Connect\0" + server).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                BungeeCordUtil.connect(player, plugin, server);
                 player.sendMessage(Component.text("§aConectando em §f" + server + "§a..."));
             }
             case NONE -> {}

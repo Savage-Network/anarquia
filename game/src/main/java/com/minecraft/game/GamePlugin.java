@@ -11,7 +11,9 @@ import com.minecraft.game.bukkit.shop.catalog.SellCatalog;
 import com.minecraft.game.bukkit.shop.catalog.ServerShopCatalog;
 import com.minecraft.game.bukkit.menu.listener.MenuListener;
 import com.minecraft.game.backend.database.HikariProvider;
+import com.minecraft.game.Constant;
 import com.minecraft.game.backend.redis.RedisProvider;
+import com.minecraft.game.redis.AccountRedisListener;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.listener.handler.ListenerHandler;
@@ -67,6 +69,9 @@ public final class GamePlugin extends JavaPlugin {
             RedisProvider redis = new RedisProvider(this, config);
             redis.init();
             Core.setRedis(redis);
+            if (redis.isEnabled()) {
+                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+            }
 
             // 3) Data layers
             AccountData accountData = new AccountData(database);
@@ -88,10 +93,10 @@ public final class GamePlugin extends JavaPlugin {
             auctionData.loadAll();
             Core.setAuctionData(auctionData);
             AuctionManager.configure(
-                    getConfig().getInt("auction.max-listings", 5),
-                    getConfig().getInt("auction.duration-hours", 48),
-                    getConfig().getInt("auction.tax-percent", 5),
-                    getConfig().getInt("auction.listing-fee", 50));
+                    GameSettings.AUCTION_MAX_LISTINGS,
+                    GameSettings.AUCTION_DURATION_HOURS,
+                    GameSettings.AUCTION_TAX_PERCENT,
+                    GameSettings.AUCTION_LISTING_FEE);
 
             ServerShopCatalog.load(this);
             SellCatalog.load(this);

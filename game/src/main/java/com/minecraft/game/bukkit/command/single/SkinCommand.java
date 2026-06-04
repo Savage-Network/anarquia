@@ -28,6 +28,10 @@ public final class SkinCommand implements CommandInheritor {
 
         Player player = ctx.player();
         String source = ctx.getArgs().length > 0 ? ctx.getArgs()[0] : account.getName();
+        if (source == null || source.isBlank()) {
+            ctx.reply("§cNick invalido para buscar skin.");
+            return;
+        }
 
         if (!account.isStaffer() && account.hasCooldown(Constant.SKIN_CHANGE_COOLDOWN_KEY)) {
             long left = account.getCooldownRemaining(Constant.SKIN_CHANGE_COOLDOWN_KEY);

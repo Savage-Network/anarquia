@@ -34,6 +34,9 @@ public final class NpcDefinition {
     /** Escala do NPC (1.0 = tamanho normal, 1.5 = 50% maior). */
     @Builder.Default
     private final float scale = 1.5f;
+    /** Se true, gira o item customizado (desligado por padrao — NPC fica parado). */
+    @Builder.Default
+    private final boolean rotate = false;
 
     public static NpcDefinition fromConfig(String id, org.bukkit.configuration.ConfigurationSection sec) {
         if (sec == null) return null;
@@ -71,6 +74,7 @@ public final class NpcDefinition {
                 .actionType(type)
                 .actionValue(sec.getString("action.value", ""))
                 .scale(scale)
+                .rotate(sec.getBoolean("rotate", false))
                 .build();
     }
 }

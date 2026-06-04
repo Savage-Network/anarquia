@@ -4,10 +4,11 @@ import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
-import com.minecraft.lobbyhost.api.clan.ClanSync;
 import com.minecraft.lobbyhost.bukkit.menu.MenuManager;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
+import com.minecraft.lobbyhost.bukkit.display.PlayerDisplayService;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
+import com.minecraft.lobbyhost.bukkit.lobby.LobbyTabList;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
 import com.minecraft.lobbyhost.bukkit.manager.PermissionManager;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
@@ -70,12 +71,14 @@ public final class LobbyJoinListener implements Listener {
             PlayerVisibilityService.onPlayerJoin(player);
             Account account = Core.getAccountController().of(player.getUniqueId());
             if (account == null) return;
-            SkinService.refresh(account, player);
+            PlayerDisplayService.applyAll(account, player);
             SkinService.refreshFromMojangIfStale(account, player);
-            ClanSync.refresh(account);
-            TagManager.updateTag(account);
-            TagManager.updateAllForViewer(player);
-            AboveNameDisplay.refresh(player);
+            LobbyTabList.refreshAll();
+            for (Player other : Bukkit.getOnlinePlayers()) {
+                if (other.equals(player)) continue;
+                Account otherAcc = Core.getAccountController().of(other.getUniqueId());
+                if (otherAcc != null) TagManager.applyTagForViewer(player, other);
+            }
         }, 5L);
     }
 

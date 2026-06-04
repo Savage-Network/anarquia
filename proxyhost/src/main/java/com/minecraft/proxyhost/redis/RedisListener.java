@@ -2,6 +2,7 @@ package com.minecraft.proxyhost.redis;
 
 import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
+import com.minecraft.proxyhost.ProxySettings;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import net.kyori.adventure.text.Component;
@@ -59,7 +60,7 @@ public final class RedisListener extends JedisPubSub {
         String server = parts[1];
         String body = parts[2];
 
-        String prefix = Core.getPlugin().getConfig().getString("staffchat.prefix", "&6[STAFF] ");
+        String prefix = ProxySettings.STAFFCHAT_PREFIX;
         Component formatted = legacy(prefix + "&f" + coloredFrom + "&7 (&f" + server + "&7): &f" + body);
 
         Core.getProxy().getAllPlayers().forEach(p -> {

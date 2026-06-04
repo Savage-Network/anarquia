@@ -10,14 +10,16 @@ import com.minecraft.game.Core;
 import com.minecraft.game.GamePlugin;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.skin.SkinMetadata;
+import com.minecraft.game.util.AccountSync;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -28,8 +30,9 @@ import java.util.concurrent.CompletableFuture;
 public final class SkinService {
 
     private static final long STALE_MS = 86_400_000L;
+    private static final String USER_AGENT = "SavageAnarquia-Game/1.0";
     private static final HttpClient HTTP = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(8))
+            .connectTimeout(java.time.Duration.ofSeconds(8))
             .build();
 
     private SkinService() {}
@@ -64,6 +67,7 @@ public final class SkinService {
         if (player == null || skin == null || !skin.isValid()) return;
         try {
             PlayerProfile profile = player.getPlayerProfile();
+            profile.removeProperty("textures");
             profile.setProperty(new ProfileProperty("textures", skin.getValue(),
                     skin.getSignature() != null ? skin.getSignature() : ""));
             player.setPlayerProfile(profile);
@@ -94,8 +98,8 @@ public final class SkinService {
     }
 
     public static CompletableFuture<Optional<SkinMetadata>> fetchMojang(String playerName) {
-        String name = playerName.trim();
-        if (name.isEmpty()) return CompletableFuture.completedFuture(Optional.empty());
+        String name = normalizeName(playerName);
+        if (name == null) return CompletableFuture.completedFuture(Optional.empty());
 
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -109,7 +113,8 @@ public final class SkinService {
         });
     }
 
-    public static void applyMojangSkin(Account account, Player player, String sourceName, Runnable onSuccess, Runnable onFail) {
+    public static void applyMojangSkin(Account account, Player player, String sourceName,
+                                       Runnable onSuccess, Runnable onFail) {
         fetchMojang(sourceName).thenAccept(opt -> Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> {
             if (!player.isOnline() || account == null) return;
             if (opt.isEmpty()) {
@@ -119,6 +124,7 @@ public final class SkinService {
             SkinMetadata skin = opt.get();
             account.setSkin(skin);
             apply(player, skin);
+            AccountSync.saveAndBroadcast(account);
             if (onSuccess != null) onSuccess.run();
         }));
     }
@@ -136,28 +142,61 @@ public final class SkinService {
         applyMojangSkin(account, player, source, null, null);
     }
 
+    private static String normalizeName(String raw) {
+        if (raw == null) return null;
+        String name = raw.trim();
+        if (!name.matches("^[a-zA-Z0-9_]{3,16}$")) return null;
+        return name;
+    }
+
     private static Optional<UUID> resolveUuid(String name) throws Exception {
+        String encoded = URLEncoder.encode(name, StandardCharsets.UTF_8);
+
+        Optional<UUID> mojang = requestUuid(
+                "https://api.mojang.com/users/profiles/minecraft/" + encoded);
+        if (mojang.isPresent()) return mojang;
+
+        return requestUuid(
+                "https://api.minecraftservices.com/minecraft/profile/lookup/name/" + encoded);
+    }
+
+    private static Optional<UUID> requestUuid(String url) throws Exception {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mojang.com/users/profiles/minecraft/" + name))
-                .timeout(Duration.ofSeconds(8))
+                .uri(URI.create(url))
+                .timeout(java.time.Duration.ofSeconds(8))
+                .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
         HttpResponse<String> res = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
-        if (res.statusCode() != 200 || res.body() == null || res.body().isBlank()) {
+        if (res.statusCode() == 204 || res.statusCode() == 404) return Optional.empty();
+        if (res.statusCode() != 200) return Optional.empty();
+        return parseUuidBody(res.body());
+    }
+
+    private static Optional<UUID> parseUuidBody(String body) {
+        if (body == null || body.isBlank()) return Optional.empty();
+        JsonElement root = JsonParser.parseString(body);
+        JsonObject obj;
+        if (root.isJsonObject()) {
+            obj = root.getAsJsonObject();
+        } else if (root.isJsonArray()) {
+            JsonArray arr = root.getAsJsonArray();
+            if (arr.isEmpty()) return Optional.empty();
+            obj = arr.get(0).getAsJsonObject();
+        } else {
             return Optional.empty();
         }
-        JsonArray arr = JsonParser.parseString(res.body()).getAsJsonArray();
-        if (arr.isEmpty()) return Optional.empty();
-        JsonObject obj = arr.get(0).getAsJsonObject();
-        String id = obj.get("id").getAsString();
-        return Optional.of(uuidFromMojang(id));
+        if (!obj.has("id")) return Optional.empty();
+        return Optional.of(uuidFromMojang(obj.get("id").getAsString()));
     }
 
     private static Optional<SkinMetadata> fetchProfile(UUID uuid, String displayName) throws Exception {
         String undashed = uuid.toString().replace("-", "");
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + undashed + "?unsigned=false"))
-                .timeout(Duration.ofSeconds(8))
+                .uri(URI.create("https://sessionserver.mojang.com/session/minecraft/profile/"
+                        + undashed + "?unsigned=false"))
+                .timeout(java.time.Duration.ofSeconds(8))
+                .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
         HttpResponse<String> res = HTTP.send(req, HttpResponse.BodyHandlers.ofString());
@@ -177,9 +216,10 @@ public final class SkinService {
     }
 
     private static UUID uuidFromMojang(String id) {
-        return UUID.fromString(id.replaceFirst(
+        String dashed = id.contains("-") ? id : id.replaceFirst(
                 "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)",
-                "$1-$2-$3-$4-$5"));
+                "$1-$2-$3-$4-$5");
+        return UUID.fromString(dashed);
     }
 
     private static void refreshViewers(Player player) {

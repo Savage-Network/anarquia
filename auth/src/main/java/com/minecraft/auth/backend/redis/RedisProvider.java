@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisPubSub;
 
 /**
  * Inicializacao lazy do Jedis. Quando {@code redis.enabled = false}, o
@@ -36,8 +37,8 @@ public final class RedisProvider {
 
         String host = config.getString("redis.host", "127.0.0.1");
         int port = config.getInt("redis.port", 6379);
-        int database = config.getInt("redis.database", 0);
-        boolean ssl = config.getBoolean("redis.ssl", false);
+        int database = 0;
+        boolean ssl = false;
         String password = config.getString("redis.password", "");
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -60,6 +61,19 @@ public final class RedisProvider {
         } catch (Throwable t) {
             plugin.getLogger().warning("Falha ao publicar no Redis: " + t.getMessage());
         }
+    }
+
+    public void subscribe(JedisPubSub handler, String... channels) {
+        if (!enabled || pool == null) return;
+        Thread t = new Thread(() -> {
+            try (var jedis = pool.getResource()) {
+                jedis.subscribe(handler, channels);
+            } catch (Throwable err) {
+                plugin.getLogger().warning("Redis subscribe encerrado: " + err.getMessage());
+            }
+        }, "auth-redis-subscriber");
+        t.setDaemon(true);
+        t.start();
     }
 
     public void shutdown() {

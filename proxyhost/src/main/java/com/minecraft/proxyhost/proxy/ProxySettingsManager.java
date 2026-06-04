@@ -208,9 +208,9 @@ public final class ProxySettingsManager {
         String out = line.replace('&', '§');
         out = out.replace("{online}", String.valueOf(proxy.getPlayerCount()));
         int maxDisplay = maxPlayersOverride >= 0 ? maxPlayersOverride
-                : Core.getPlugin().getConfig().getInt("motd.default-max-display", 100);
+                : com.minecraft.proxyhost.ProxySettings.MOTD_DEFAULT_MAX_DISPLAY;
         out = out.replace("{max}", String.valueOf(maxDisplay));
-        out = out.replace("{name}", Core.getPlugin().getConfig().getString("server.name", "Savage"));
+        out = out.replace("{name}", com.minecraft.proxyhost.Constant.SERVER_NAME);
         out = out.replace("{maintenance}", maintenanceEnabled ? "§cSIM" : "§aNAO");
         return out;
     }

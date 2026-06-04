@@ -1,14 +1,5 @@
-# =====================================================================
-# game.jar  -  servidor semi-anarquia (Paper 1.21)
-# =====================================================================
-
-server:
-  plugin-name: game
-  mode: GAME
-  spawn-protection-radius: 50
-  combat-tag-seconds: 15
-  allow-end: true
-  allow-nether: true
+# game.jar — apenas infraestrutura. Gameplay/UI em GameSettings.java
+# Warps: plugins/game/warps.yml | Kits: plugins/game/kits.yml
 
 database:
   type: MYSQL
@@ -18,89 +9,10 @@ database:
     database: zrfa04
     username: zrfa04
     password: "savagemcanarchy67"
-    pool-size: 10
   sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
-  enabled: false
-  host: 127.0.0.1
-  port: 6379
-  password: ""
-  database: 0
-  ssl: false
-
-display:
-  use-text-display-nametags: true
-  nametag-offset-y: 0.35
-  max-displays-per-player: 12
-
-tags:
-  change-cooldown-seconds: 5
-  animate-staff-tags: true
-
-events:
   enabled: true
-  auto-schedule: true
-  announce-minutes-before: 5
-
-anticheat:
-  enabled: true
-  alert-staff: true
-  discord-webhook: ""
-
-cosmetics:
-  enabled: true
-  max-image-size: 96
-
-economy:
-  starting-balance: 1000
-  currency-symbol: "$"
-
-semi-anarchy:
-  spawn:
-    world: world
-    x: 0.5
-    y: 64.0
-    z: 0.5
-    yaw: 0
-    pitch: 0
-  kill-reward-base: 200
-  kill-streak-bonus: 50
-  max-kill-streak-bonus: 200
-  home-cooldown-seconds: 30
-  home-cooldown-vip-seconds: 15
-  spawn-cooldown-seconds: 30
-  warp-cooldown-seconds: 5
-  bounty-min: 500
-  bounty-tax-percent: 10
-
-sign-shops:
-  enabled: false
-  max-price-per-unit: 1000000
-  tax-percent: 2
-  headers:
-    - "[Loja]"
-    - "[Shop]"
-  server-headers:
-    - "[LojaServer]"
-    - "[ShopServer]"
-    - "[LojaAdmin]"
-  buy-words:
-    - "Comprar"
-    - "Buy"
-    - "C"
-  sell-words:
-    - "Vender"
-    - "Sell"
-    - "V"
-
-auction:
-  max-listings: 5
-  duration-hours: 48
-  tax-percent: 5
-  listing-fee: 50
-
-discord:
-  punishments-webhook: ""
-  events-webhook: ""
-  anticheat-webhook: ""
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

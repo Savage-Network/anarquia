@@ -7,7 +7,9 @@ import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
 import com.minecraft.lobbyhost.bukkit.event.AccountPrefixTypeEvent;
+import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
+import com.minecraft.lobbyhost.util.AccountSync;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -41,6 +43,7 @@ public final class PrefixTypeCommand implements CommandInheritor {
 
         account.setTagPrefix(prefix);
         Bukkit.getPluginManager().callEvent(new AccountPrefixTypeEvent(account, prefix));
+        AccountSync.saveAndBroadcast(account);
         ctx.reply("§aModo de prefixo: §e" + prefix.getDisplayName());
     }
 

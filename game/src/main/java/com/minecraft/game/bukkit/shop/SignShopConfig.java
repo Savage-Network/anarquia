@@ -1,7 +1,7 @@
 package com.minecraft.game.bukkit.shop;
 
 import com.minecraft.game.GamePlugin;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.minecraft.game.GameSettings;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,19 +21,14 @@ public final class SignShopConfig {
     private SignShopConfig() {}
 
     public static void load(GamePlugin plugin) {
-        FileConfiguration cfg = plugin.getConfig();
-        enabled = cfg.getBoolean("sign-shops.enabled", true);
-        maxPrice = cfg.getInt("sign-shops.max-price-per-unit", 1_000_000);
-        taxPercent = cfg.getInt("sign-shops.tax-percent", 0);
-
-        shopHeaders = new HashSet<>(normalizeList(cfg.getStringList("sign-shops.headers"),
-                List.of("[LOJA]", "[SHOP]")));
-        serverHeaders = new HashSet<>(normalizeList(cfg.getStringList("sign-shops.server-headers"),
+        enabled = GameSettings.SIGN_SHOPS_ENABLED;
+        maxPrice = GameSettings.SIGN_SHOP_MAX_PRICE;
+        taxPercent = GameSettings.SIGN_SHOP_TAX_PERCENT;
+        shopHeaders = new HashSet<>(normalizeList(null, List.of("[LOJA]", "[SHOP]")));
+        serverHeaders = new HashSet<>(normalizeList(null,
                 List.of("[LOJASERVER]", "[SHOPSERVER]", "[LOJAADMIN]")));
-        buyWords = new HashSet<>(normalizeList(cfg.getStringList("sign-shops.buy-words"),
-                List.of("COMPRAR", "BUY", "C")));
-        sellWords = new HashSet<>(normalizeList(cfg.getStringList("sign-shops.sell-words"),
-                List.of("VENDER", "SELL", "V")));
+        buyWords = new HashSet<>(normalizeList(null, List.of("COMPRAR", "BUY", "C")));
+        sellWords = new HashSet<>(normalizeList(null, List.of("VENDER", "SELL", "V")));
     }
 
     private static List<String> normalizeList(List<String> fromCfg, List<String> defaults) {

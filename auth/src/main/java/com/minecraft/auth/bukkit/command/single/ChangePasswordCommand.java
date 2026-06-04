@@ -21,7 +21,7 @@ public final class ChangePasswordCommand implements CommandInheritor {
             return;
         }
 
-        int min = Core.getJavaPlugin().getConfig().getInt("auth.min-password-length", 4);
+        int min = com.minecraft.auth.AuthSettings.MIN_PASSWORD_LENGTH;
         AuthService.ChangePasswordResult result = AuthService.getInstance()
                 .changePassword(account, ctx.getArgs()[0], ctx.getArgs()[1], min);
 

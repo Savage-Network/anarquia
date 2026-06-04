@@ -13,7 +13,9 @@ import com.minecraft.proxyhost.velocity.command.ProxyCommand;
 import com.minecraft.proxyhost.velocity.command.ReplyCommand;
 import com.minecraft.proxyhost.velocity.command.StaffChatCommand;
 import com.minecraft.proxyhost.velocity.command.TellCommand;
+import com.minecraft.proxyhost.routing.InitialServerListener;
 import com.minecraft.proxyhost.velocity.listener.LoginListener;
+import com.minecraft.proxyhost.velocity.listener.PluginHiderListener;
 import com.minecraft.proxyhost.velocity.listener.ProxyPingListener;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -106,8 +108,10 @@ public final class ProxyHostPlugin {
         proxySettings.load();
 
         // Listeners
+        proxy.getEventManager().register(this, new InitialServerListener());
         proxy.getEventManager().register(this, new LoginListener());
         proxy.getEventManager().register(this, new ProxyPingListener());
+        proxy.getEventManager().register(this, new PluginHiderListener(this));
 
         // Comandos
         var cm = proxy.getCommandManager();

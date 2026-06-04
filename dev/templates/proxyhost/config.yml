@@ -1,30 +1,18 @@
-server:
-  name: "Savage DEV"
-
 routing:
-  auth-server: "auth"
-  default-fallback: "lobby"
+  auth-server: auth
+  lobby-server: lobby
+  default-fallback: lobby
+  trust-saved-auth: true
 
 dev:
   enabled: true
 
-# Dev local: SQLite compartilhado (velocity/shared/anarquia-dev.db).
-# Se type: MYSQL falhar com dev.enabled=true, o plugin tenta este SQLite automaticamente.
 database:
   type: SQLITE
   sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
-  enabled: false
-
-tell:
   enabled: true
-
-staffchat:
-  enabled: true
-
-motd:
-  default-max-display: 100
-
-maintenance:
-  default-min-rank: HELPER
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

@@ -29,7 +29,7 @@ public final class RegisterCommand implements CommandInheritor {
             return;
         }
 
-        int min = Core.getJavaPlugin().getConfig().getInt("auth.min-password-length", 4);
+        int min = com.minecraft.auth.AuthSettings.MIN_PASSWORD_LENGTH;
         AuthService.RegisterResult result = AuthService.getInstance()
                 .register(account, ctx.getArgs()[0], ctx.getArgs()[1], min);
 

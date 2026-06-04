@@ -2,9 +2,7 @@ package com.minecraft.lobbyhost.bukkit.menu;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
-import com.minecraft.lobbyhost.account.Account;
-import com.minecraft.lobbyhost.display.npc.NpcDefinition;
-import com.minecraft.lobbyhost.display.npc.NpcManager;
+import com.minecraft.lobbyhost.LobbySettings;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -17,41 +15,46 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.nio.charset.StandardCharsets;
+import com.minecraft.lobbyhost.util.BungeeCordUtil;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Menus simples da hotbar do hub (navegacao, perfil, cosmeticos, missoes).
+ * Menus da hotbar do hub (bussola, perfil, cosmeticos, missoes).
  */
 public final class LobbyMenus {
 
-    private static final NamespacedKey MENU_NPC_KEY =
-            new NamespacedKey(LobbyHostPlugin.getInstance(), "menu_npc");
+    private static final NamespacedKey MENU_SERVER_KEY =
+            new NamespacedKey(LobbyHostPlugin.getInstance(), "menu_server");
+
+    private static final int NAV_SIZE = 27;
+    private static final int CLOSE_SLOT = 22;
 
     private LobbyMenus() {}
 
     public static void openNavigation(Player player) {
-        List<NpcDefinition> modes = new ArrayList<>(NpcManager.listDefinitions());
-        int size = Math.min(54, Math.max(9, ((modes.size() + 8) / 9) * 9));
+        List<NavEntry> entries = defaultNavigationEntries();
         LobbyMenuHolder holder = new LobbyMenuHolder("navigation");
-        Inventory inv = Bukkit.createInventory(holder, size,
-                Component.text("Modos de jogo").color(NamedTextColor.GOLD)
+        String title = LobbySettings.NAVIGATION_TITLE;
+        Inventory inv = Bukkit.createInventory(holder, NAV_SIZE,
+                Component.text(title.replace('&', '§'))
                         .decoration(TextDecoration.ITALIC, false));
         holder.bind(inv);
 
-        int slot = 0;
-        for (NpcDefinition def : modes) {
-            if (slot >= size) break;
-            inv.setItem(slot++, modeIcon(def));
+        fillGlass(inv, entries);
+
+        for (NavEntry entry : entries) {
+            if (entry.slot() >= 0 && entry.slot() < NAV_SIZE && entry.slot() != CLOSE_SLOT) {
+                inv.setItem(entry.slot(), navIcon(entry));
+            }
         }
 
-        inv.setItem(size - 5, labeled(Material.BARRIER, "§cFechar", List.of()));
+        inv.setItem(CLOSE_SLOT, labeled(Material.BARRIER, "§cFechar", List.of()));
         player.openInventory(inv);
     }
 
     public static void openProfile(Player player) {
-        Account account = Core.getAccountController().of(player.getUniqueId());
+        var account = Core.getAccountController().of(player.getUniqueId());
         LobbyMenuHolder holder = new LobbyMenuHolder("profile");
         Inventory inv = Bukkit.createInventory(holder, 27,
                 Component.text("Seu perfil").color(NamedTextColor.AQUA)
@@ -93,43 +96,64 @@ public final class LobbyMenus {
 
     public static void handleNavigationClick(Player player, ItemStack item) {
         if (item == null || !item.hasItemMeta()) return;
-        String npcId = item.getItemMeta().getPersistentDataContainer()
-                .get(MENU_NPC_KEY, PersistentDataType.STRING);
-        if (npcId == null) return;
-        NpcDefinition def = NpcManager.getDefinition(npcId);
-        if (def != null) {
-            player.closeInventory();
-            NpcManager.handleClick(player, def);
-        }
+        String server = item.getItemMeta().getPersistentDataContainer()
+                .get(MENU_SERVER_KEY, PersistentDataType.STRING);
+        if (server == null || server.isBlank()) return;
+        connectBungee(player, server);
     }
 
     public static void connectBungee(Player player, String server) {
         LobbyHostPlugin plugin = Core.getJavaPlugin();
         if (plugin == null) return;
         player.closeInventory();
-        player.sendPluginMessage(plugin, "BungeeCord",
-                ("Connect\0" + server).getBytes(StandardCharsets.UTF_8));
+        BungeeCordUtil.connect(player, plugin, server);
         player.sendMessage(Component.text("§aConectando em §f" + server + "§a..."));
     }
 
-    private static ItemStack modeIcon(NpcDefinition def) {
-        Material mat = switch (def.getId().toLowerCase()) {
-            case "npc_bw" -> Material.RED_BED;
-            case "npc_duels" -> Material.IRON_SWORD;
-            case "npc_ew" -> Material.DRAGON_EGG;
-            case "npc_sw" -> Material.ELYTRA;
-            case "npc_tb" -> Material.STONE_BRICKS;
-            default -> Material.COMPASS;
-        };
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Clique para entrar");
-        if (def.getActionType() == com.minecraft.lobbyhost.display.npc.NpcActionType.BUNGEE
-                && def.getActionValue() != null) {
-            lore.add("§8Servidor: §f" + def.getActionValue());
+    private static List<NavEntry> defaultNavigationEntries() {
+        return List.of(
+                new NavEntry("semi-anarquia", "semi-anarquia", "§4§lSemi Anarquia",
+                        Material.DIAMOND_SWORD, 11, List.of(
+                        "§7Sobreviva, PvP, economia",
+                        "§7e clãs na rede.",
+                        "",
+                        "§a▶ Clique para jogar")),
+                new NavEntry("eventos", "eventos", "§d§lEventos",
+                        Material.FIREWORK_ROCKET, 15, List.of(
+                        "§7Torneios e minigames",
+                        "§7especiais da rede.",
+                        "",
+                        "§a▶ Clique para entrar"))
+        );
+    }
+
+    private static void fillGlass(Inventory inv, List<NavEntry> entries) {
+        ItemStack glass = glassPane();
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (i == CLOSE_SLOT) continue;
+            boolean reserved = false;
+            for (NavEntry e : entries) {
+                if (e.slot() == i) {
+                    reserved = true;
+                    break;
+                }
+            }
+            if (!reserved) inv.setItem(i, glass);
         }
-        ItemStack stack = labeled(mat, "§f§l" + def.getDisplayName(), lore);
+    }
+
+    private static ItemStack glassPane() {
+        ItemStack stack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = stack.getItemMeta();
-        meta.getPersistentDataContainer().set(MENU_NPC_KEY, PersistentDataType.STRING, def.getId());
+        meta.displayName(Component.text(" ").decoration(TextDecoration.ITALIC, false));
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    private static ItemStack navIcon(NavEntry entry) {
+        ItemStack stack = labeled(entry.material(), entry.displayName(), entry.lore());
+        ItemMeta meta = stack.getItemMeta();
+        meta.getPersistentDataContainer().set(MENU_SERVER_KEY, PersistentDataType.STRING, entry.server());
         stack.setItemMeta(meta);
         return stack;
     }
@@ -146,4 +170,7 @@ public final class LobbyMenus {
         stack.setItemMeta(meta);
         return stack;
     }
+
+    private record NavEntry(String id, String server, String displayName, Material material,
+                            int slot, List<String> lore) {}
 }

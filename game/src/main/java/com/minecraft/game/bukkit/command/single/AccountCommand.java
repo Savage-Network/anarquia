@@ -15,6 +15,7 @@ import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.manager.TagManager;
 import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
 import com.minecraft.game.bukkit.skin.SkinService;
+import com.minecraft.game.util.AccountSync;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -173,8 +174,8 @@ public final class AccountCommand implements CommandInheritor {
         Account online = onlineAccount(playerName);
         if (online != null) {
             action.accept(online);
-            online.save();
             refreshDisplay(online);
+            AccountSync.saveAndBroadcast(online);
             return;
         }
 
@@ -187,6 +188,7 @@ public final class AccountCommand implements CommandInheritor {
             });
             action.accept(account);
             Core.getAccountData().save(account);
+            AccountSync.broadcastUpdate(account);
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Account cached = Core.getAccountController().of(account.getId());
                 if (cached != null) {

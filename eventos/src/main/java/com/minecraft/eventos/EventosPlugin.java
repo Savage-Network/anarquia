@@ -8,6 +8,7 @@ import com.minecraft.eventos.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
 import com.minecraft.eventos.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.eventos.bukkit.manager.TagManager;
+import com.minecraft.eventos.redis.AccountRedisListener;
 import com.minecraft.eventos.bukkit.manager.TaskManager;
 import com.minecraft.eventos.game.Game;
 import com.minecraft.eventos.game.skit.SkitController;
@@ -60,6 +61,9 @@ public final class EventosPlugin extends JavaPlugin {
             RedisProvider redis = new RedisProvider(this, config);
             redis.init();
             Core.setRedis(redis);
+            if (redis.isEnabled()) {
+                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+            }
 
             // 3) Data
             AccountData accountData = new AccountData(database);

@@ -3,6 +3,7 @@ package com.minecraft.lobbyhost.bukkit.listener;
 import com.minecraft.lobbyhost.bukkit.event.AccountMedalEvent;
 import com.minecraft.lobbyhost.bukkit.event.AccountPrefixTypeEvent;
 import com.minecraft.lobbyhost.bukkit.event.AccountTagEvent;
+import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +31,7 @@ public final class UpdateListener implements Listener {
     public void onPrefixType(AccountPrefixTypeEvent event) {
         if (event.getAccount().player() != null) {
             TagManager.updateAllForViewer(event.getAccount().player());
+            AboveNameDisplay.refresh(event.getAccount().player());
         }
     }
 }

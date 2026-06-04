@@ -1,6 +1,7 @@
 package com.minecraft.game.bukkit.semi;
 
 import com.minecraft.game.GamePlugin;
+import com.minecraft.game.GameSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -31,46 +32,61 @@ public final class SemiAnarchyConfig {
     private static int bountyTaxPercent = 10;
     private static Map<String, Location> warps = new LinkedHashMap<>();
 
+    private static String pendingSpawnWorld = "world";
+    private static double pendingSpawnX = 0.5;
+    private static double pendingSpawnY = 64.0;
+    private static double pendingSpawnZ = 0.5;
+    private static float pendingSpawnYaw;
+    private static float pendingSpawnPitch;
+
     private SemiAnarchyConfig() {}
 
     public static void load(GamePlugin plugin) {
-        FileConfiguration cfg = plugin.getConfig();
-        spawnRadius = cfg.getInt("server.spawn-protection-radius", 50);
-        combatTagSeconds = cfg.getInt("server.combat-tag-seconds", 15);
-        startingBalance = cfg.getInt("economy.starting-balance", 1000);
-        currencySymbol = cfg.getString("economy.currency-symbol", "$");
+        spawnRadius = GameSettings.SPAWN_PROTECTION_RADIUS;
+        combatTagSeconds = GameSettings.COMBAT_TAG_SECONDS;
+        startingBalance = GameSettings.STARTING_BALANCE;
+        currencySymbol = GameSettings.CURRENCY_SYMBOL;
+        killRewardBase = GameSettings.KILL_REWARD_BASE;
+        killStreakBonus = GameSettings.KILL_STREAK_BONUS;
+        maxKillStreakBonus = GameSettings.MAX_KILL_STREAK_BONUS;
+        homeCooldownBaseMs = GameSettings.HOME_COOLDOWN_SECONDS * 1000;
+        homeCooldownVipMs = GameSettings.HOME_COOLDOWN_VIP_SECONDS * 1000;
+        spawnCooldownMs = GameSettings.SPAWN_COOLDOWN_SECONDS * 1000;
+        warpCooldownMs = GameSettings.WARP_COOLDOWN_SECONDS * 1000;
+        bountyMin = GameSettings.BOUNTY_MIN;
+        bountyTaxPercent = GameSettings.BOUNTY_TAX_PERCENT;
+        pendingSpawnWorld = GameSettings.SPAWN_WORLD;
+        pendingSpawnX = GameSettings.SPAWN_X;
+        pendingSpawnY = GameSettings.SPAWN_Y;
+        pendingSpawnZ = GameSettings.SPAWN_Z;
+        spawnPoint = null;
 
-        ConfigurationSection semi = cfg.getConfigurationSection("semi-anarchy");
-        if (semi != null) {
-            killRewardBase = semi.getInt("kill-reward-base", 200);
-            killStreakBonus = semi.getInt("kill-streak-bonus", 50);
-            maxKillStreakBonus = semi.getInt("max-kill-streak-bonus", 200);
-            homeCooldownBaseMs = semi.getInt("home-cooldown-seconds", 30) * 1000;
-            homeCooldownVipMs = semi.getInt("home-cooldown-vip-seconds", 15) * 1000;
-            spawnCooldownMs = semi.getInt("spawn-cooldown-seconds", 30) * 1000;
-            warpCooldownMs = semi.getInt("warp-cooldown-seconds", 5) * 1000;
-            bountyMin = semi.getInt("bounty-min", 500);
-            bountyTaxPercent = semi.getInt("bounty-tax-percent", 10);
-
-            ConfigurationSection sp = semi.getConfigurationSection("spawn");
-            if (sp != null) {
-                World w = Bukkit.getWorld(sp.getString("world", "world"));
-                if (w == null) w = Bukkit.getWorlds().getFirst();
-                spawnPoint = new Location(w,
-                        sp.getDouble("x", w.getSpawnLocation().getX()),
-                        sp.getDouble("y", w.getSpawnLocation().getY()),
-                        sp.getDouble("z", w.getSpawnLocation().getZ()),
-                        (float) sp.getDouble("yaw", 0),
-                        (float) sp.getDouble("pitch", 0));
-            }
-        }
-
+        resolveSpawnPoint();
         if (spawnPoint == null) {
-            World w = Bukkit.getWorlds().getFirst();
-            spawnPoint = w.getSpawnLocation();
+            plugin.getServer().getScheduler().runTask(plugin, SemiAnarchyConfig::resolveSpawnPoint);
         }
 
         loadWarps(plugin);
+        if (warps.isEmpty()) {
+            plugin.getServer().getScheduler().runTask(plugin, () -> loadWarps(plugin));
+        }
+    }
+
+    /** Resolve spawn quando os mundos ja existem (onEnable pode rodar antes de carregar o world). */
+    private static void resolveSpawnPoint() {
+        World world = resolveWorld(pendingSpawnWorld);
+        if (world == null) return;
+        spawnPoint = new Location(world, pendingSpawnX, pendingSpawnY, pendingSpawnZ,
+                pendingSpawnYaw, pendingSpawnPitch);
+    }
+
+    private static World resolveWorld(String worldName) {
+        if (worldName != null && !worldName.isBlank()) {
+            World named = Bukkit.getWorld(worldName);
+            if (named != null) return named;
+        }
+        if (Bukkit.getWorlds().isEmpty()) return null;
+        return Bukkit.getWorlds().getFirst();
     }
 
     private static void loadWarps(GamePlugin plugin) {
@@ -99,7 +115,16 @@ public final class SemiAnarchyConfig {
     public static int spawnRadius() { return spawnRadius; }
     public static int combatTagSeconds() { return combatTagSeconds; }
     public static long combatTagMs() { return combatTagSeconds * 1000L; }
-    public static Location spawnPoint() { return spawnPoint.clone(); }
+    public static Location spawnPoint() {
+        resolveSpawnPoint();
+        if (spawnPoint != null) return spawnPoint.clone();
+        World fallback = resolveWorld(pendingSpawnWorld);
+        if (fallback != null) {
+            return new Location(fallback, pendingSpawnX, pendingSpawnY, pendingSpawnZ,
+                    pendingSpawnYaw, pendingSpawnPitch);
+        }
+        throw new IllegalStateException("Nenhum mundo carregado para o spawn da semi-anarquia.");
+    }
     public static int killRewardBase() { return killRewardBase; }
     public static int killStreakBonus() { return killStreakBonus; }
     public static int maxKillStreakBonus() { return maxKillStreakBonus; }

@@ -53,7 +53,7 @@ public final class AuthListener implements Listener {
             account.setIpAddress(event.getAddress().getHostAddress());
             account.updateLastLogin();
 
-            int maxAttempts = Core.getJavaPlugin().getConfig().getInt("auth.max-attempts", 5);
+            int maxAttempts = com.minecraft.auth.AuthSettings.MAX_LOGIN_ATTEMPTS;
             AuthService.getInstance().initAttempts(account.getId(), maxAttempts);
         } catch (Throwable t) {
             Core.getLogger().severe("Falha ao carregar conta de " + event.getName()
@@ -76,11 +76,11 @@ public final class AuthListener implements Listener {
 
         PermissionManager.loadPermissions(player);
 
-        if (Core.getJavaPlugin().getConfig().getBoolean("dev.bypass-auth", false)) {
+        if (com.minecraft.auth.AuthSettings.DEV_BYPASS_AUTH) {
             AuthService svc = AuthService.getInstance();
             if (!svc.isRegistered(account)) {
                 svc.register(account, "dev", "dev",
-                        Core.getJavaPlugin().getConfig().getInt("auth.min-password-length", 4));
+                        com.minecraft.auth.AuthSettings.MIN_PASSWORD_LENGTH);
             } else {
                 svc.markSessionAuthenticated(account);
             }

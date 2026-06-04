@@ -136,8 +136,22 @@ public class Account {
     }
 
     public void setRank(Rank rank) {
-        context.getRankInfo().setRank(rank);
+        Rank normalized = normalizeRank(rank);
+        context.getRankInfo().setRank(normalized);
+        RankType type = normalized.getType() != null ? normalized.getType() : RankType.MEMBER;
+        setTag(Tag.of(type));
         markDirty();
+    }
+
+    private static Rank normalizeRank(Rank rank) {
+        if (rank == null || rank.getType() == null) {
+            return Rank.builder().type(RankType.MEMBER).givenAt(System.currentTimeMillis()).build();
+        }
+        return Rank.builder()
+                .type(rank.getType())
+                .givenAt(rank.getGivenAt() > 0 ? rank.getGivenAt() : System.currentTimeMillis())
+                .expiresAt(rank.getExpiresAt())
+                .build();
     }
 
     /** Permission gate (no Velocity, consulta o {@code PermissionSubject} do player). */

@@ -65,10 +65,10 @@ public final class ShopCommand implements CommandInheritor {
         if (Core.getSignShopData() != null) Core.getSignShopData().loadAll();
         if (Core.getAuctionData() != null) Core.getAuctionData().loadAll();
         com.minecraft.game.bukkit.shop.auction.AuctionManager.configure(
-                plugin.getConfig().getInt("auction.max-listings", 5),
-                plugin.getConfig().getInt("auction.duration-hours", 48),
-                plugin.getConfig().getInt("auction.tax-percent", 5),
-                plugin.getConfig().getInt("auction.listing-fee", 50)
+                com.minecraft.game.GameSettings.AUCTION_MAX_LISTINGS,
+                com.minecraft.game.GameSettings.AUCTION_DURATION_HOURS,
+                com.minecraft.game.GameSettings.AUCTION_TAX_PERCENT,
+                com.minecraft.game.GameSettings.AUCTION_LISTING_FEE
         );
     }
 }

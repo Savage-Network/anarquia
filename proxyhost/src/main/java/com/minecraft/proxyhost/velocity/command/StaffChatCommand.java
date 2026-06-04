@@ -35,7 +35,7 @@ public final class StaffChatCommand implements SimpleCommand {
             sender.sendMessage(legacy("&cUso: /sc <mensagem...>"));
             return;
         }
-        String prefix = Core.getPlugin().getConfig().getString("staffchat.prefix", "&6[STAFF] ");
+        String prefix = com.minecraft.proxyhost.ProxySettings.STAFFCHAT_PREFIX;
         String msg = String.join(" ", args);
         Component formatted = legacy(prefix + "&f" + a.getColoredName() + "&7 (&f"
                 + a.getCurrentServer() + "&7): &f" + msg);

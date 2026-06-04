@@ -1,49 +1,7 @@
-# =====================================================================
-# lobbyhost.jar  -  hub + lobbies de modo (Paper 1.21)
-# =====================================================================
+# lobbyhost.jar — apenas infraestrutura. Hub/UI em LobbySettings.java
+# Mapa/NPCs: plugins/lobbyhost/architect.json e npcs.yml
+# Discord holograma: plugins/lobbyhost/discord-hologram.yml (/setdiscord)
 
-server:
-  plugin-name: lobbyhost
-  # HUB | HUB_BEDWARS | HUB_DUELS | HUB_EGGWARS | HUB_SKYWARS | HUB_THE_BRIDGE | HUB_PVP
-  mode: HUB
-  # Nome de exibicao do lobby na sidebar e tablist
-  display-name: "Hub Principal"
-
-architect:
-  # Caminho do JSON de architect (override do `mode` acima se existir)
-  config-file: plugins/lobbyhost/architect.json
-  # Spawn padrao para fallback quando JSON ausente
-  default-spawn:
-    world: world
-    x: 0.5
-    y: 100
-    z: 0.5
-    yaw: 0
-    pitch: 0
-
-hotbar:
-  enabled: true
-  clear-on-join: true
-
-sidebar:
-  enabled: true
-  title: "§6§lSAVAGE"
-  update-ticks: 20
-
-visibility:
-  default: ALL   # ALL | FRIENDS | NONE
-  cooldown-seconds: 2
-
-discord:
-  url: "discord.gg/savagemc"
-  hologram:
-    enabled: false
-    world: world
-    x: 0.5
-    y: 80
-    z: 0.5
-
-# ----- comum -----
 database:
   type: MYSQL
   mysql:
@@ -52,13 +10,10 @@ database:
     database: zrfa04
     username: zrfa04
     password: "savagemcanarchy67"
-    pool-size: 10
   sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
-  enabled: false
-  host: 127.0.0.1
-  port: 6379
-  password: ""
-  database: 0
-  ssl: false
+  enabled: true
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

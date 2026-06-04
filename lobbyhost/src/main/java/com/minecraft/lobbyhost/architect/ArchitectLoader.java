@@ -1,6 +1,7 @@
 package com.minecraft.lobbyhost.architect;
 
 import com.minecraft.lobbyhost.Core;
+import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.architect.list.MainArchitect;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,9 +33,7 @@ public final class ArchitectLoader {
     }
 
     public void load() {
-        String configFile = plugin.getConfig().getString("architect.config-file",
-                "plugins/lobbyhost/architect.json");
-        File file = new File(configFile);
+        File file = new File(LobbySettings.ARCHITECT_FILE);
 
         ArchitectConfig cfg;
         if (!file.exists()) {
@@ -73,15 +72,15 @@ public final class ArchitectLoader {
 
     private static ArchitectConfig fallback(JavaPlugin plugin) {
         ArchitectConfig cfg = new ArchitectConfig();
-        cfg.server = plugin.getConfig().getString("server.mode", "HUB");
+        cfg.server = LobbySettings.SERVER_MODE;
         SignedLocation spawn = new SignedLocation(
                 "spawn",
-                plugin.getConfig().getString("architect.default-spawn.world", "world"),
-                plugin.getConfig().getDouble("architect.default-spawn.x", 0.5),
-                plugin.getConfig().getDouble("architect.default-spawn.y", 100),
-                plugin.getConfig().getDouble("architect.default-spawn.z", 0.5),
-                (float) plugin.getConfig().getDouble("architect.default-spawn.yaw", 0),
-                (float) plugin.getConfig().getDouble("architect.default-spawn.pitch", 0)
+                LobbySettings.DEFAULT_SPAWN_WORLD,
+                LobbySettings.DEFAULT_SPAWN_X,
+                LobbySettings.DEFAULT_SPAWN_Y,
+                LobbySettings.DEFAULT_SPAWN_Z,
+                0f,
+                0f
         );
         cfg.locations = new ArrayList<>();
         cfg.locations.add(spawn);

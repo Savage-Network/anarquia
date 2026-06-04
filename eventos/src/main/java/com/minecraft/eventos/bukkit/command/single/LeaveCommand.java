@@ -12,7 +12,7 @@ public final class LeaveCommand implements CommandInheritor {
             description = "Sai do evento e volta ao hub")
     public void execute(BukkitCommandContext ctx) {
         Player player = ctx.player();
-        String target = Core.getJavaPlugin().getConfig().getString("event.post-end-target", "lobby");
+        String target = com.minecraft.eventos.EventosSettings.POST_END_TARGET;
         try {
             java.io.ByteArrayOutputStream b = new java.io.ByteArrayOutputStream();
             java.io.DataOutputStream out = new java.io.DataOutputStream(b);

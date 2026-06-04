@@ -9,6 +9,7 @@ import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
 import com.minecraft.eventos.bukkit.event.AccountTagEvent;
 import com.minecraft.eventos.bukkit.manager.TagManager;
+import com.minecraft.eventos.util.AccountSync;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public final class TagCommand implements CommandInheritor {
             account.setCooldown(Constant.TAG_CHANGE_COOLDOWN_KEY, Constant.TAG_CHANGE_COOLDOWN_MS);
         }
         Bukkit.getPluginManager().callEvent(new AccountTagEvent(account, tag));
+        AccountSync.saveAndBroadcast(account);
         ctx.reply("§aTag alterada para " + tag.getColoredName() + "§a.");
     }
 

@@ -24,6 +24,34 @@ tasks.register("buildAll") {
     )
 }
 
+/** Build + copia JARs finais para jars-savage/ na raiz do monorepo. */
+tasks.register("exportJarsSavage") {
+    group = "anarquia"
+    description = "Executa buildAll e exporta *.jar para jars-savage/."
+    dependsOn("buildAll")
+
+    val exports = listOf(
+        "game" to "game.jar",
+        "auth" to "auth.jar",
+        "lobbyhost" to "lobbyhost.jar",
+        "eventos" to "eventos.jar",
+        "proxyhost" to "proxyhost.jar"
+    )
+
+    doLast {
+        val outDir = layout.projectDirectory.dir("jars-savage").asFile
+        outDir.mkdirs()
+        exports.forEach { (module, jarName) ->
+            val src = project(":$module").layout.buildDirectory.file("libs/$jarName").get().asFile
+            check(src.isFile) { "JAR ausente apos build: ${src.absolutePath}" }
+            val dest = outDir.resolve(jarName)
+            src.copyTo(dest, overwrite = true)
+            logger.lifecycle("  {} -> jars-savage/{}", jarName, jarName)
+        }
+        logger.lifecycle("Export OK: {}", outDir.absolutePath)
+    }
+}
+
 tasks.register("cleanAll") {
     group = "anarquia"
     description = "Limpa build/ de todos os subprojetos."

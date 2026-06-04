@@ -1,16 +1,13 @@
-## proxyhost (Velocity) - configuracao principal.
-## A tabela `accounts` deve apontar para o MESMO banco usado pelos plugins game/lobbyhost/eventos
-## para que tags, ranks e medalhas sejam compartilhados.
-
-server:
-  name: "Savage"
+# proxyhost — roteamento da rede + banco/redis (MOTD/manutenção: proxy-settings.yml)
 
 routing:
-  auth-server: "auth"
-  default-fallback: "lobby"
+  auth-server: auth
+  lobby-server: lobby
+  default-fallback: lobby
   on-disconnect-target: ""
+  log-decisions: true
+  trust-saved-auth: true
 
-# Testes locais: pula roteamento para auth (vai direto ao lobby)
 dev:
   enabled: false
 
@@ -22,34 +19,10 @@ database:
     database: zrfa04
     username: zrfa04
     password: "savagemcanarchy67"
-    pool-size: 10
-  # Dev local (quando type: SQLITE) — relativo a plugins/proxyhost/
   sqlite-file: ../../shared/anarquia-dev.db
 
 redis:
-  enabled: false
-  host: "127.0.0.1"
-  port: 6379
-  database: 0
-  ssl: false
-  password: ""
-
-tell:
   enabled: true
-  cooldown-ms: 1500
-
-staffchat:
-  enabled: true
-  prefix: "&6[STAFF] "
-
-staff-alerts:
-  staff-login: true
-  staff-quit: true
-
-# MOTD dinamico (editavel in-game: /proxy motd ...)
-motd:
-  default-max-display: 100
-
-# Manutencao por rank (defaults; estado real em proxy-settings.yml)
-maintenance:
-  default-min-rank: HELPER
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

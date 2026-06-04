@@ -55,8 +55,7 @@ public final class HotbarInteractListener implements Listener {
         player.sendMessage(net.kyori.adventure.text.Component.text(
                 "§7Visibilidade: " + mode.getDisplayName()));
         if (account != null) {
-            long seconds = com.minecraft.lobbyhost.Core.getJavaPlugin().getConfig()
-                    .getLong("visibility.cooldown-seconds", 2);
+            long seconds = com.minecraft.lobbyhost.LobbySettings.VISIBILITY_COOLDOWN_SECONDS;
             account.setCooldown(Constant.PLAYERS_VISIBILITY_COOLDOWN_KEY,
                     TimeUnit.SECONDS.toMillis(Math.max(1, seconds)));
         }

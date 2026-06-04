@@ -34,8 +34,8 @@ public final class RedisProvider {
 
         String host = config.getString("redis.host", "127.0.0.1");
         int port = config.getInt("redis.port", 6379);
-        int database = config.getInt("redis.database", 0);
-        boolean ssl = config.getBoolean("redis.ssl", false);
+        int database = 0;
+        boolean ssl = false;
         String password = config.getString("redis.password", "");
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();

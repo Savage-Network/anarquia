@@ -12,8 +12,8 @@ public final class AuthRedirects {
     private AuthRedirects() {}
 
     public static void toHub(Player player) {
-        int delay = Core.getJavaPlugin().getConfig().getInt("post-login.delay-ticks", 10);
-        String target = Core.getJavaPlugin().getConfig().getString("post-login.target-server", "lobby");
+        int delay = com.minecraft.auth.AuthSettings.POST_LOGIN_DELAY_TICKS;
+        String target = com.minecraft.auth.AuthSettings.POST_LOGIN_TARGET;
 
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;

@@ -7,6 +7,7 @@ import com.minecraft.auth.backend.redis.RedisProvider;
 import com.minecraft.auth.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.auth.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.auth.bukkit.manager.TaskManager;
+import com.minecraft.auth.redis.AccountRedisListener;
 import com.minecraft.auth.validation.ValidationWebServer;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -60,6 +61,9 @@ public final class AuthPlugin extends JavaPlugin {
             RedisProvider redis = new RedisProvider(this, config);
             redis.init();
             Core.setRedis(redis);
+            if (redis.isEnabled()) {
+                redis.subscribe(new AccountRedisListener(this), Constant.REDIS_ACCOUNT_UPDATE_CHANNEL);
+            }
 
             // 3) Data layers
             AccountData accountData = new AccountData(database);
@@ -81,7 +85,7 @@ public final class AuthPlugin extends JavaPlugin {
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
 
             // 8) Servidor HTTP de validacao (opcional)
-            int port = config.getInt("auth.validation-port", 0);
+            int port = com.minecraft.auth.AuthSettings.VALIDATION_HTTP_PORT;
             if (port > 0) {
                 validationServer = new ValidationWebServer(port);
                 try {

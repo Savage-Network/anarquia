@@ -5,6 +5,7 @@ dev/secrets/
 # Build
 **/build/
 .gradle/
+jars-savage/*.jar
 
 # IDE
 .idea/
