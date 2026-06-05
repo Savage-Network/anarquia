@@ -51,4 +51,15 @@ public final class ConfigSection {
         if (v instanceof Boolean b) return b;
         return Boolean.parseBoolean(v.toString());
     }
+
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getStringList(String path, java.util.List<String> def) {
+        Object v = resolve(path);
+        if (!(v instanceof java.util.List<?> list)) return def;
+        java.util.List<String> out = new java.util.ArrayList<>();
+        for (Object item : list) {
+            if (item != null) out.add(item.toString());
+        }
+        return out.isEmpty() ? def : out;
+    }
 }

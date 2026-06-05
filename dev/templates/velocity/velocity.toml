@@ -13,6 +13,7 @@ forwarding-secret-file = "forwarding.secret"
 auth = "127.0.0.1:25566"
 lobby = "127.0.0.1:25567"
 game = "127.0.0.1:25568"
+eventos = "127.0.0.1:25570"
 
 try = ["lobby"]
 

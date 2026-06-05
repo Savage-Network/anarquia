@@ -9,6 +9,16 @@ routing:
   on-disconnect-target: "lobby"
   log-decisions: true
   trust-saved-auth: true
+  eventos-server: eventos
+  eventos-access:
+    enabled: false
+    message:
+      - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      - "&d&lEVENTOS"
+      - ""
+      - "&7O servidor de eventos ainda esta &eem desenvolvimento&7."
+      - "&7Volte em breve!"
+      - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 dev:
   enabled: false

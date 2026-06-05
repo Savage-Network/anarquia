@@ -130,10 +130,13 @@ public final class ProxyHostPlugin {
         WhitelistManager whitelistManager = new WhitelistManager(dataDirectory);
         whitelistManager.load();
 
+        com.minecraft.proxyhost.routing.EventosAccessGuard.load(config);
+
         // Listeners
         proxy.getEventManager().register(this, new InitialServerListener());
         proxy.getEventManager().register(this, new PunishmentLoginListener());
         proxy.getEventManager().register(this, new LoginListener());
+        proxy.getEventManager().register(this, new com.minecraft.proxyhost.velocity.listener.EventosConnectListener());
         proxy.getEventManager().register(this, new WhitelistListener());
         proxy.getEventManager().register(this, new ProxyPingListener());
         proxy.getEventManager().register(this, new PluginHiderListener(this));

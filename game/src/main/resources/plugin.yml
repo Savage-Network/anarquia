@@ -166,6 +166,10 @@ commands:
   rtp:
     description: Teleporte aleatorio
     usage: /rtp
+  evento:
+    description: Conecta ao servidor de eventos
+    usage: /evento
+    aliases: [eventos]
   livro:
     description: Recebe o guia do jogador
     usage: /livro

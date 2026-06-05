@@ -36,6 +36,10 @@ commands:
   play:
     description: Abre o menu de selecao de modos
     usage: /play
+  evento:
+    description: Conecta ao servidor de eventos
+    usage: /evento
+    aliases: [eventos]
   amigo:
     description: Amigos — pedidos, lista e GUI
     usage: /amigo [add|aceitar|remover|lista] [nick]

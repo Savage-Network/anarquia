@@ -94,4 +94,7 @@ public final class LobbySettings {
                     "<!italic><gradient:#C084FC:#F472B6><bold>Eventos</bold></gradient>",
                     Material.FIREWORK_ROCKET, 15)
     );
+
+    /** Nome do backend Velocity/BungeeCord do modo eventos. */
+    public static final String EVENTOS_SERVER = "eventos";
 }

@@ -55,6 +55,8 @@ public final class GameSettings {
     public static final String SPAWN_WORLD = "spawn";
     /** Mapa principal PvP — destino do {@code /rtp}. */
     public static final String RTP_WORLD = "world";
+    /** Backend Velocity/BungeeCord do modo eventos. */
+    public static final String EVENTOS_SERVER = "eventos";
     public static final double SPAWN_X = -18.0;
     public static final double SPAWN_Y = 10.0;
     public static final double SPAWN_Z = -116.5;
