@@ -40,10 +40,6 @@ commands:
     description: Amigos — pedidos, lista e GUI
     usage: /amigo [add|aceitar|remover|lista] [nick]
     aliases: [amigos, friend, friends]
-  party:
-    description: Party leve do lobby
-    usage: /party [criar|convidar|sair|info] [nick]
-    aliases: [p, grupo]
   anuncio:
     description: Anuncio global na rede (staff)
     usage: /anuncio <mensagem>
@@ -65,19 +61,44 @@ commands:
     description: Modo de exibicao das tags
     usage: /prefixtype [modo]
     aliases: [prefixo, modotag]
-  customtitle:
-    description: Define titulo flutuante acima do nick
-    usage: /customtitle <texto|remover>
-    permission: lobbyhost.admin
-    aliases: [titulo]
   prefs:
     description: Preferencias da conta (menu)
     usage: /prefs
     aliases: [preferencias]
+  cash:
+    description: Consulta cash de rede
+    usage: /cash [jogador]
+    aliases: [coins, moedas]
+  cashgive:
+    description: Da cash de rede (admin)
+    usage: /cashgive <jogador> <valor>
+    permission: lobbyhost.cash.give
+    aliases: [givecash, addcash]
+  cashtake:
+    description: Remove cash de rede (admin)
+    usage: /cashtake <jogador> <valor>
+    permission: lobbyhost.cash.take
+    aliases: [takecash, removecash]
+  cashpay:
+    description: Envia cash para outro jogador
+    usage: /cashpay <jogador> <valor>
+    aliases: [paycash, enviarcash]
   chat:
-    description: Ajuda e bloqueio de chat
-    usage: /chat [help|ignore|unignore|list] [nick]
+    description: Chat — ignore, clearchat, lock, slow
+    usage: /chat [help|ignore|clear|lock|unlock|slow] ...
     aliases: [c]
+  clearchat:
+    description: Limpa o chat (staff)
+    usage: /clearchat
+    permission: lobbyhost.chat.mod
+  chatlock:
+    description: Trava o chat publico (staff)
+    usage: /chatlock
+    permission: lobbyhost.chat.mod
+  chatunlock:
+    description: Libera o chat publico (staff)
+    usage: /chatunlock
+    permission: lobbyhost.chat.mod
   staffchat:
     description: Chat da equipe (rede)
     usage: /sc <mensagem>
@@ -88,8 +109,8 @@ commands:
     usage: /leaderboard
     aliases: [lb, ranking, top]
   vanish:
-    description: Modo invisivel (staff)
-    usage: /vanish [on|off]
+    description: Modo invisivel staff
+    usage: /vanish [on|off|list|fakejoin|fakequit]
     permission: lobbyhost.vanish
     aliases: [v]
   report:
@@ -115,6 +136,14 @@ commands:
     description: Ban por cheating
     usage: /cban <nick> <tempo>
     permission: lobbyhost.cban
+  ban:
+    description: Ban por regras da comunidade
+    usage: /ban <nick> [tempo] [motivo]
+    permission: lobbyhost.ban
+  kick:
+    description: Expulsa jogador online (sem ban)
+    usage: /kick <nick> [motivo]
+    permission: lobbyhost.kick
   history:
     description: Historico de punicoes
     usage: /history <nick>
@@ -147,38 +176,70 @@ commands:
 
 permissions:
   lobbyhost.*:
-    description: Acesso total
-    default: op
+    description: Acesso total lobby (herda ranks OWNER+)
+    default: false
     children:
       lobbyhost.admin: true
-      lobbyhost.staff: true
-      lobbyhost.vip: true
   lobbyhost.admin:
-    default: op
+    description: NPC, reload, hologramas
+    default: false
   lobbyhost.staff:
+    description: Staff base — vanish, fly, anuncio, sc
     default: false
   lobbyhost.vip:
+    description: VIP — fly no lobby
     default: false
   lobbyhost.vanish:
-    description: /vanish no lobby
+    description: /vanish e /go
+    default: false
+  lobbyhost.vanish.see:
+    description: Ver staff invisivel
     default: false
   lobbyhost.staffchat:
-    description: /sc e alertas de staff chat
+    description: /sc
+    default: false
+  lobbyhost.chat.mod:
+    description: /clearchat, /chat lock|unlock|slow (staff)
     default: false
   lobbyhost.report:
-    description: /report e menu de denuncias
+    description: /report
     default: true
   lobbyhost.reports:
-    description: /reports para staff
-    default: op
+    description: /reports (HELPER+)
+    default: false
   lobbyhost.punish:
-    description: /punir e /history
-    default: op
+    description: /punir e /history (HELPER+)
+    default: false
   lobbyhost.unpunish:
-    description: /despunir
-    default: op
+    description: /despunir (MOD+)
+    default: false
   lobbyhost.cban:
-    description: /cban
-    default: op
+    description: /cban (MOD+)
+    default: false
+  lobbyhost.ban:
+    description: /ban (MOD+)
+    default: false
+  lobbyhost.kick:
+    description: /kick (HELPER+)
+    default: false
   lobbyhost.fly:
+    description: /fly (VIP+ ou staff)
+    default: false
+  lobbyhost.cash.give:
+    description: /cashgive (ADMIN+)
+    default: false
+  lobbyhost.cash.take:
+    description: /cashtake (ADMIN+)
+    default: false
+  game.rank.member:
+    default: true
+  game.rank.vip:
+    default: false
+  game.rank.builder:
+    default: false
+  game.rank.helper:
+    default: false
+  game.rank.mod:
+    default: false
+  game.rank.admin:
     default: false

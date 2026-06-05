@@ -159,9 +159,10 @@ public class Account {
                 .build();
     }
 
-    /** Permission gate (no Velocity, consulta o {@code PermissionSubject} do player). */
+    /** Permissao logica: rank ativo + extras na conta; fallback no Velocity/LuckPerms. */
     public boolean hasPermission(String node) {
         if (node == null || node.isEmpty()) return false;
+        if (getRankType().grants(node)) return true;
         return player().map(p -> p.hasPermission(node)).orElse(false);
     }
 
@@ -187,6 +188,7 @@ public class Account {
         if (tag == null) return false;
         RankType rank = getRankType();
         if (tag == Tag.TAG_OWNER) return rank == RankType.OWNER;
+        if (tag == Tag.TAG_ZW) return rank == RankType.ZW;
 
         switch (tag.getRole()) {
             case NONE:

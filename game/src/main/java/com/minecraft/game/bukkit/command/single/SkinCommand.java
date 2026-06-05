@@ -3,10 +3,14 @@ package com.minecraft.game.bukkit.command.single;
 import com.minecraft.game.Constant;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.skin.SkinService;
+import com.minecraft.game.util.TabCompleteUtil;
 import org.bukkit.entity.Player;
+
+import java.util.List;
 
 /**
  * Atualiza a skin da conta a partir da Mojang ({@code /skin}) ou de outro nick ({@code /skin <nick>}).
@@ -48,5 +52,13 @@ public final class SkinCommand implements CommandInheritor {
                     ctx.reply("§aSkin atualizada com sucesso.");
                 },
                 () -> ctx.reply("§cNao foi possivel obter a skin de §f" + source + "§c."));
+    }
+
+    @Completer(name = "skin", subCommands = {"skinchanger", "updateskin"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.onlinePlayers(ctx.getArgs()[0]);
+        }
+        return List.of();
     }
 }

@@ -7,9 +7,9 @@ import com.minecraft.proxyhost.account.context.objects.medal.Medal;
 import com.minecraft.proxyhost.account.context.objects.rank.Rank;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
 import com.minecraft.proxyhost.account.context.objects.tag.Tag;
-import com.minecraft.proxyhost.account.context.objects.title.CustomTitle;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
+import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
@@ -31,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
  *   <li>{@code /account setmedal <player> <medal>}</li>
  *   <li>{@code /account addmedal <player> <medal>}</li>
  *   <li>{@code /account remmedal <player> <medal>}</li>
- *   <li>{@code /account settitle <player> <title...>}</li>
  *   <li>{@code /account setgolds <player> <amount>}</li>
  * </ul>
  */
@@ -45,7 +44,7 @@ public final class AccountCommand implements SimpleCommand {
         CommandSource src = invocation.source();
         String[] args = invocation.arguments();
 
-        if (!src.hasPermission("proxyhost.account")) {
+        if (!canUseAccountCommand(src)) {
             src.sendMessage(legacy("&cVoce nao tem permissao para usar este comando."));
             return;
         }
@@ -63,14 +62,20 @@ public final class AccountCommand implements SimpleCommand {
             case "setmedal"  -> setMedal(src, args);
             case "addmedal"  -> addMedal(src, args);
             case "remmedal"  -> remMedal(src, args);
-            case "settitle"  -> setTitle(src, args);
             case "setgolds"  -> setGolds(src, args);
             default          -> usage(src);
         }
     }
 
     private void usage(CommandSource src) {
-        src.sendMessage(legacy("&6/account &7info|setrank|settag|setmedal|addmedal|remmedal|settitle|setgolds &7..."));
+        src.sendMessage(legacy("&6/account &7info|setrank|settag|setmedal|addmedal|remmedal|setgolds &7..."));
+    }
+
+    private static boolean canUseAccountCommand(CommandSource src) {
+        if (src.hasPermission("proxyhost.account")) return true;
+        if (!(src instanceof Player player)) return false;
+        Account account = Core.getAccountController().of(player.getUniqueId());
+        return account != null && account.hasPermission("proxyhost.account");
     }
 
     /* ---------------- Subcomandos ---------------- */
@@ -88,10 +93,6 @@ public final class AccountCommand implements SimpleCommand {
             src.sendMessage(legacy("&7Golds: &6" + a.getGolds()));
             src.sendMessage(legacy("&7Server: &f" + a.getCurrentServer()));
             src.sendMessage(legacy("&7Premium: &f" + a.isPremium()));
-            CustomTitle ct = a.getCustomTitle();
-            if (ct != null && ct.getTitle() != null && !ct.getTitle().isEmpty()) {
-                src.sendMessage(legacy("&7Title: &f" + ct.getTitle()));
-            }
             src.sendMessage(legacy(" "));
         });
     }
@@ -155,17 +156,6 @@ public final class AccountCommand implements SimpleCommand {
         });
     }
 
-    private void setTitle(CommandSource src, String[] args) {
-        if (args.length < 3) { src.sendMessage(legacy("&cUso: /account settitle <player> <titulo...>")); return; }
-        String title = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-        mutate(src, args[1], a -> {
-            CustomTitle ct = a.getCustomTitle() == null ? new CustomTitle() : a.getCustomTitle();
-            ct.setTitle(title);
-            a.setCustomTitle(ct);
-            src.sendMessage(legacy("&aCustom title de &f" + a.getName() + " &adefinido."));
-        });
-    }
-
     private void setGolds(CommandSource src, String[] args) {
         if (args.length < 3) { src.sendMessage(legacy("&cUso: /account setgolds <player> <amount>")); return; }
         int amount;
@@ -207,7 +197,7 @@ public final class AccountCommand implements SimpleCommand {
     public List<String> suggest(Invocation invocation) {
         String[] args = invocation.arguments();
         if (args.length == 1) {
-            return Arrays.asList("info", "setrank", "settag", "setmedal", "addmedal", "remmedal", "settitle", "setgolds");
+            return Arrays.asList("info", "setrank", "settag", "setmedal", "addmedal", "remmedal", "setgolds");
         }
         if (args.length == 2) {
             List<String> names = new ArrayList<>();

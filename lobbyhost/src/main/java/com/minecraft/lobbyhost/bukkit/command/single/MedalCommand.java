@@ -8,6 +8,7 @@ import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
 import com.minecraft.lobbyhost.bukkit.event.AccountMedalEvent;
 import com.minecraft.lobbyhost.bukkit.manager.MedalManager;
+import com.minecraft.lobbyhost.util.AccountSync;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -39,12 +40,13 @@ public final class MedalCommand implements CommandInheritor {
 
         account.setMedal(medal);
         Bukkit.getPluginManager().callEvent(new AccountMedalEvent(account, medal));
+        AccountSync.saveAndBroadcast(account);
         ctx.reply(medal == Medal.NONE
                 ? "§eMedalha removida."
                 : "§aMedalha alterada para " + medal.getColoredName() + "§a.");
     }
 
-    @Completer(name = "medal")
+    @Completer(name = "medal", subCommands = {"medalha", "medalhas"})
     public List<String> tab(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) return new ArrayList<>();

@@ -22,6 +22,11 @@ import com.minecraft.proxyhost.velocity.listener.PunishmentLoginListener;
 import com.minecraft.proxyhost.velocity.command.PunishCommand;
 import com.minecraft.proxyhost.velocity.listener.PluginHiderListener;
 import com.minecraft.proxyhost.velocity.listener.ProxyPingListener;
+import com.minecraft.proxyhost.velocity.listener.ServerKickListener;
+import com.minecraft.proxyhost.velocity.command.WhitelistCommand;
+import com.minecraft.proxyhost.velocity.listener.WhitelistListener;
+import com.minecraft.proxyhost.whitelist.WhitelistManager;
+import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -120,12 +125,19 @@ public final class ProxyHostPlugin {
         ProxySettingsManager proxySettings = new ProxySettingsManager(dataDirectory);
         proxySettings.load();
 
+        com.minecraft.proxyhost.config.DiscordConfig.load(dataDirectory, logger);
+
+        WhitelistManager whitelistManager = new WhitelistManager(dataDirectory);
+        whitelistManager.load();
+
         // Listeners
         proxy.getEventManager().register(this, new InitialServerListener());
         proxy.getEventManager().register(this, new PunishmentLoginListener());
         proxy.getEventManager().register(this, new LoginListener());
+        proxy.getEventManager().register(this, new WhitelistListener());
         proxy.getEventManager().register(this, new ProxyPingListener());
         proxy.getEventManager().register(this, new PluginHiderListener(this));
+        proxy.getEventManager().register(this, new ServerKickListener());
 
         // Comandos
         var cm = proxy.getCommandManager();
@@ -138,6 +150,9 @@ public final class ProxyHostPlugin {
         cm.register(cm.metaBuilder("punir").aliases("punish", "p").plugin(this).build(), punish);
         cm.register(cm.metaBuilder("despunir").aliases("unpunish", "unban", "unmute").plugin(this).build(), punish);
         cm.register(cm.metaBuilder("cban").plugin(this).build(), punish);
+        cm.register(cm.metaBuilder("ban").plugin(this).build(), punish);
+        cm.register(cm.metaBuilder("kick").plugin(this).build(), punish);
+        cm.register(cm.metaBuilder("wl").aliases("whitelist").plugin(this).build(), new WhitelistCommand());
 
         // Redis subscriber - tell e staffchat cross-proxy/cross-server
         if (redis.isEnabled()) {
@@ -157,8 +172,12 @@ public final class ProxyHostPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
+        proxy.getAllPlayers().forEach(p -> p.disconnect(DisconnectMessages.proxyShutdown()));
         if (ProxySettingsManager.get() != null) {
             ProxySettingsManager.get().save();
+        }
+        if (WhitelistManager.get() != null) {
+            WhitelistManager.get().save();
         }
         Core.unload();
         logger.info("proxyhost desabilitado.");

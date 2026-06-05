@@ -44,7 +44,7 @@ public final class MedalCommand implements CommandInheritor {
                 : "§aMedalha alterada para " + medal.getColoredName() + "§a.");
     }
 
-    @Completer(name = "medal")
+    @Completer(name = "medal", subCommands = {"medalha", "medalhas"})
     public List<String> tab(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) return new ArrayList<>();

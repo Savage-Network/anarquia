@@ -50,6 +50,7 @@ public final class EventosPlugin extends JavaPlugin {
         long start = System.currentTimeMillis();
 
         try {
+            com.minecraft.eventos.config.DiscordConfig.load(this);
             FileConfiguration config = getConfig();
 
             // 1) Banco

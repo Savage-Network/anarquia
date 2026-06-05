@@ -1,11 +1,15 @@
 package com.minecraft.auth.bukkit.command.single;
 
-import com.minecraft.auth.Core;
 import com.minecraft.auth.account.Account;
+import com.minecraft.auth.bukkit.AuthGuard;
 import com.minecraft.auth.bukkit.command.annotation.Command;
 import com.minecraft.auth.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.auth.bukkit.command.structure.CommandInheritor;
+import com.minecraft.auth.config.AuthConfig;
+import com.minecraft.auth.message.AuthMessages;
 import com.minecraft.auth.service.AuthService;
+
+import java.util.Map;
 
 public final class ChangePasswordCommand implements CommandInheritor {
 
@@ -14,23 +18,31 @@ public final class ChangePasswordCommand implements CommandInheritor {
             usage = "/changepassword <senha_atual> <nova_senha>")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
-
-        if (ctx.getArgs().length < 2) {
-            ctx.reply("§cUso: /changepassword <senha_atual> <nova_senha>");
+        if (account == null) {
+            ctx.reply(AuthMessages.raw("account.load-failed"));
             return;
         }
 
-        int min = com.minecraft.auth.AuthSettings.MIN_PASSWORD_LENGTH;
+        if (AuthGuard.isLocked(ctx.player())) {
+            ctx.reply(AuthMessages.raw("auth.must-login-first"));
+            return;
+        }
+
+        if (ctx.getArgs().length < 2) {
+            ctx.reply(AuthMessages.raw("auth.changepassword-usage"));
+            return;
+        }
+
         AuthService.ChangePasswordResult result = AuthService.getInstance()
-                .changePassword(account, ctx.getArgs()[0], ctx.getArgs()[1], min);
+                .changePassword(account, ctx.getArgs()[0], ctx.getArgs()[1]);
 
         switch (result) {
-            case OK -> ctx.reply("§aSenha alterada com sucesso.");
-            case NOT_REGISTERED -> ctx.reply("§cVoce ainda nao registrou.");
-            case WRONG_PASSWORD -> ctx.reply("§cSenha atual incorreta.");
-            case TOO_SHORT -> ctx.reply("§cSenha muito curta (minimo " + min + " caracteres).");
-            case REUSED -> ctx.reply("§cVoce nao pode reutilizar uma senha antiga.");
+            case OK -> ctx.reply(AuthMessages.raw("auth.changepassword-success"));
+            case NOT_REGISTERED -> ctx.reply(AuthMessages.raw("auth.not-registered"));
+            case WRONG_PASSWORD -> ctx.reply(AuthMessages.raw("auth.wrong-current-password"));
+            case TOO_SHORT -> ctx.reply(AuthMessages.format("auth.password-too-short",
+                    Map.of("min", String.valueOf(AuthConfig.get().getMinPasswordLength()))));
+            case REUSED -> ctx.reply(AuthMessages.raw("auth.password-reused"));
         }
     }
 }

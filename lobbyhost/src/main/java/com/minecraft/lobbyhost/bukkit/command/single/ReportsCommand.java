@@ -5,10 +5,13 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.backend.data.ReportData;
 import com.minecraft.lobbyhost.backend.model.PlayerReport;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
+import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
+import com.minecraft.lobbyhost.bukkit.menu.report.ReportMenus;
 import com.minecraft.lobbyhost.report.ReportStatus;
 import com.minecraft.lobbyhost.util.ModernText;
+import com.minecraft.lobbyhost.util.TabCompleteUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -36,7 +39,7 @@ public final class ReportsCommand implements CommandInheritor {
 
         String[] args = ctx.getArgs();
         if (args.length == 0) {
-            listOpen(ctx, data, 8);
+            ReportMenus.openStaffList(ctx.player());
             return;
         }
 
@@ -190,5 +193,15 @@ public final class ReportsCommand implements CommandInheritor {
             sb.append(args[i]);
         }
         return sb.toString();
+    }
+
+    @Completer(name = "reports", subCommands = {"denuncias", "reportlist"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0],
+                    "list", "lista", "abertas", "info", "ver", "close", "fechar",
+                    "action", "punir", "tp", "teleport", "ir");
+        }
+        return List.of();
     }
 }

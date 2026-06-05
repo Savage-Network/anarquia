@@ -35,7 +35,10 @@ public enum RankType {
     ADMIN      ("game.rank.admin",       "§4"),
     DIRETOR    ("game.rank.diretor",     "§4"),
     VERMELHO   ("game.rank.vermelho",    "§c"),
-    OWNER      ("game.rank.owner",       "§4");
+    OWNER      ("game.rank.owner",       "§4"),
+    ZW         ("game.rank.zw",          "§x§9§D§0§0§0§0");
+
+    public static final String ZW_COLOR = ZW.color;
 
     private final String permission;
     private final String color;
@@ -44,14 +47,25 @@ public enum RankType {
         return ordinal() >= other.ordinal();
     }
 
-    /** Staff comeca em BUILDER (ordinal). */
     public boolean isStaff() {
         return isAtLeast(BUILDER);
     }
 
+    public boolean isSuperAdmin() {
+        return this == ZW || this == OWNER || this == DIRETOR || this == VERMELHO;
+    }
+
     public java.util.List<String> getPermissionNodes() {
+        if (this == ZW) {
+            return zwPermissionNodes();
+        }
+
         java.util.List<String> nodes = new java.util.ArrayList<>();
         nodes.add(permission);
+
+        if (isAtLeast(VIP)) {
+            nodes.add("game.vip");
+        }
         if (isStaff()) {
             nodes.add("auth.staff");
             nodes.add("game.staff");
@@ -62,9 +76,28 @@ public enum RankType {
             nodes.add("game.admin");
             nodes.add("game.*");
         }
-        if (this == OWNER || this == DIRETOR || this == VERMELHO) {
+        if (isSuperAdmin()) {
             nodes.add("*");
         }
+        return nodes;
+    }
+
+    private static java.util.List<String> zwPermissionNodes() {
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add("game.rank.zw");
+        nodes.add("*");
+        nodes.add("auth.*");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.*");
+        nodes.add("proxyhost.*");
+        nodes.add("eventos.*");
+        nodes.add("tag.*");
+        nodes.add("medal.*");
+        nodes.add("auth.staff");
+        nodes.add("auth.admin");
+        nodes.add("game.staff");
+        nodes.add("game.admin");
+        nodes.add("game.*");
         return nodes;
     }
 

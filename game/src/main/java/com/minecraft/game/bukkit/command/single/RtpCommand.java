@@ -1,10 +1,12 @@
 package com.minecraft.game.bukkit.command.single;
 
 import com.minecraft.game.account.Account;
+import com.minecraft.game.GameSettings;
 import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.bukkit.world.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -39,10 +41,17 @@ public final class RtpCommand implements CommandInheritor {
             return;
         }
 
-        ctx.reply("§aProcurando um local seguro para teleporte...");
+        ctx.reply("§aProcurando um local seguro no mapa §f" + GameSettings.RTP_WORLD + "§a...");
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
 
-        findSafeLocation(player, player.getWorld(), 0, loc -> {
+        World targetWorld = resolveRtpWorld();
+        if (targetWorld == null) {
+            ctx.reply("§cMapa §f" + GameSettings.RTP_WORLD + " §cnão está carregado. Staff: §e/mundo load "
+                    + GameSettings.RTP_WORLD);
+            return;
+        }
+
+        findSafeLocation(player, targetWorld, 0, loc -> {
             if (!player.isOnline()) return;
 
             if (loc == null) {
@@ -57,10 +66,19 @@ public final class RtpCommand implements CommandInheritor {
             }
 
             player.teleport(loc);
-            player.sendMessage("§aTeleportado com sucesso para §fX: " + loc.getBlockX() + ", Y: " + loc.getBlockY() + ", Z: " + loc.getBlockZ() + "§a!");
+            player.sendMessage("§aTeleportado para §f" + GameSettings.RTP_WORLD + " §a(§fX: "
+                    + loc.getBlockX() + ", Y: " + loc.getBlockY() + ", Z: " + loc.getBlockZ() + "§a)!");
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.1);
         });
+    }
+
+    private static World resolveRtpWorld() {
+        World world = Bukkit.getWorld(GameSettings.RTP_WORLD);
+        if (world != null) return world;
+        if (!WorldManager.existsOnDisk(GameSettings.RTP_WORLD)) return null;
+        WorldManager.Result result = WorldManager.load(GameSettings.RTP_WORLD);
+        return result.success() ? Bukkit.getWorld(GameSettings.RTP_WORLD) : null;
     }
 
     private void findSafeLocation(Player player, World world, int attempts, Consumer<Location> callback) {

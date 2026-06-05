@@ -59,7 +59,7 @@ public final class SignShopManager {
 
         SignShop shop = parsed.get();
         register(shop);
-        return "§aLoja criada! §7" + formatType(shop) + " §f" + shop.getMaterial().name()
+        return "§aLoja criada! §7" + formatType(shop) + " §f" + ItemDisplayNames.plain(shop.getMaterial())
                 + " §7por §a" + SemiAnarchyConfig.currencySymbol() + shop.getPricePerUnit() + "/un";
     }
 
@@ -231,22 +231,24 @@ public final class SignShopManager {
     }
 
     private static String formatMaterial(Material mat) {
-        return mat.name().toLowerCase().replace('_', ' ');
+        return ItemDisplayNames.plain(mat);
     }
 
     public static void sendHelp(Player player) {
-        player.sendMessage("§6§lLOJAS DE PLACA §7(/loja)");
+        player.sendMessage("§6§lLOJAS DE PLACA §7(/loja placa)");
         player.sendMessage("§71) Coloque um §fbaú§7 e uma §fplaca§7 nele.");
-        player.sendMessage("§72) Escreva na placa:");
-        player.sendMessage("§8  §f[Loja]");
+        player.sendMessage("§72) Escreva na placa (4 linhas):");
+        player.sendMessage("§8  §f[LojaServer] §7(loja do spawn, staff)");
+        player.sendMessage("§8  §f[Loja] §7(loja de jogador + estoque no baú)");
         player.sendMessage("§8  §fComprar §7ou §fVender");
-        player.sendMessage("§8  §f<NOME_DO_ITEM> §7(ex: DIAMOND)");
-        player.sendMessage("§8  §f<preco por unidade>");
-        player.sendMessage("§7Comprar = jogadores §acompram§7 do seu bau.");
-        player.sendMessage("§7Vender = jogadores §avendem§7 para seu bau (precisa de saldo).");
+        player.sendMessage("§8  §f<MATERIAL> §7(ex: DIAMOND, COBBLESTONE)");
+        player.sendMessage("§8  §f<preço por unidade>");
+        player.sendMessage("§7Comprar = jogador paga e recebe itens.");
+        player.sendMessage("§7Vender = jogador entrega itens e recebe $.");
         player.sendMessage("§eClique direito §7= 1 un | §eShift + clique §7= 64 un");
+        player.sendMessage("§7Lista completa: §fplugins/game/physical-shop.yml");
         if (player.hasPermission("game.shop.admin")) {
-            player.sendMessage("§6Loja do servidor: use §f[LojaServer] §6na primeira linha.");
+            player.sendMessage("§6Staff: monte a loja presencial no spawn com §f[LojaServer]§6.");
         }
     }
 }

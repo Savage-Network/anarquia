@@ -1,5 +1,5 @@
 # game.jar — apenas infraestrutura. Gameplay/UI em GameSettings.java
-# Warps: plugins/game/warps.yml | Kits: plugins/game/kits.yml
+# Discord: plugins/game/discord.yml | Warps: warps.yml | Kits: kits.yml
 
 database:
   type: MYSQL

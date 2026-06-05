@@ -10,7 +10,9 @@ import com.minecraft.game.bukkit.shop.auction.AuctionManager;
 import com.minecraft.game.bukkit.shop.catalog.SellCatalog;
 import com.minecraft.game.bukkit.shop.catalog.ServerShopCatalog;
 import com.minecraft.game.bukkit.menu.listener.MenuListener;
+import com.minecraft.game.backend.database.GameDatabaseSchema;
 import com.minecraft.game.backend.database.HikariProvider;
+import com.minecraft.game.config.DiscordConfig;
 import com.minecraft.game.Constant;
 import com.minecraft.game.backend.redis.RedisProvider;
 import com.minecraft.game.redis.AccountRedisListener;
@@ -18,6 +20,8 @@ import com.minecraft.game.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.game.bukkit.kit.KitManager;
+import com.minecraft.game.anticheat.AnticheatConfig;
+import com.minecraft.game.anticheat.AnticheatEngine;
 import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
 import com.minecraft.game.bukkit.manager.TagManager;
@@ -58,6 +62,7 @@ public final class GamePlugin extends JavaPlugin {
         long start = System.currentTimeMillis();
 
         try {
+            DiscordConfig.load(this);
             FileConfiguration config = getConfig();
 
             // 1) Banco de dados
@@ -75,41 +80,40 @@ public final class GamePlugin extends JavaPlugin {
                         Constant.REDIS_NETWORK_ALERT_CHANNEL,
                         Constant.REDIS_PROXY_STAFFCHAT_CHANNEL,
                         Constant.REDIS_NETWORK_REPORT_CHANNEL,
+                        Constant.REDIS_ANTICHEAT_ALERT_CHANNEL,
                         Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
             }
 
-            // 3) Data layers
+            // 3) Data layers + schema
             AccountData accountData = new AccountData(database);
-            accountData.createTables();
-            Core.setAccountData(accountData);
-
             ClanData clanData = new ClanData(database);
-            clanData.createTables();
-            Core.setClanData(clanData);
-
             com.minecraft.game.backend.data.NetworkStatsData networkStatsData =
                     new com.minecraft.game.backend.data.NetworkStatsData(database);
-            networkStatsData.createTables();
-            Core.setNetworkStatsData(networkStatsData);
-
             com.minecraft.game.backend.data.ReportData reportData =
                     new com.minecraft.game.backend.data.ReportData(database);
-            reportData.createTables();
-            Core.setReportData(reportData);
-
             com.minecraft.game.backend.data.PunishmentData punishmentData =
                     new com.minecraft.game.backend.data.PunishmentData(database);
-            punishmentData.createTables();
-            Core.setPunishmentData(punishmentData);
-
             SignShopData signShopData = new SignShopData(database);
-            signShopData.createTables();
+            AuctionData auctionData = new AuctionData(database);
+
+            GameDatabaseSchema.createAll(
+                    database,
+                    accountData,
+                    clanData,
+                    networkStatsData,
+                    reportData,
+                    punishmentData,
+                    signShopData,
+                    auctionData);
+
+            Core.setAccountData(accountData);
+            Core.setClanData(clanData);
+            Core.setNetworkStatsData(networkStatsData);
+            Core.setReportData(reportData);
+            Core.setPunishmentData(punishmentData);
             signShopData.loadAll();
             Core.setSignShopData(signShopData);
             SignShopConfig.load(this);
-
-            AuctionData auctionData = new AuctionData(database);
-            auctionData.createTables();
             auctionData.loadAll();
             Core.setAuctionData(auctionData);
             AuctionManager.configure(
@@ -120,6 +124,9 @@ public final class GamePlugin extends JavaPlugin {
 
             ServerShopCatalog.load(this);
             SellCatalog.load(this);
+            if (!new java.io.File(getDataFolder(), "physical-shop.yml").exists()) {
+                saveResource("physical-shop.yml", false);
+            }
 
             // 4) Controllers
             Core.setAccountController(new AccountController());
@@ -129,11 +136,16 @@ public final class GamePlugin extends JavaPlugin {
             taskManager.start();
 
             SemiAnarchyConfig.load(this);
+            ensureSpawnWorldLoaded();
             KitManager.load(this);
+            AnticheatConfig.load(this);
+            com.minecraft.game.bukkit.vanish.VanishService.start(this);
             CombatTagManager.startActionBarTask(this);
+            com.minecraft.game.bukkit.listener.ActionBarListener.start(this);
+            AnticheatEngine.start(this);
 
             TagManager.startAnimationTask(this);
-            AboveNameDisplay.startFollowTask(this);
+            AboveNameDisplay.init(this);
 
             // 6.5) Task de limpeza de requests de teleporte expirados
             getServer().getScheduler().runTaskTimer(this,
@@ -141,6 +153,7 @@ public final class GamePlugin extends JavaPlugin {
                     200L, 200L);
 
             // 7) Scan automatico (igual Savage)
+            getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
             getServer().getPluginManager().registerEvents(new MenuListener(), this);
@@ -160,6 +173,7 @@ public final class GamePlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         AboveNameDisplay.shutdown();
+        com.minecraft.game.bukkit.vanish.VanishService.shutdown();
         TagManager.stopAnimationTask();
         if (taskManager != null) taskManager.stop();
 
@@ -174,6 +188,7 @@ public final class GamePlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
+        DiscordConfig.load(this);
         SemiAnarchyConfig.reload(this);
         SignShopConfig.load(this);
         if (Core.getSignShopData() != null) Core.getSignShopData().loadAll();
@@ -181,6 +196,27 @@ public final class GamePlugin extends JavaPlugin {
         ServerShopCatalog.load(this);
         SellCatalog.load(this);
         KitManager.load(this);
-        getLogger().info("Configuracoes, kits e semi-anarquia recarregados.");
+        AnticheatConfig.load(this);
+        com.minecraft.game.bukkit.vanish.VanishService.reload(this);
+        getLogger().info("Configuracoes, kits, anticheat, vanish e semi-anarquia recarregados.");
+    }
+
+    private void ensureSpawnWorldLoaded() {
+        String spawnWorld = GameSettings.SPAWN_WORLD;
+        if (com.minecraft.game.bukkit.world.WorldManager.isLoaded(spawnWorld)) {
+            SemiAnarchyConfig.onWorldLoaded(spawnWorld);
+            return;
+        }
+        if (!com.minecraft.game.bukkit.world.WorldManager.existsOnDisk(spawnWorld)) {
+            getLogger().warning("[Mundo] Pasta do mapa spawn nao encontrada (sem level.dat). "
+                    + "Coloque o mapa em ./" + spawnWorld + " ou ajuste GameSettings.SPAWN_WORLD.");
+            return;
+        }
+        var result = com.minecraft.game.bukkit.world.WorldManager.load(spawnWorld);
+        if (result.success()) {
+            getLogger().info("[Mundo] Mapa spawn carregado automaticamente.");
+        } else {
+            getLogger().warning("[Mundo] Falha ao carregar mapa spawn: " + result.message());
+        }
     }
 }

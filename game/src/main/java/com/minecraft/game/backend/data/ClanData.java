@@ -147,23 +147,39 @@ public final class ClanData {
     }
 
     public List<Clan> listTop(int limit) {
-        List<Clan> all = new ArrayList<>(cache.values());
-        if (all.isEmpty()) {
-            try (Connection c = database.getConnection();
-                 PreparedStatement ps = c.prepareStatement("SELECT data FROM clans")) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
-                        if (clan != null) {
-                            cache.put(clan.getId(), clan);
-                            all.add(clan);
-                        }
+        return listAll().stream()
+                .sorted((a, b) -> Integer.compare(b.getPower(), a.getPower()))
+                .limit(limit)
+                .toList();
+    }
+
+    public List<Clan> listAll() {
+        if (!cache.isEmpty()) return new ArrayList<>(cache.values());
+        List<Clan> all = new ArrayList<>();
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement("SELECT data FROM clans")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
+                    if (clan != null) {
+                        cache.put(clan.getId(), clan);
+                        all.add(clan);
                     }
                 }
-            } catch (SQLException ignored) {}
+            }
+        } catch (SQLException ignored) {
         }
-        return all.stream()
-                .sorted((a, b) -> Integer.compare(b.getPower(), a.getPower()))
+        return all;
+    }
+
+    public List<Clan> search(String query, int limit) {
+        if (query == null || query.isBlank()) {
+            return listAll().stream().limit(limit).toList();
+        }
+        String q = query.toLowerCase();
+        return listAll().stream()
+                .filter(c -> c.getName().toLowerCase().contains(q)
+                        || c.getTagWithoutColors().toLowerCase().contains(q))
                 .limit(limit)
                 .toList();
     }
@@ -190,6 +206,27 @@ public final class ClanData {
                 .filter(r -> r.getAuthor().equals(author) && r.getReceiver().equals(receiver))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public List<ClanRequest> getPendingInvites(UUID receiver) {
+        purgeExpiredRequests();
+        List<ClanRequest> out = new ArrayList<>();
+        for (ClanRequest r : requests.values()) {
+            if (r.getReceiver().equals(receiver)) out.add(r);
+        }
+        return out;
+    }
+
+    public ClanRequest getRequestByClan(UUID receiver, UUID clanId) {
+        purgeExpiredRequests();
+        return requests.values().stream()
+                .filter(r -> r.getReceiver().equals(receiver) && r.getClanId().equals(clanId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void removeRequestsForReceiver(UUID receiver) {
+        requests.entrySet().removeIf(e -> e.getValue().getReceiver().equals(receiver));
     }
 
     public void addRequest(ClanRequest request) {

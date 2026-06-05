@@ -11,6 +11,7 @@ import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
 import com.minecraft.lobbyhost.bukkit.menu.clan.ClanHubMenu;
 import com.minecraft.lobbyhost.util.PlayerLookup;
+import com.minecraft.lobbyhost.util.TabCompleteUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -97,16 +98,32 @@ public final class ClanCommand implements CommandInheritor {
         }
     }
 
-    @Completer(name = "clan")
+    @Completer(name = "clan", subCommands = {"cla"})
     public List<String> tab(BukkitCommandContext ctx) {
-        List<String> out = new ArrayList<>();
-        if (ctx.getArgs().length <= 1) {
-            String partial = ctx.getArgs().length == 1 ? ctx.getArgs()[0].toLowerCase() : "";
-            for (String s : SUBS) {
-                if (s.startsWith(partial)) out.add(s);
-            }
+        String[] args = ctx.getArgs();
+        if (args.length <= 1) {
+            return TabCompleteUtil.sub(ctx, SUBS.toArray(new String[0]));
         }
-        return out;
+        String sub = args[0].toLowerCase();
+        if (args.length == 2) {
+            return switch (sub) {
+                case "convidar", "expulsar", "transferir", "ver" ->
+                        TabCompleteUtil.onlinePlayersExceptSender(ctx);
+                case "aceitar", "recusar" -> TabCompleteUtil.onlinePlayersExceptSender(ctx);
+                case "deletar" -> TabCompleteUtil.filter(args[1], "confirmar");
+                case "tag", "cor" -> TabCompleteUtil.filter(args[1], TabCompleteUtil.clanColorIds());
+                default -> List.of();
+            };
+        }
+        return List.of();
+    }
+
+    @Completer(name = "clantag", subCommands = {"clancor"})
+    public List<String> tabClanTag(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], TabCompleteUtil.clanColorIds());
+        }
+        return List.of();
     }
 
     private void clanCreate(BukkitCommandContext ctx) {

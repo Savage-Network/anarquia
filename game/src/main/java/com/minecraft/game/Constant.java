@@ -13,7 +13,7 @@ public final class Constant {
 
     private Constant() {}
 
-    public static final String SERVER_NAME = System.getProperty("server_name", "Savage");
+    public static final String SERVER_NAME = System.getProperty("server_name", "SavageMC");
 
     public static final String ARROW_SYMBOL = "»";
     public static final String ARROW_ALT_SYMBOL = "‣";
@@ -36,6 +36,7 @@ public final class Constant {
     public static final String REPORT_SEND_COOLDOWN_KEY = "report-send-cooldown";
     public static final String PARTY_WARN_COOLDOWN_KEY = "party-warn-cooldown";
     public static final String PLAYERS_VISIBILITY_COOLDOWN_KEY = "players-visibility-cooldown";
+    public static final String LIVRO_COOLDOWN_KEY = "livro-cmd";
 
     /* ----- Redis channels ----- */
     public static final String REDIS_ACCOUNT_UPDATE_CHANNEL = "account-update-channel";
@@ -47,6 +48,12 @@ public final class Constant {
     public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
     public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
     public static final String REDIS_NETWORK_REPORT_CHANNEL = "network-report-channel";
+    public static final String REDIS_ANTICHEAT_ALERT_CHANNEL = "anticheat-alert-channel";
+
+    /** Chave Redis: {@code network:online:<velocityServerId>} (TTL no proxy). */
+    public static final String REDIS_NETWORK_ONLINE_KEY_PREFIX = "network:online:";
+    /** Total de jogadores no proxy (Velocity). */
+    public static final String REDIS_NETWORK_ONLINE_TOTAL_KEY = REDIS_NETWORK_ONLINE_KEY_PREFIX + "total";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,
@@ -55,7 +62,8 @@ public final class Constant {
             REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL,
             REDIS_NETWORK_ALERT_CHANNEL,
             REDIS_PROXY_STAFFCHAT_CHANNEL,
-            REDIS_NETWORK_REPORT_CHANNEL
+            REDIS_NETWORK_REPORT_CHANNEL,
+            REDIS_ANTICHEAT_ALERT_CHANNEL
     };
 
     /* ----- Banco ----- */
@@ -70,6 +78,9 @@ public final class Constant {
 
     /** Cooldown do chat para nao-VIP (em ms). */
     public static final long CHAT_COOLDOWN_MS = 3_000L;
+
+    /** Cooldown do {@code /livro} (em ms). */
+    public static final long LIVRO_COOLDOWN_MS = 8L * 60L * 60L * 1000L;
 
     /** URL/menu da loja exibido em /medal vazio. */
     public static final String SERVER_ADDRESS = GameSettings.SERVER_ADDRESS;
@@ -93,4 +104,10 @@ public final class Constant {
                     + "§cMotivo: %s\n"
                     + "§cID: %s\n\n"
                     + "§7Apelo: §e" + GameSettings.SERVER_STORE_URL + "\n";
+
+    public static final String STAFF_KICK_TEMPLATE =
+            "§6§l" + SERVER_NAME.toUpperCase() + "\n\n"
+                    + "§cVocê foi expulso.\n"
+                    + "§7Motivo: §f%s\n"
+                    + "§7Staff: §e%s\n";
 }

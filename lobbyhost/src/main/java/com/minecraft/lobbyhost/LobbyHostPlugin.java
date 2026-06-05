@@ -9,6 +9,7 @@ import com.minecraft.lobbyhost.backend.sync.StatsBackfillService;
 import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
 import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
+import com.minecraft.lobbyhost.config.DiscordConfig;
 import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
@@ -65,6 +66,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
         long start = System.currentTimeMillis();
 
         try {
+            DiscordConfig.load(this);
             FileConfiguration config = getConfig();
 
             // 1) Banco de dados
@@ -125,6 +127,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
             // 7) Tag/medal/chat - Fase 2
             TagManager.startAnimationTask(this);
             AboveNameDisplay.init(this);
+            com.minecraft.lobbyhost.bukkit.vanish.VanishService.start(this);
             com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.init();
 
             // 8) Discord hologram (TextDisplay 1.21)
@@ -160,6 +163,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
         NpcManager.unloadAll();
         DiscordHologramManager.shutdown();
         AboveNameDisplay.shutdown();
+        com.minecraft.lobbyhost.bukkit.vanish.VanishService.shutdown();
         TagManager.stopAnimationTask();
         com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.shutdown();
 
@@ -177,6 +181,8 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
-        getLogger().info("Configuracoes recarregadas.");
+        DiscordConfig.load(this);
+        com.minecraft.lobbyhost.bukkit.vanish.VanishService.reload(this);
+        getLogger().info("Configuracoes, discord e vanish recarregados.");
     }
 }

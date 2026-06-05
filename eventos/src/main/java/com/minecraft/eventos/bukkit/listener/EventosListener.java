@@ -76,6 +76,7 @@ public final class EventosListener implements Listener {
             TagManager.updateTag(account);
             TagManager.updateAllForViewer(player);
             AboveNameDisplay.refresh(player);
+            com.minecraft.eventos.bukkit.skin.SkinService.refreshFromMojangIfStale(account, player);
         }, 5L);
     }
 

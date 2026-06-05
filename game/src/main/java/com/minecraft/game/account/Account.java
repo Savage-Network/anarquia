@@ -50,6 +50,8 @@ public class Account {
     private String name;
 
     private volatile boolean dirty = false;
+    /** Estado de sessão: true enquanto o jogador estiver em modo /go (vanish). Não persistido. */
+    private transient boolean vanished = false;
 
     private AccountContext context;
 
@@ -75,6 +77,7 @@ public class Account {
 
     public void markDirty() { this.dirty = true; }
     public void clearDirty() { this.dirty = false; }
+    public void setVanished(boolean vanished) { this.vanished = vanished; }
 
     /* ================================================================
      * Jogador / mensagens
@@ -117,7 +120,9 @@ public class Account {
     }
 
     public String getNickname() {
-        return isFake() ? context.getFake().getNick() : name;
+        Player p = player();
+        if (p != null && p.isOnline()) return p.getName();
+        return name != null ? name : "";
     }
 
     public String getColoredName() {
@@ -193,7 +198,7 @@ public class Account {
             }
         }
         return getPermissions().stream()
-                .anyMatch(p -> !p.hasExpired() && p.getKey().equalsIgnoreCase(key));
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
 
     public java.util.List<com.minecraft.game.account.context.objects.permission.Permission> getPermissions() {
@@ -286,6 +291,9 @@ public class Account {
         // Owner: precisa do rank Owner explicito.
         if (tag == Tag.TAG_OWNER) {
             return rank == RankType.OWNER;
+        }
+        if (tag == Tag.TAG_ZW) {
+            return rank == RankType.ZW;
         }
 
         switch (tag.getRole()) {

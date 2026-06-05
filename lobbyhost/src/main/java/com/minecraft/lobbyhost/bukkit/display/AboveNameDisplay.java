@@ -2,7 +2,6 @@ package com.minecraft.lobbyhost.bukkit.display;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
-import com.minecraft.lobbyhost.account.context.objects.title.CustomTitle;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
 import net.kyori.adventure.text.Component;
@@ -58,47 +57,33 @@ public final class AboveNameDisplay {
 
     public static void refresh(Player target) {
         if (target == null || !target.isOnline()) return;
-
-        if (VanishService.isVanished(target)) {
-            remove(target);
-            return;
-        }
-
         Account account = Core.getAccountController().of(target.getUniqueId());
-        if (account == null) {
-            remove(target);
-            return;
-        }
+        if (account == null) { remove(target); return; }
 
         List<String> lines = buildLines(account);
-        if (lines.isEmpty()) {
-            remove(target);
-            return;
-        }
-
         String signature = String.join("\u0001", lines);
-        Component text = buildComponent(lines);
 
-        UUID existingId = displays.get(target.getUniqueId());
-        if (signature.equals(lastSignature.get(target.getUniqueId())) && existingId != null) {
-            Entity entity = Bukkit.getEntity(existingId);
-            if (entity instanceof TextDisplay td && !td.isDead()) {
-                td.text(text);
-                ensureMounted(target, td);
+        // Nada mudou e já tem display — sem-op
+        if (signature.equals(lastSignature.get(target.getUniqueId()))
+                && displays.containsKey(target.getUniqueId())) {
+            // Garante mount
+            UUID eid = displays.get(target.getUniqueId());
+            Entity e = Bukkit.getEntity(eid);
+            if (e instanceof TextDisplay td && !td.isDead()) {
+                if (!target.getPassengers().contains(td)) target.addPassenger(td);
                 return;
             }
         }
 
         remove(target);
+        if (lines.isEmpty()) return;
 
-        TextDisplay display = spawnDisplay(target, text);
-        if (display == null) return;
-
-        if (NametagSettings.USE_PASSENGER_MOUNT) {
-            mountOnPlayer(target, display);
-        }
-
-        displays.put(target.getUniqueId(), display.getUniqueId());
+        // Junta todas as linhas num único TextDisplay (top → bottom)
+        Component text = LEGACY.deserialize(String.join("\n", lines));
+        TextDisplay td = spawnDisplay(target, text);
+        if (td == null) return;
+        ensureMounted(target, td);
+        displays.put(target.getUniqueId(), td.getUniqueId());
         lastSignature.put(target.getUniqueId(), signature);
     }
 
@@ -119,23 +104,21 @@ public final class AboveNameDisplay {
     }
 
     /**
-     * Ordem no mundo (baixo → cima): nick, tag, cla, titulo.
-     * No TextDisplay a primeira linha fica no topo — invertemos na hora de montar o texto.
+     * Ordem no mundo (baixo → cima): tag, nick, cla.
      */
     public static List<String> buildLines(Account account) {
         List<String> lines = new ArrayList<>();
 
-        String nick = TagManager.formatNametagNickLine(account);
-        if (nick != null && !nick.isBlank()) lines.add(nick);
-
         String prefix = TagManager.formatNametagPrefixLine(account);
         if (prefix != null && !prefix.isBlank()) lines.add(prefix);
 
+        // Nick com cor herdada da tag
+        String nick = TagManager.formatNametagNickLine(account);
+        if (nick != null && !nick.isBlank()) lines.add(nick);
+
+        // Clan
         String clan = TagManager.formatNametagClanLine(account);
         if (clan != null && !clan.isBlank()) lines.add(clan);
-
-        String title = titleTextOf(account);
-        if (title != null && !title.isBlank()) lines.add(title);
 
         return lines;
     }
@@ -145,15 +128,6 @@ public final class AboveNameDisplay {
         Collections.reverse(topFirst);
         String legacy = String.join(NametagSettings.LINE_SEPARATOR, topFirst);
         return LEGACY.deserialize(legacy);
-    }
-
-    private static String titleTextOf(Account account) {
-        var ct = account.getCustomTitle();
-        if (ct != null && ct.getTitle() != null && !ct.getTitle().isEmpty()) {
-            String color = ct.getColor() == null || ct.getColor().isEmpty() ? "§d" : ct.getColor();
-            return color + ct.getTitle();
-        }
-        return null;
     }
 
     private static TextDisplay spawnDisplay(Player target, Component text) {

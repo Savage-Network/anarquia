@@ -3,11 +3,15 @@ package com.minecraft.game.bukkit.command.single;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import com.minecraft.game.util.TabCompleteUtil;
+
+import java.util.List;
 
 public final class BountyCommand implements CommandInheritor {
 
@@ -74,5 +78,17 @@ public final class BountyCommand implements CommandInheritor {
                         + SemiAnarchyConfig.currencySymbol() + amount + " §7na cabeca de §f"
                         + target.getName() + "§7!"));
         ctx.reply("§aBounty aplicada. Taxa: §f" + SemiAnarchyConfig.currencySymbol() + tax);
+    }
+
+    @Completer(name = "bounty", subCommands = {"recompensa", "caçada"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.onlinePlayersExceptSender(ctx);
+        }
+        if (ctx.getArgs().length == 2) {
+            return TabCompleteUtil.filter(ctx.getArgs()[1],
+                    String.valueOf(SemiAnarchyConfig.bountyMin()), "500", "1000", "5000", "10000");
+        }
+        return List.of();
     }
 }

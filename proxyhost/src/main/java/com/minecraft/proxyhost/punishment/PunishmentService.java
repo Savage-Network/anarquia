@@ -9,6 +9,7 @@ import com.minecraft.proxyhost.api.punishment.PunishmentCategory;
 import com.minecraft.proxyhost.api.punishment.PunishmentReason;
 import com.minecraft.proxyhost.backend.data.AccountData;
 import com.minecraft.proxyhost.backend.data.PunishmentData;
+import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.minecraft.proxyhost.util.PunishmentTimeUtil;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -140,15 +141,35 @@ public final class PunishmentService {
     }
 
     public static String banKickMessage(Punishment punishment) {
-        return String.format(Constant.BAN_TEMPLATE_MESSAGE,
-                punishment.isTemporary() ? "temporariamente" : "permanentemente",
-                punishment.getReason().getDisplayName(),
-                punishment.getId());
+        return LegacyComponentSerializer.legacySection().serialize(DisconnectMessages.ban(punishment));
     }
 
     public static String muteNotice(Punishment punishment) {
-        return "§cVocê foi " + (punishment.isTemporary() ? "temporariamente" : "permanentemente")
-                + " mutado. ID: §f" + punishment.getId();
+        return DisconnectMessages.muteNotice(punishment);
+    }
+
+    public static CompletableFuture<KickResult> kick(UUID authorId, String authorName,
+                                                     String targetName, String reason) {
+        if (reason == null || reason.isBlank()) reason = "Não informado";
+        String finalReason = reason;
+        return resolveTarget(targetName).thenApply(optTarget -> {
+            if (optTarget.isEmpty()) {
+                return KickResult.fail("Jogador não encontrado.");
+            }
+            Account target = optTarget.get();
+            Account actor = authorId != null ? Core.getAccountController().of(authorId) : null;
+            if (!canPunish(actor, target)) {
+                return KickResult.fail("Você não pode expulsar este jogador.");
+            }
+            Optional<Player> online = target.player();
+            if (online.isEmpty()) {
+                return KickResult.fail("Jogador offline.");
+            }
+            String staff = authorName != null ? authorName : "CONSOLE";
+            online.get().disconnect(DisconnectMessages.staffKick(staff, finalReason));
+            Core.getLogger().info("[kick] " + staff + " expulsou " + target.getName() + " (" + finalReason + ")");
+            return KickResult.ok(target.getName());
+        });
     }
 
     private static void enforceOnline(Punishment punishment, Account target) {
@@ -191,6 +212,16 @@ public final class PunishmentService {
 
         static PunishmentResult fail(String msg) {
             return new PunishmentResult(false, msg, null, null);
+        }
+    }
+
+    public record KickResult(boolean success, String message, String targetName) {
+        static KickResult ok(String target) {
+            return new KickResult(true, null, target);
+        }
+
+        static KickResult fail(String msg) {
+            return new KickResult(false, msg, null);
         }
     }
 }

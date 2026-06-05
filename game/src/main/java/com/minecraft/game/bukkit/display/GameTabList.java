@@ -4,17 +4,16 @@ import com.minecraft.game.Core;
 import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.rank.RankType;
+import com.minecraft.game.network.NetworkOnlineCache;
+import com.minecraft.game.util.ModernText;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-/** Header/footer da tab list (mesmo padrao do lobby). */
+/** Header e footer da tab list do game (MiniMessage + hex). */
 public final class GameTabList {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private GameTabList() {}
 
@@ -32,25 +31,25 @@ public final class GameTabList {
 
     private static Component build(Player player, String section) {
         List<String> lines = "header".equals(section) ? GameSettings.TAB_HEADER : GameSettings.TAB_FOOTER;
-        StringBuilder text = new StringBuilder();
+        Component combined = Component.empty();
         for (int i = 0; i < lines.size(); i++) {
-            if (i > 0) text.append('\n');
-            text.append(replace(lines.get(i), player));
+            if (i > 0) combined = combined.append(Component.newline());
+            combined = combined.append(ModernText.parse(replace(lines.get(i), player)));
         }
-        return LEGACY.deserialize(text.toString());
+        return combined;
     }
 
     private static String replace(String line, Player player) {
         if (line == null) return "";
+        int online = NetworkOnlineCache.get();
         Account account = Core.getAccountController().of(player.getUniqueId());
-        String rank = "§7MEMBER";
+        String rank = RankType.MEMBER.name();
         if (account != null) {
-            RankType type = account.getRankType();
-            rank = type.getColor() + type.name();
+            rank = account.getRankType().name();
         }
+
         return line
-                .replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()))
-                .replace("{max}", String.valueOf(Bukkit.getMaxPlayers()))
+                .replace("{online}", String.valueOf(online))
                 .replace("{player}", player.getName())
                 .replace("{ping}", String.valueOf(player.getPing()))
                 .replace("{rank}", rank)

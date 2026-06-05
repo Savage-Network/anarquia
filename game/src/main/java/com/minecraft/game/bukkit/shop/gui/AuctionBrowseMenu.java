@@ -4,6 +4,7 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.api.auction.AuctionListing;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
+import com.minecraft.game.bukkit.shop.ItemDisplayNames;
 import com.minecraft.game.bukkit.shop.ShopEconomy;
 import com.minecraft.game.bukkit.shop.auction.AuctionManager;
 import org.bukkit.Material;
@@ -36,13 +37,13 @@ public final class AuctionBrowseMenu extends Menu {
             AuctionListing l = all.get(i);
             int s = slot++;
             set(s, MenuItem.of(l.getMaterial(), l.getAmount())
-                    .name("§f" + l.getMaterial().name())
+                    .name(ItemDisplayNames.menuTitle(l.getMaterial(), l.getAmount()))
                     .lore(
-                            "§7Vendedor: §f" + l.getSellerName(),
-                            "§7Preco: §a" + ShopEconomy.symbol() + l.getPrice(),
-                            "§7Qtd: §f" + l.getAmount(),
+                            "§8▪ §7Vendedor: §f" + l.getSellerName(),
+                            "§8▪ §7Preço: §a" + ShopEconomy.symbol() + l.getPrice(),
+                            "§8▪ §7Quantidade: §f" + l.getAmount(),
                             "",
-                            "§eClique para comprar"
+                            "§e§lClique §7para comprar"
                     )
                     .click(p -> {
                         p.sendMessage(AuctionManager.buy(p, l.getId()));
@@ -85,8 +86,12 @@ final class AuctionMyMenu extends Menu {
         int slot = 10;
         for (AuctionListing l : list) {
             set(slot++, MenuItem.of(l.getMaterial(), l.getAmount())
-                    .name("§f" + l.getMaterial().name())
-                    .lore("§7Preco: §a" + ShopEconomy.symbol() + l.getPrice(), "§cClique para cancelar")
+                    .name(ItemDisplayNames.menuTitle(l.getMaterial(), l.getAmount()))
+                    .lore(
+                            "§8▪ §7Preço: §a" + ShopEconomy.symbol() + l.getPrice(),
+                            "",
+                            "§c§lClique §7para cancelar"
+                    )
                     .click(p -> {
                         p.sendMessage(AuctionManager.cancel(p, l.getId()));
                         open();

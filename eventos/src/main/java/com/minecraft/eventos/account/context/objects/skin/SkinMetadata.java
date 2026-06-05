@@ -15,4 +15,13 @@ public class SkinMetadata {
     public boolean isValid() {
         return value != null && !value.isEmpty();
     }
+
+    public static SkinMetadata fromTextures(String value, String signature, String displayName) {
+        SkinMetadata skin = new SkinMetadata();
+        skin.value = value != null ? value : "";
+        skin.signature = signature != null ? signature : "";
+        skin.displayName = displayName != null ? displayName : "";
+        skin.updatedAt = System.currentTimeMillis();
+        return skin;
+    }
 }

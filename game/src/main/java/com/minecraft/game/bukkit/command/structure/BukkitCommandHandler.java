@@ -88,6 +88,12 @@ public final class BukkitCommandHandler {
             if (executor instanceof ReflectExecutor reflect) {
                 reflect.setCompleter(method, inheritor);
             }
+            for (String sub : completer.subCommands()) {
+                TabExecutor subExec = labels.get(sub.toLowerCase());
+                if (subExec instanceof ReflectExecutor subReflect && subReflect != executor) {
+                    subReflect.setCompleter(method, inheritor);
+                }
+            }
         }
 
         return count;
@@ -106,6 +112,7 @@ public final class BukkitCommandHandler {
                             executor.onCommand(sender, command, lbl, args));
                     pluginCommand.setTabCompleter((sender, command, lbl, args) ->
                             executor.onTabComplete(sender, command, lbl, args));
+                    pluginCommand.setPermission(null);
                     return;
                 }
             }
@@ -176,11 +183,12 @@ public final class BukkitCommandHandler {
                 return true;
             }
 
+            Account account = ctx.isPlayer() ? ctx.account().orElse(null) : null;
+
             if (!annotation.permission().isEmpty()) {
-                boolean allowed = sender.hasPermission(annotation.permission());
-                if (!allowed && ctx.isPlayer()) {
-                    Account account = ctx.account().orElse(null);
-                    allowed = account != null && account.hasPermission(annotation.permission());
+                boolean allowed = account != null && account.hasPermission(annotation.permission());
+                if (!allowed) {
+                    allowed = sender.hasPermission(annotation.permission());
                 }
                 if (!allowed) {
                     sender.sendMessage("§cVoce nao tem permissao para usar este comando.");
@@ -189,7 +197,6 @@ public final class BukkitCommandHandler {
             }
 
             if (ctx.isPlayer() && annotation.rank() != RankType.MEMBER) {
-                Account account = ctx.account().orElse(null);
                 if (account == null || !account.hasRank(annotation.rank())) {
                     sender.sendMessage("§cRank necessario: §e" + annotation.rank().name());
                     return true;

@@ -1,4 +1,5 @@
 # eventos.jar — apenas infraestrutura. Regras em EventosSettings.java
+# Discord: plugins/eventos/discord.yml
 
 database:
   type: SQLITE

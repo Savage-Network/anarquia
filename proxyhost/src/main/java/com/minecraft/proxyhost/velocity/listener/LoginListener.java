@@ -1,16 +1,14 @@
 package com.minecraft.proxyhost.velocity.listener;
 
-import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 
 /**
  * Cache de conta no proxy. Roteamento auth/lobby: {@link com.minecraft.proxyhost.routing.InitialServerListener}.
@@ -31,8 +29,7 @@ public final class LoginListener {
                 .exceptionally(t -> {
                     Core.getLogger().error("Falha ao carregar account de "
                             + player.getUsername() + ": " + t.getMessage(), t);
-                    player.disconnect(Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE)
-                            .color(NamedTextColor.RED));
+                    player.disconnect(DisconnectMessages.accountLoadFailed());
                     return null;
                 });
     }

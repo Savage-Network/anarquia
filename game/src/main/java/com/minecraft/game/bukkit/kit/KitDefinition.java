@@ -48,6 +48,13 @@ public final class KitDefinition {
         return "kit-" + id;
     }
 
+    public Material iconMaterial() {
+        if (!items.isEmpty()) return items.getFirst().stack().getType();
+        if (chestplate != null && chestplate != Material.AIR) return chestplate;
+        if (helmet != null && helmet != Material.AIR) return helmet;
+        return Material.CHEST;
+    }
+
     public void apply(Player player) {
         PlayerInventory inv = player.getInventory();
         if (clearInventory) {

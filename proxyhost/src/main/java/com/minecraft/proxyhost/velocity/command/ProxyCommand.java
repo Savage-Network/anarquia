@@ -4,7 +4,7 @@ import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
-import com.minecraft.proxyhost.util.LegacyTexts;
+import com.minecraft.proxyhost.network.BroadcastService;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -59,7 +59,8 @@ public final class ProxyCommand implements SimpleCommand {
             case "motd" -> motd(src, s, args);
             case "maintenance", "manutencao", "maint" -> maintenance(src, s, args);
             case "maxplayers", "slots" -> maxPlayers(src, s, args);
-            case "alert", "broadcast", "anuncio" -> alert(src, args);
+            case "alert", "anuncio" -> alert(src, args);
+            case "broadcast", "bc" -> broadcast(src, args);
             case "kicknonstaff" -> {
                 s.kickNonStaff(Core.getProxy());
                 src.sendMessage(legacy("&eJogadores sem rank minimo foram desconectados."));
@@ -187,17 +188,19 @@ public final class ProxyCommand implements SimpleCommand {
             return;
         }
         String msg = join(args, 1);
-        String sender = src instanceof com.velocitypowered.api.proxy.Player p
-                ? p.getUsername() : "Console";
-        Component c = legacy("&6&l" + com.minecraft.proxyhost.Constant.SERVER_NAME
-                + " &8» &f" + msg);
-        Core.getProxy().getAllPlayers().forEach(pl -> pl.sendMessage(c));
-        Core.getProxy().getConsoleCommandSource().sendMessage(c);
-        if (Core.getRedis() != null && Core.getRedis().isEnabled()) {
-            Core.getRedis().publish(com.minecraft.proxyhost.Constant.REDIS_NETWORK_ALERT_CHANNEL,
-                    sender + "|" + msg.replace('|', ' '));
+        String sender = src instanceof Player p ? p.getUsername() : "Console";
+        BroadcastService.sendAlert(sender, msg);
+        src.sendMessage(legacy("&aAlerta enviado à rede."));
+    }
+
+    private void broadcast(CommandSource src, String[] args) {
+        if (args.length < 2) {
+            src.sendMessage(legacy("&cUso: /proxy broadcast <mensagem>"));
+            return;
         }
-        src.sendMessage(legacy("&aAnuncio enviado (proxy + Redis)."));
+        String msg = join(args, 1);
+        BroadcastService.sendBroadcast(msg);
+        src.sendMessage(legacy("&aBroadcast enviado a todos os servidores."));
     }
 
     private void status(CommandSource src, ProxySettingsManager s) {
@@ -217,7 +220,8 @@ public final class ProxyCommand implements SimpleCommand {
         src.sendMessage(legacy("&6/proxy motd line1|line2 &7- editar MOTD"));
         src.sendMessage(legacy("&6/proxy maintenance on|off|rank &7- manutencao por rank"));
         src.sendMessage(legacy("&6/proxy maxplayers <n|-1> &7- slots no ping"));
-        src.sendMessage(legacy("&6/proxy alert <msg> &7- anuncio global"));
+        src.sendMessage(legacy("&6/proxy alert <msg> &7- alerta simples"));
+        src.sendMessage(legacy("&6/proxy broadcast <msg> &7- anuncio global Savage"));
         src.sendMessage(legacy("&6/proxy reload &7- recarregar proxy-settings.yml"));
     }
 
@@ -253,7 +257,7 @@ public final class ProxyCommand implements SimpleCommand {
     public List<String> suggest(Invocation invocation) {
         String[] args = invocation.arguments();
         if (args.length <= 1) {
-            return filter(List.of("help", "status", "motd", "maintenance", "maxplayers", "alert", "reload"), args);
+            return filter(List.of("help", "status", "motd", "maintenance", "maxplayers", "alert", "broadcast", "reload"), args);
         }
         if (args[0].equalsIgnoreCase("motd") && args.length == 2) {
             return filter(List.of("line1", "line2", "reset", "preview", "hide", "show"), args);

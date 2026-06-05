@@ -158,7 +158,7 @@ public final class GadgetHandler {
 
     public void shutdown() {
         // Restaura todos os blocos alterados antes de desligar
-        changedBlocks.forEach(Block::setType);
+        changedBlocks.forEach((block, material) -> block.setType(material));
         changedBlocks.clear();
     }
 }

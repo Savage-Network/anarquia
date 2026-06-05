@@ -32,4 +32,16 @@ public final class PunishmentTimeUtil {
             return false;
         }
     }
+
+    public static String formatRemaining(long expiresAt) {
+        if (expiresAt <= 0) return "Permanente";
+        long diff = expiresAt - System.currentTimeMillis();
+        if (diff <= 0) return "Expirado";
+        long days = diff / 86_400_000L;
+        long hours = (diff % 86_400_000L) / 3_600_000L;
+        long minutes = (diff % 3_600_000L) / 60_000L;
+        if (days > 0) return days + "d " + hours + "h";
+        if (hours > 0) return hours + "h " + minutes + "m";
+        return Math.max(1, minutes) + "m";
+    }
 }

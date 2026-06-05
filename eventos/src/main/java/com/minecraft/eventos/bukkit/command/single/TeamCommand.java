@@ -2,10 +2,12 @@ package com.minecraft.eventos.bukkit.command.single;
 
 import com.minecraft.eventos.EventosPlugin;
 import com.minecraft.eventos.bukkit.command.annotation.Command;
+import com.minecraft.eventos.bukkit.command.annotation.Completer;
 import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
 import com.minecraft.eventos.game.Game;
 import com.minecraft.eventos.game.team.TeamPresetType;
+import com.minecraft.eventos.util.TabCompleteUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -45,6 +47,17 @@ public final class TeamCommand implements CommandInheritor {
             }
             default -> ctx.reply("§cSubcomando desconhecido.");
         }
+    }
+
+    @Completer(name = "team")
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], "on", "off", "distribute", "select");
+        }
+        if (ctx.getArgs().length == 2 && "select".equalsIgnoreCase(ctx.getArgs()[0])) {
+            return TabCompleteUtil.filter(ctx.getArgs()[1], "on", "off");
+        }
+        return List.of();
     }
 
     private void distribute(Game game) {

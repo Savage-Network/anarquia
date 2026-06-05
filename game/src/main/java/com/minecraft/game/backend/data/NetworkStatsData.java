@@ -2,14 +2,20 @@ package com.minecraft.game.backend.data;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.backend.database.HikariProvider;
+import com.minecraft.game.backend.model.NetworkStatsEntry;
+import com.minecraft.game.leaderboard.LeaderboardType;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-/** Escrita em {@code network_stats} (mesma tabela que o lobby lê). */
+/** Leitura e escrita em {@code network_stats} (lobby + game). */
 @RequiredArgsConstructor
 public final class NetworkStatsData {
 
@@ -40,15 +46,34 @@ public final class NetworkStatsData {
     }
 
     public void upsertPlayer(String uuid, String name, int kills, int deaths, int golds, int bestKillStreak) {
-        upsertRow("player:" + uuid, "PLAYER", trim(name), kills, deaths, golds, 0, 0, bestKillStreak);
+        upsert(NetworkStatsEntry.builder()
+                .statKey("player:" + uuid)
+                .category(NetworkStatsEntry.Category.PLAYER)
+                .displayName(trim(name))
+                .kills(kills)
+                .deaths(deaths)
+                .golds(golds)
+                .clanPower(0)
+                .clanMembers(0)
+                .bestKillStreak(bestKillStreak)
+                .build());
     }
 
     public void upsertClan(String uuid, String name, int power, int members) {
-        upsertRow("clan:" + uuid, "CLAN", trim(name), 0, 0, 0, power, members, 0);
+        upsert(NetworkStatsEntry.builder()
+                .statKey("clan:" + uuid)
+                .category(NetworkStatsEntry.Category.CLAN)
+                .displayName(trim(name))
+                .kills(0)
+                .deaths(0)
+                .golds(0)
+                .clanPower(power)
+                .clanMembers(members)
+                .bestKillStreak(0)
+                .build());
     }
 
-    private void upsertRow(String key, String category, String displayName,
-                           int kills, int deaths, int golds, int clanPower, int clanMembers, int bestStreak) {
+    public void upsert(NetworkStatsEntry e) {
         String upsert = database.getType() == HikariProvider.DatabaseType.MYSQL
                 ? """
                 INSERT INTO network_stats (stat_key, category, display_name, kills, deaths, golds,
@@ -69,20 +94,84 @@ public final class NetworkStatsData {
                     updated_at=excluded.updated_at""";
         try (Connection c = database.getConnection();
              PreparedStatement ps = c.prepareStatement(upsert)) {
-            ps.setString(1, key);
-            ps.setString(2, category);
-            ps.setString(3, displayName);
-            ps.setInt(4, kills);
-            ps.setInt(5, deaths);
-            ps.setInt(6, golds);
-            ps.setInt(7, clanPower);
-            ps.setInt(8, clanMembers);
-            ps.setInt(9, bestStreak);
-            ps.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
+            bind(ps, e);
             ps.executeUpdate();
-        } catch (SQLException e) {
-            Core.getLogger().severe("Erro ao upsert network_stats: " + e.getMessage());
+        } catch (SQLException ex) {
+            Core.getLogger().severe("Erro ao upsert network_stats: " + ex.getMessage());
         }
+    }
+
+    public List<NetworkStatsEntry> top(LeaderboardType type, int limit) {
+        String sql = switch (type) {
+            case KILLS -> playerOrder("kills DESC");
+            case DEATHS -> playerOrder("deaths DESC");
+            case GOLDS -> playerOrder("golds DESC");
+            case KDR -> playerOrder(kdrOrderExpr());
+            case CLANS -> "SELECT * FROM network_stats WHERE category = 'CLAN' ORDER BY clan_power DESC LIMIT ?";
+        };
+        List<NetworkStatsEntry> out = new ArrayList<>();
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(map(rs));
+            }
+        } catch (SQLException e) {
+            Core.getLogger().severe("Erro ao ler top " + type + ": " + e.getMessage());
+        }
+        return out;
+    }
+
+    public Optional<NetworkStatsEntry> find(String statKey) {
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT * FROM network_stats WHERE stat_key = ?")) {
+            ps.setString(1, statKey);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(map(rs));
+            }
+        } catch (SQLException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static String playerOrder(String orderExpr) {
+        return "SELECT * FROM network_stats WHERE category = 'PLAYER' ORDER BY " + orderExpr + " LIMIT ?";
+    }
+
+    private String kdrOrderExpr() {
+        String ratio = database.getType() == HikariProvider.DatabaseType.MYSQL
+                ? "CAST(kills AS DECIMAL(12,4)) / deaths"
+                : "CAST(kills AS REAL) / deaths";
+        return "(CASE WHEN deaths = 0 THEN kills ELSE " + ratio + " END) DESC";
+    }
+
+    private static void bind(PreparedStatement ps, NetworkStatsEntry e) throws SQLException {
+        ps.setString(1, e.getStatKey());
+        ps.setString(2, e.getCategory().name());
+        ps.setString(3, e.getDisplayName());
+        ps.setInt(4, e.getKills());
+        ps.setInt(5, e.getDeaths());
+        ps.setInt(6, e.getGolds());
+        ps.setInt(7, e.getClanPower());
+        ps.setInt(8, e.getClanMembers());
+        ps.setInt(9, e.getBestKillStreak());
+        ps.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
+    }
+
+    private static NetworkStatsEntry map(ResultSet rs) throws SQLException {
+        return NetworkStatsEntry.builder()
+                .statKey(rs.getString("stat_key"))
+                .category(NetworkStatsEntry.Category.valueOf(rs.getString("category")))
+                .displayName(rs.getString("display_name"))
+                .kills(rs.getInt("kills"))
+                .deaths(rs.getInt("deaths"))
+                .golds(rs.getInt("golds"))
+                .clanPower(rs.getInt("clan_power"))
+                .clanMembers(rs.getInt("clan_members"))
+                .bestKillStreak(rs.getInt("best_kill_streak"))
+                .build();
     }
 
     private static String trim(String s) {

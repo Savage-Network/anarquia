@@ -1,10 +1,12 @@
-# proxyhost — roteamento da rede + banco/redis (MOTD/manutenção: proxy-settings.yml)
+# proxyhost — roteamento da rede + banco/redis
+# Discord: plugins/proxyhost/discord.yml | MOTD/manutenção: proxy-settings.yml
 
 routing:
   auth-server: auth
   lobby-server: lobby
   default-fallback: lobby
-  on-disconnect-target: ""
+  # Ao cair de um backend (restart/offline), redireciona ao lobby em vez de kick feio
+  on-disconnect-target: "lobby"
   log-decisions: true
   trust-saved-auth: true
 

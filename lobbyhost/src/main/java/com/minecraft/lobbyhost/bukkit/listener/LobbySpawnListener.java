@@ -3,9 +3,7 @@ package com.minecraft.lobbyhost.bukkit.listener;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
-import com.minecraft.lobbyhost.account.context.objects.rank.RankType;
 import com.minecraft.lobbyhost.architect.SignedLocation;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -28,9 +26,12 @@ public final class LobbySpawnListener implements Listener {
         Location loc = spawn.toBukkit().clone();
         Account account = Core.getAccountController().of(event.getPlayer().getUniqueId());
 
-        if (account != null && account.getRankType() != RankType.MEMBER) {
+        if (account != null && account.isVIP()) {
             loc.add(0, 4.5, 0);
             event.getPlayer().setAllowFlight(true);
+            event.getPlayer().setFlying(true);
+        } else {
+            event.getPlayer().setAllowFlight(false);
             event.getPlayer().setFlying(false);
         }
 

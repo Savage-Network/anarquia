@@ -51,8 +51,23 @@ public final class SemiAnarchyListener implements Listener {
         Player killer = victim.getKiller();
         if (killer != null) {
             KillRewardService.handleKill(killer, victim);
+            dropHead(victim);
         }
         CombatTagManager.clear(victim);
+    }
+
+    /** Dropa a cabeça do jogador morto com a skin dele. */
+    private static void dropHead(Player victim) {
+        org.bukkit.inventory.ItemStack skull =
+                new org.bukkit.inventory.ItemStack(org.bukkit.Material.PLAYER_HEAD);
+        org.bukkit.inventory.meta.SkullMeta meta =
+                (org.bukkit.inventory.meta.SkullMeta) skull.getItemMeta();
+        meta.setOwningPlayer(victim);
+        meta.displayName(net.kyori.adventure.text.Component.text(
+                "§7Cabeça de §f" + victim.getName())
+                .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        skull.setItemMeta(meta);
+        victim.getWorld().dropItemNaturally(victim.getLocation(), skull);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -60,8 +75,7 @@ public final class SemiAnarchyListener implements Listener {
         Player player = event.getPlayer();
         if (!CombatTagManager.isTagged(player)) return;
 
-        event.quitMessage(net.kyori.adventure.text.Component.text(
-                "§c" + player.getName() + " deslogou em combate e foi eliminado."));
+        event.quitMessage(null);
 
         player.setHealth(0.0);
         CombatTagManager.clear(player);

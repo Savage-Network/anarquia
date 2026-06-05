@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public final class SkinService {
 
     private static final long STALE_MS = 86_400_000L;
-    private static final String USER_AGENT = "SavageAnarquia-Game/1.0";
+    private static final String USER_AGENT = "SavageMC-Game/1.0";
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(java.time.Duration.ofSeconds(8))
             .build();
@@ -138,7 +138,7 @@ public final class SkinService {
     public static void refreshFromMojangIfStale(Account account, Player player) {
         if (account == null || player == null || !player.isOnline()) return;
         if (!isStale(account.getSkin())) return;
-        String source = account.isFake() ? account.getNickname() : account.getName();
+        String source = account.getName();
         applyMojangSkin(account, player, source, null, null);
     }
 

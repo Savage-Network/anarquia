@@ -2,10 +2,14 @@ package com.minecraft.eventos.bukkit.command.single;
 
 import com.minecraft.eventos.EventosPlugin;
 import com.minecraft.eventos.bukkit.command.annotation.Command;
+import com.minecraft.eventos.bukkit.command.annotation.Completer;
 import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
 import com.minecraft.eventos.game.skit.SkitController;
+import com.minecraft.eventos.util.TabCompleteUtil;
 import org.bukkit.entity.Player;
+
+import java.util.List;
 
 public final class SkitCommand implements CommandInheritor {
 
@@ -35,5 +39,20 @@ public final class SkitCommand implements CommandInheritor {
             }
             default -> ctx.reply("§cSubcomando desconhecido.");
         }
+    }
+
+    @Completer(name = "skit")
+    public List<String> tab(BukkitCommandContext ctx) {
+        SkitController controller = EventosPlugin.getInstance().getSkitController();
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], "list", "apply");
+        }
+        if (ctx.getArgs().length == 2 && "apply".equalsIgnoreCase(ctx.getArgs()[0])) {
+            return TabCompleteUtil.filter(ctx.getArgs()[1], controller.available());
+        }
+        if (ctx.getArgs().length == 3 && "apply".equalsIgnoreCase(ctx.getArgs()[0])) {
+            return TabCompleteUtil.onlinePlayers(ctx.getArgs()[2]);
+        }
+        return List.of();
     }
 }

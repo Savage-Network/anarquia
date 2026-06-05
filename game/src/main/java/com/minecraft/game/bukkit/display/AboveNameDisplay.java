@@ -1,21 +1,19 @@
 package com.minecraft.game.bukkit.display;
 
 import com.minecraft.game.Core;
-import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
-import com.minecraft.game.account.context.objects.title.CustomTitle;
 import com.minecraft.game.bukkit.manager.TagManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
@@ -27,156 +25,116 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Nametags empilhados acima da cabeca (TextDisplay 1.21+), inspirado em
- * <a href="https://alexdev-s-organization.gitbook.io/unlimitednametags">UnlimitedNameTags</a>:
- * linhas separadas (titulo, tag, nick), billboard, fundo suave e follow suave.
+ * Nametags multi-linha acima da cabeca — mesmo layout do lobbyhost.
  */
 public final class AboveNameDisplay {
 
-    private static final NamespacedKey OWNER_KEY =
-            NamespacedKey.minecraft("game_stacked_nametag");
+    private static final LegacyComponentSerializer LEGACY =
+            LegacyComponentSerializer.legacySection();
 
-    private static final Map<UUID, List<UUID>> lineDisplays = new HashMap<>();
+    private static final NamespacedKey OWNER_KEY =
+            NamespacedKey.minecraft("game_nametag");
+
+    private static final Map<UUID, UUID> displays = new HashMap<>();
     private static final Map<UUID, String> lastSignature = new HashMap<>();
-    private static BukkitTask followTask;
 
     private AboveNameDisplay() {}
 
-    public static void startFollowTask(JavaPlugin plugin) {
-        if (followTask != null) followTask.cancel();
-        followTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                follow(player);
-            }
-        }, 10L, GameSettings.NAMETAG_FOLLOW_TICKS);
+    public static void init(JavaPlugin plugin) {
+        Core.getLogger().info("[Nametag] TextDisplay empilhado (passageiro, igual lobby).");
     }
 
     public static void shutdown() {
-        if (followTask != null) followTask.cancel();
-        for (List<UUID> ids : lineDisplays.values()) {
-            for (UUID id : ids) removeEntity(id);
+        for (UUID displayId : new ArrayList<>(displays.values())) {
+            removeEntity(displayId);
         }
-        lineDisplays.clear();
+        displays.clear();
         lastSignature.clear();
     }
 
-    public static void refresh(Player player) {
-        Account account = Core.getAccountController().of(player.getUniqueId());
-        if (account == null) {
-            remove(player);
-            return;
-        }
+    public static void refresh(Player target) {
+        remove(target);
+    }
 
-        List<String> lines = buildLines(account);
-        String signature = String.join("\u0001", lines);
-        if (signature.equals(lastSignature.get(player.getUniqueId()))
-                && lineDisplays.containsKey(player.getUniqueId())) {
-            follow(player);
-            return;
-        }
-
-        remove(player);
-        if (lines.isEmpty()) return;
-
-        List<UUID> spawned = new ArrayList<>();
-        for (int i = 0; i < lines.size(); i++) {
-            double y = GameSettings.NAMETAG_BASE_Y + i * GameSettings.NAMETAG_LINE_SPACING;
-            TextDisplay td = spawnLine(player, lines.get(i), y);
-            if (td != null) spawned.add(td.getUniqueId());
-        }
-        if (!spawned.isEmpty()) {
-            lineDisplays.put(player.getUniqueId(), spawned);
-            lastSignature.put(player.getUniqueId(), signature);
+    public static void refreshAllForViewer(Player viewer) {
+        if (viewer == null || !viewer.isOnline()) return;
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            remove(target);
         }
     }
 
     public static void remove(Player player) {
-        List<UUID> ids = lineDisplays.remove(player.getUniqueId());
+        if (player == null) return;
+        UUID id = displays.remove(player.getUniqueId());
         lastSignature.remove(player.getUniqueId());
-        if (ids != null) {
-            for (UUID id : ids) removeEntity(id);
-        }
+        if (id != null) removeEntity(id);
     }
 
-    private static void follow(Player player) {
-        List<UUID> ids = lineDisplays.get(player.getUniqueId());
-        if (ids == null || ids.isEmpty()) return;
-
-        Location base = player.getLocation();
-        for (int i = 0; i < ids.size(); i++) {
-            var entity = Bukkit.getEntity(ids.get(i));
-            if (!(entity instanceof TextDisplay td) || td.isDead()) {
-                refresh(player);
-                return;
-            }
-            double y = GameSettings.NAMETAG_BASE_Y + i * GameSettings.NAMETAG_LINE_SPACING;
-            Location at = base.clone().add(0, y, 0);
-            at.setYaw(base.getYaw());
-            at.setPitch(0);
-            td.teleport(at);
-        }
-    }
-
-    private static List<String> buildLines(Account account) {
+    /**
+     * Ordem no texto (topo → base): tag, nick nativo, cla.
+     */
+    public static List<String> buildLines(Account account) {
         List<String> lines = new ArrayList<>();
 
-        String title = titleTextOf(account);
-        if (title != null && !title.isBlank()) {
-            lines.add(title);
-        }
-
         String prefix = TagManager.formatNametagPrefixLine(account);
-        if (prefix != null && !prefix.isBlank()) {
-            lines.add(prefix);
-        }
+        if (prefix != null && !prefix.isBlank()) lines.add(prefix);
 
         String nick = TagManager.formatNametagNickLine(account);
-        if (nick != null && !nick.isBlank()) {
-            lines.add(nick);
-        }
+        if (nick != null && !nick.isBlank()) lines.add(nick);
+
+        String clan = TagManager.formatNametagClanLine(account);
+        if (clan != null && !clan.isBlank()) lines.add(clan);
+
         return lines;
     }
 
-    private static String titleTextOf(Account account) {
-        CustomTitle ct = account.getCustomTitle();
-        if (ct != null && ct.getTitle() != null && !ct.getTitle().isEmpty()) {
-            String color = ct.getColor() == null || ct.getColor().isEmpty() ? "§d" : ct.getColor();
-            return color + ct.getTitle();
-        }
-        return null;
-    }
-
-    private static TextDisplay spawnLine(Player target, String text, double heightOffset) {
+    private static TextDisplay spawnDisplay(Player target, Component text) {
         try {
-            Location at = target.getLocation().add(0, heightOffset, 0);
-            return target.getWorld().spawn(at, TextDisplay.class, td -> {
-                td.text(Component.text(text));
+            return target.getWorld().spawn(target.getLocation(), TextDisplay.class, td -> {
+                td.text(text);
                 td.setBillboard(Display.Billboard.CENTER);
-                td.setSeeThrough(false);
-                td.setShadowed(true);
+                td.setSeeThrough(NametagSettings.SEE_THROUGH);
+                td.setShadowed(NametagSettings.TEXT_SHADOW);
                 td.setDefaultBackground(false);
-                td.setBackgroundColor(Color.fromARGB(GameSettings.NAMETAG_BG_ALPHA, 0, 0, 0));
+                td.setBackgroundColor(Color.fromARGB(NametagSettings.BACKGROUND_ALPHA, 0, 0, 0));
                 td.setAlignment(TextDisplay.TextAlignment.CENTER);
-                td.setLineWidth(200);
+                td.setLineWidth(NametagSettings.LINE_WIDTH);
                 td.setPersistent(false);
-                float s = GameSettings.NAMETAG_TEXT_SCALE;
+                td.setVisibleByDefault(true);
+
+                float s = NametagSettings.TEXT_SCALE;
                 td.setTransformation(new Transformation(
-                        new Vector3f(),
+                        new Vector3f(0f, NametagSettings.MOUNT_Y_OFFSET, 0f),
                         new AxisAngle4f(),
                         new Vector3f(s, s, s),
                         new AxisAngle4f()
                 ));
+
                 td.getPersistentDataContainer().set(OWNER_KEY,
                         PersistentDataType.STRING, target.getUniqueId().toString());
             });
         } catch (Throwable t) {
-            Core.getLogger().warning("StackedNametag.spawn falhou: " + t.getMessage());
+            Core.getLogger().warning("[Nametag] Falha ao criar TextDisplay: " + t.getMessage());
             return null;
         }
     }
 
+    private static void mountOnPlayer(Player target, TextDisplay display) {
+        if (!display.isValid()) return;
+        if (!target.getPassengers().contains(display)) {
+            target.addPassenger(display);
+        }
+    }
+
+    private static void ensureMounted(Player target, TextDisplay display) {
+        if (!NametagSettings.USE_PASSENGER_MOUNT) return;
+        mountOnPlayer(target, display);
+    }
+
     private static void removeEntity(UUID id) {
-        var entity = Bukkit.getEntity(id);
-        if (entity != null && !entity.isDead()) entity.remove();
+        Entity entity = Bukkit.getEntity(id);
+        if (entity != null && !entity.isDead()) {
+            entity.remove();
+        }
     }
 }

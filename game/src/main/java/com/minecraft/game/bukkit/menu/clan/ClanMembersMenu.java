@@ -38,7 +38,8 @@ public final class ClanMembersMenu extends Menu {
             if (slot % 9 == 0 || slot % 9 == 8) slot += 2;
 
             boolean isSelf = member.getId().equals(account.getId());
-            boolean canManage = clan.isLeader(account.getId()) && !member.getId().equals(clan.getLeader());
+            boolean canOpen = !isSelf && (clan.isLeader(account.getId())
+                    || (account.hasClanRole(ClanRole.RECRUITER) && !clan.isLeader(member.getId())));
 
             MenuItem item = MenuItem.of(Material.PLAYER_HEAD)
                     .skullOwner(member.getName())
@@ -47,12 +48,12 @@ public final class ClanMembersMenu extends Menu {
                     .lore(
                             "§7Cargo: " + member.getRole().getColor() + member.getRole().getDisplayName(),
                             "§7Entrou: §f" + formatDate(member.getJoinedAt()),
-                            canManage ? "" : null,
-                            canManage ? "§eClique para promover/rebaixar" : null
+                            canOpen ? "" : null,
+                            canOpen ? "§eClique para gerenciar" : null
                     );
 
-            if (canManage) {
-                item.click(p -> cycleRole(member));
+            if (canOpen) {
+                item.click(p -> new ClanMemberActionMenu(p, account, clan, member, this).open());
             }
 
             set(slot++, item);
@@ -60,26 +61,6 @@ public final class ClanMembersMenu extends Menu {
 
         back(49);
         closeButton(53);
-    }
-
-    private void cycleRole(ClanMember member) {
-        if (!clan.isLeader(account.getId())) return;
-        ClanRole next = switch (member.getRole()) {
-            case MEMBER -> ClanRole.RECRUITER;
-            case RECRUITER -> ClanRole.MEMBER;
-            case LEADER -> ClanRole.LEADER;
-        };
-        if (member.getRole() == ClanRole.LEADER) return;
-
-        Account target = com.minecraft.game.Core.getAccountController().of(member.getId());
-        if (target != null) {
-            clan.promote(account, target, next);
-        } else {
-            member.setRole(next);
-            clan.persist();
-        }
-        successSound();
-        reopen();
     }
 
     private static String formatDate(long ms) {

@@ -3,6 +3,7 @@ package com.minecraft.game.bukkit.shop.gui;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
+import com.minecraft.game.bukkit.shop.ItemDisplayNames;
 import com.minecraft.game.bukkit.shop.ShopEconomy;
 import com.minecraft.game.bukkit.shop.catalog.ShopCategory;
 import org.bukkit.Material;
@@ -32,12 +33,12 @@ public final class ServerShopCategoryMenu extends Menu {
             }
             int s = slot++;
             set(s, MenuItem.of(product.material(), product.amount())
-                    .name("§f" + format(product.material()))
+                    .name(ItemDisplayNames.menuTitle(product.material(), product.amount()))
                     .lore(
-                            "§7Quantidade: §f" + product.amount(),
-                            "§7Preco: §a" + sym + product.price(),
+                            "§8▪ §7Pacote: §f" + product.amount() + " un.",
+                            "§8▪ §7Preço: §a" + sym + product.price(),
                             "",
-                            "§eClique para comprar"
+                            "§e§lClique §7para comprar"
                     )
                     .click(p -> buy(p, product.material(), product.amount(), product.price())));
         }
@@ -62,10 +63,6 @@ public final class ServerShopCategoryMenu extends Menu {
         }
         acc.markDirty();
         successSound();
-        p.sendMessage("§aComprou §f" + amount + "x " + format(mat) + " §apor §a" + ShopEconomy.symbol() + price);
-    }
-
-    private static String format(Material mat) {
-        return mat.name().toLowerCase().replace('_', ' ');
+        p.sendMessage(ItemDisplayNames.buyMessage(amount, mat, "§a" + ShopEconomy.symbol() + price));
     }
 }

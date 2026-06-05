@@ -12,7 +12,7 @@ public final class Constant {
 
     private Constant() {}
 
-    public static final String SERVER_NAME = System.getProperty("server_name", "Savage");
+    public static final String SERVER_NAME = System.getProperty("server_name", "SavageMC");
 
     public static final String ARROW_SYMBOL = "»";
     public static final String ARROW_ALT_SYMBOL = "‣";
@@ -42,6 +42,8 @@ public final class Constant {
     public static final String REDIS_NETWORK_ALERT_CHANNEL = "network-alert-channel";
     public static final String REDIS_NETWORK_STATUS_CHANNEL = "network-status-channel";
     public static final String REDIS_NETWORK_ONLINE_KEY_PREFIX = "network:online:";
+    /** Total de jogadores no proxy (Velocity), publicado a cada 10s. */
+    public static final String REDIS_NETWORK_ONLINE_TOTAL_KEY = REDIS_NETWORK_ONLINE_KEY_PREFIX + "total";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,
@@ -60,12 +62,7 @@ public final class Constant {
     public static final String SERVER_STORE_URL = ProxySettings.SERVER_STORE_URL;
     public static final String SERVER_STORE = ProxySettings.SERVER_STORE;
 
-    public static final String ACCOUNT_LOAD_FAILED_MESSAGE = "§cOcorreu um erro ao tentar carregar a sua conta!";
-
-    public static final String BAN_TEMPLATE_MESSAGE =
-            "§6§l" + SERVER_NAME.toUpperCase() + "\n\n"
-                    + "§cA sua conta esta %s suspensa.\n"
-                    + "§cMotivo: %s\n"
-                    + "§cID: %s\n\n"
-                    + "§7Apelo: §e" + SERVER_STORE_URL + "\n";
+    /** Legado — preferir {@link com.minecraft.proxyhost.util.DisconnectMessages#accountLoadFailed()}. */
+    public static final String ACCOUNT_LOAD_FAILED_MESSAGE =
+            "§6§lSavageMC\n§7Não foi possível carregar sua conta. Tente novamente.";
 }

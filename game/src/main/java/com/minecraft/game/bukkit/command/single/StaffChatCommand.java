@@ -3,8 +3,12 @@ package com.minecraft.game.bukkit.command.single;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.chat.StaffChatBridge;
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.util.TabCompleteUtil;
+
+import java.util.List;
 
 public final class StaffChatCommand implements CommandInheritor {
 
@@ -27,5 +31,10 @@ public final class StaffChatCommand implements CommandInheritor {
         }
         StaffChatBridge.send(account, ctx.joinArgs(0));
         ctx.reply("§7(Staff chat)");
+    }
+
+    @Completer(name = "staffchat", subCommands = {"sc"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        return List.of();
     }
 }

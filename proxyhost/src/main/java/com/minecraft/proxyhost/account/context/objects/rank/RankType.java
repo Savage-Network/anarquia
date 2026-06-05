@@ -35,7 +35,10 @@ public enum RankType {
     ADMIN      ("game.rank.admin",       "§4"),
     DIRETOR    ("game.rank.diretor",     "§4"),
     VERMELHO   ("game.rank.vermelho",    "§c"),
-    OWNER      ("game.rank.owner",       "§4");
+    OWNER      ("game.rank.owner",       "§4"),
+    ZW         ("game.rank.zw",          "§x§9§D§0§0§0§0");
+
+    public static final String ZW_COLOR = ZW.color;
 
     private final String permission;
     private final String color;
@@ -44,8 +47,115 @@ public enum RankType {
         return ordinal() >= other.ordinal();
     }
 
-    /** Staff comeca em BUILDER (ordinal). */
     public boolean isStaff() {
         return isAtLeast(BUILDER);
+    }
+
+    public boolean isSuperAdmin() {
+        return this == ZW || this == OWNER || this == DIRETOR || this == VERMELHO;
+    }
+
+    /** Permissoes no proxy (Velocity) — consultadas em {@link com.minecraft.proxyhost.account.Account#hasPermission}. */
+    public java.util.List<String> getPermissionNodes() {
+        if (this == ZW) {
+            return zwPermissionNodes();
+        }
+
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add(permission);
+
+        if (isAtLeast(VIP)) {
+            nodes.add("game.vip");
+        }
+        if (isStaff()) {
+            nodes.add("game.staff");
+            nodes.add("proxyhost.staffchat");
+        }
+        if (isAtLeast(HELPER)) {
+            nodes.add("proxyhost.punish");
+            nodes.add("game.punish");
+            nodes.add("proxyhost.kick");
+            nodes.add("game.kick");
+            nodes.add("lobbyhost.kick");
+        }
+        if (isAtLeast(MOD)) {
+            nodes.add("proxyhost.unpunish");
+            nodes.add("proxyhost.cban");
+            nodes.add("proxyhost.ban");
+            nodes.add("game.unpunish");
+            nodes.add("game.cban");
+            nodes.add("game.ban");
+            nodes.add("lobbyhost.ban");
+        }
+        if (isAtLeast(ADMIN)) {
+            nodes.add("proxyhost.account");
+            nodes.add("proxyhost.proxy");
+            nodes.add("proxyhost.whitelist");
+            nodes.add("proxyhost.maintenance.bypass");
+            nodes.add("proxyhost.whitelist.bypass");
+            nodes.add("game.admin");
+            nodes.add("game.*");
+        }
+        if (isSuperAdmin()) {
+            nodes.add("*");
+        }
+        return nodes;
+    }
+
+    private static java.util.List<String> zwPermissionNodes() {
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add("game.rank.zw");
+        nodes.add("*");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.*");
+        nodes.add("proxyhost.*");
+        nodes.add("auth.*");
+        nodes.add("eventos.*");
+        nodes.add("tag.*");
+        nodes.add("medal.*");
+        nodes.add("game.vip");
+        nodes.add("game.staff");
+        nodes.add("proxyhost.staffchat");
+        nodes.add("proxyhost.punish");
+        nodes.add("game.punish");
+        nodes.add("proxyhost.kick");
+        nodes.add("game.kick");
+        nodes.add("lobbyhost.kick");
+        nodes.add("proxyhost.unpunish");
+        nodes.add("proxyhost.cban");
+        nodes.add("proxyhost.ban");
+        nodes.add("game.unpunish");
+        nodes.add("game.cban");
+        nodes.add("game.ban");
+        nodes.add("lobbyhost.ban");
+        nodes.add("proxyhost.account");
+        nodes.add("proxyhost.proxy");
+        nodes.add("proxyhost.whitelist");
+        nodes.add("proxyhost.maintenance.bypass");
+        nodes.add("proxyhost.whitelist.bypass");
+        nodes.add("game.admin");
+        nodes.add("game.*");
+        return nodes;
+    }
+
+    public boolean grants(String key) {
+        if (key == null || key.isEmpty()) return false;
+        for (String node : getPermissionNodes()) {
+            if (matchesPermission(node, key)) return true;
+        }
+        return false;
+    }
+
+    static boolean matchesPermission(String held, String required) {
+        if (held == null || required == null) return false;
+        if ("*".equals(held)) return true;
+        if (held.equalsIgnoreCase(required)) return true;
+        if (held.endsWith(".*")) {
+            String prefix = held.substring(0, held.length() - 2);
+            return required.length() >= prefix.length()
+                    && required.regionMatches(true, 0, prefix, 0, prefix.length())
+                    && (required.length() == prefix.length() || required.charAt(prefix.length()) == '.');
+        }
+        return false;
     }
 }

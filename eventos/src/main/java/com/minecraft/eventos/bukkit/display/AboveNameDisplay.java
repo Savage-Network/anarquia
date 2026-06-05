@@ -3,7 +3,6 @@ package com.minecraft.eventos.bukkit.display;
 import com.minecraft.eventos.Core;
 import com.minecraft.eventos.EventosSettings;
 import com.minecraft.eventos.account.Account;
-import com.minecraft.eventos.account.context.objects.title.CustomTitle;
 import com.minecraft.eventos.bukkit.manager.TagManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -116,11 +115,6 @@ public final class AboveNameDisplay {
     private static List<String> buildLines(Account account) {
         List<String> lines = new ArrayList<>();
 
-        String title = titleTextOf(account);
-        if (title != null && !title.isBlank()) {
-            lines.add(title);
-        }
-
         String prefix = TagManager.formatNametagPrefixLine(account);
         if (prefix != null && !prefix.isBlank()) {
             lines.add(prefix);
@@ -131,15 +125,6 @@ public final class AboveNameDisplay {
             lines.add(nick);
         }
         return lines;
-    }
-
-    private static String titleTextOf(Account account) {
-        CustomTitle ct = account.getCustomTitle();
-        if (ct != null && ct.getTitle() != null && !ct.getTitle().isEmpty()) {
-            String color = ct.getColor() == null || ct.getColor().isEmpty() ? "§d" : ct.getColor();
-            return color + ct.getTitle();
-        }
-        return null;
     }
 
     private static TextDisplay spawnLine(Player target, String text, double heightOffset) {

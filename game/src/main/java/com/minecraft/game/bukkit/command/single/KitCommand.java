@@ -7,6 +7,7 @@ import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.kit.KitDefinition;
 import com.minecraft.game.bukkit.kit.KitManager;
+import com.minecraft.game.bukkit.menu.kit.KitHubMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public final class KitCommand implements CommandInheritor {
         }
 
         if (ctx.getArgs().length == 0) {
-            KitManager.sendList(account);
+            new KitHubMenu(ctx.player(), account).open();
             return;
         }
 
@@ -32,7 +33,7 @@ public final class KitCommand implements CommandInheritor {
         ctx.reply(result);
     }
 
-    @Completer(name = "kit")
+    @Completer(name = "kit", subCommands = {"kits"})
     public List<String> tab(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) return List.of();

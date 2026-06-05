@@ -5,6 +5,7 @@ import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.menu.MenuManager;
+import com.minecraft.lobbyhost.bukkit.display.JoinBroadcast;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.bukkit.display.PlayerDisplayService;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
@@ -65,12 +66,14 @@ public final class LobbyJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Account joinAcc = Core.getAccountController().of(player.getUniqueId());
-        if (VanishService.isVanished(player)
-                || (joinAcc != null && !joinAcc.getToggle().isAllowJoinMessage())) {
-            event.joinMessage(null);
+        Account account = Core.getAccountController().of(player.getUniqueId());
+
+        if (account != null && !VanishService.willAutoVanishOnJoin(account)
+                && !VanishService.isVanished(player)
+                && account.getToggle().isAllowJoinMessage()) {
+            event.joinMessage(JoinBroadcast.create(account, player, "entrou no lobby!"));
         } else {
-            event.joinMessage(ModernText.parse(ModernText.joinMessage(player.getName())));
+            event.joinMessage(null);
         }
 
         Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () ->
@@ -81,17 +84,17 @@ public final class LobbyJoinListener implements Listener {
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
             PlayerVisibilityService.onPlayerJoin(player);
-            Account account = Core.getAccountController().of(player.getUniqueId());
-            if (account == null) return;
-            PlayerDisplayService.applyAll(account, player);
-            SkinService.refreshFromMojangIfStale(account, player);
+            Account loaded = Core.getAccountController().of(player.getUniqueId());
+            if (loaded == null) return;
+            PlayerDisplayService.applyAll(loaded, player);
+            SkinService.refreshFromMojangIfStale(loaded, player);
             LobbyTabList.refreshAll();
             for (Player other : Bukkit.getOnlinePlayers()) {
                 if (other.equals(player)) continue;
                 Account otherAcc = Core.getAccountController().of(other.getUniqueId());
                 if (otherAcc != null) TagManager.applyTagForViewer(player, other);
             }
-            int friendsHere = FriendService.countFriendsOnlineInLobby(account);
+            int friendsHere = FriendService.countFriendsOnlineInLobby(loaded);
             if (friendsHere > 0) {
                 player.sendMessage(Component.text(
                         "§e" + friendsHere + " amigo(s) §7online no lobby. §8/amigo"));
@@ -102,7 +105,7 @@ public final class LobbyJoinListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        event.quitMessage(ModernText.parse(ModernText.quitMessage(player.getName())));
+        event.quitMessage(null);
 
         try {
             LobbyHostPlugin.getInstance().getArchitectLoader()
@@ -112,8 +115,12 @@ public final class LobbyJoinListener implements Listener {
         TagManager.removeTag(player);
         AboveNameDisplay.remove(player);
         PlayerVisibilityService.onPlayerQuit(player);
-        com.minecraft.lobbyhost.social.PartyService.onQuit(player);
         PermissionManager.unloadPermissions(player);
+        com.minecraft.lobbyhost.network.QueueManager.leave(player, false);
+        com.minecraft.lobbyhost.bukkit.command.single.FlyCommand.removeFly(player.getUniqueId());
+        
+        // Cleanup do sistema de double jump
+        com.minecraft.lobbyhost.bukkit.listener.DoubleJumpListener.cleanup(player);
 
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),
                 () -> Core.getAccountController().unload(player.getUniqueId()));

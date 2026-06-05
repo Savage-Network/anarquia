@@ -2,7 +2,7 @@
 # Placeholders no MOTD: {online} {max} {name} {maintenance}
 
 motd:
-  line1: "&6&lSAVAGE &7| &fSemi-Anarquia"
+  line1: "&6&lSavageMC &7| &fModo principal"
   line2: "&7savagemc.net &8| &6loja.savagemc.net"
   max-players: -1
   hide-sample: false
@@ -10,11 +10,16 @@ motd:
 maintenance:
   enabled: false
   min-rank: HELPER
-  motd-line1: "&c&lMANUTENCAO"
-  motd-line2: "&7Apenas staff autorizado pode entrar."
+  motd-line1: "&c&lMANUTENÇÃO"
+  motd-line2: "&7SavageMC — apenas staff autorizado"
   kick-message:
-    - "&6&lSAVAGE"
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    - "&6&lSavageMC"
+    - "&7savagemc.net"
     - ""
-    - "&cO servidor esta em manutencao."
-    - "&7Apenas membros da equipe podem entrar."
+    - "&c&lMANUTENÇÃO"
+    - "&7O servidor está em manutenção."
+    - "&7Apenas staff autorizado pode entrar."
+    - ""
     - "&7Volte em breve!"
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

@@ -36,6 +36,11 @@ public final class NetworkPublisher {
                     TTL_SECONDS);
         }
 
+        Core.getRedis().setEx(
+                Constant.REDIS_NETWORK_ONLINE_TOTAL_KEY,
+                String.valueOf(proxy.getPlayerCount()),
+                TTL_SECONDS);
+
         ProxySettingsManager settings = ProxySettingsManager.get();
         if (settings == null) return;
 

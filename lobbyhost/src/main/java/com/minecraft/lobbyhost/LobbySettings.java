@@ -15,31 +15,55 @@ public final class LobbySettings {
 
     public static final String NAVIGATION_TITLE_MINI =
             "<!italic><gradient:#FF8C42:#FFD166><bold>Onde jogar?</bold></gradient>";
+    /** Igual ao game — sidebar legacy. */
+    public static final String SIDEBAR_TITLE = "§6§lSavageMC";
+    @Deprecated
     public static final String SIDEBAR_TITLE_MINI =
-            "<!italic><gradient:#38BDF8:#818CF8><bold>LOBBY</bold></gradient>";
+            "<!italic><gradient:#FF8C42:#FFD166><bold>SavageMC</bold></gradient>";
     public static final long SIDEBAR_UPDATE_TICKS = 20L;
+
+    /** Cash de rede (lobby) — distinto do golds/money do semi-anarquia. */
+    public static final int STARTING_CASH = 0;
+    public static final String CASH_SYMBOL = "✦";
     public static final long TABLIST_UPDATE_TICKS = 40L;
 
     public static final String SERVER_ADDRESS = "savagemc.net";
     public static final String SERVER_STORE_URL = "loja.savagemc.net";
     public static final String SERVER_STORE = "§6" + SERVER_STORE_URL;
 
+    // Tab header/footer em MiniMessage — processados pelo LobbyTabList via ModernText.parse()
     public static final List<String> TAB_HEADER = List.of(
-            "<!italic><gradient:#FF8C42:#FFD166><bold>SAVAGE</bold></gradient>",
-            "<!italic><#94A3B8>" + SERVER_ADDRESS);
+            " ",
+            "<!italic><gradient:#00FFFF:#FF00FF><bold>SavageMc</bold></gradient>",
+            "<!italic><gradient:#00FFFF:#FF00FF><bold>LOBBY</bold></gradient>",
+            " ");
     public static final List<String> TAB_FOOTER = List.of(
-            "<!italic><#94A3B8>{online} online <#64748B>• <#F1F5F9>" + SERVER_ADDRESS,
-            "<!italic><#94A3B8>Loja <#FFD166>" + SERVER_STORE_URL);
+            " ",
+            "<!italic><#FFAA00><bold>LOJA.SAVAGEMC.NET</bold>",
+            "<!italic><#00D4FF><bold>DISCORD.SAVAGEMC.NET</bold>",
+            " ");
 
     public static final String DEFAULT_SPAWN_WORLD = "world";
     public static final double DEFAULT_SPAWN_X = 0.5;
     public static final double DEFAULT_SPAWN_Y = 100;
     public static final double DEFAULT_SPAWN_Z = 0.5;
 
+    public static final String ANTICHEAT_ALERT_PREFIX = "§c[ANTICHEAT] ";
+
     public static final String DISCORD_URL = "discord.gg/savagemc";
+
+    /** @deprecated use {@link com.minecraft.lobbyhost.config.DiscordConfig#inviteDisplay()} */
+    @Deprecated
+    public static String discordInviteDisplay() {
+        try {
+            return com.minecraft.lobbyhost.config.DiscordConfig.inviteDisplay();
+        } catch (Throwable ignored) {
+            return DISCORD_URL;
+        }
+    }
     public static final long VISIBILITY_COOLDOWN_SECONDS = 2;
 
-    public static final String LOBBY_CHAT_PREFIX = "§8[Lobby]§r ";
+    public static final String LOBBY_CHAT_PREFIX = "";
     public static final String STAFFCHAT_PREFIX = "§6[Staff]§r ";
     public static final String SERVER_CHAT_ID = "lobby";
 

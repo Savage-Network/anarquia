@@ -16,7 +16,7 @@ import java.util.UUID;
  * <ul>
  *   <li>{@code displayName} - nome amigavel exibido</li>
  *   <li>{@code order} - ordenacao do team scoreboard ({@code 0} = Owner topo)</li>
- *   <li>{@code prefix} - texto antes do nick (com cores legacy {@code §})</li>
+ *   <li>{@code prefix} - texto antes do nick (com cores legacy {@code ?})</li>
  *   <li>{@code color} - cor base usada em {@link TagPrefix#COLOR}</li>
  *   <li>{@code source} - {@link RankType} que libera a tag (VIP / STAFF)</li>
  *   <li>{@code role} - regra de quem pode usar (ver {@link TagRole})</li>
@@ -30,73 +30,77 @@ import java.util.UUID;
 public enum Tag {
 
     /* ---------- NONE (sem rank) ---------- */
-    MEMBER ("Membro", "Z", "§7",            "§7", RankType.MEMBER, TagRole.NONE),
+    MEMBER ("Membro", "Z", "?7",            "?7", RankType.MEMBER, TagRole.NONE),
 
     /* ---------- COLORED (cores puras - desativadas para quem tem rank) ---------- */
-    BLUE      ("Azul",    "Y", "§9",       "§9", RankType.MEMBER, TagRole.COLORED),
-    YEL       ("Amarelo", "Y", "§e",       "§e", RankType.MEMBER, TagRole.COLORED),
-    ORAN      ("Laranja", "Y", "§6",       "§6", RankType.MEMBER, TagRole.COLORED),
-    PURP      ("Roxo",    "Y", "§5",       "§5", RankType.MEMBER, TagRole.COLORED),
-    AQUA      ("Agua",    "Y", "§b",       "§b", RankType.MEMBER, TagRole.COLORED),
-    WHIT      ("Branco",  "Y", "§f",       "§f", RankType.MEMBER, TagRole.COLORED),
-    GRAY      ("Cinza",   "Y", "§7",       "§7", RankType.MEMBER, TagRole.COLORED),
-    MASKED    ("Mascarada","Y","§8",       "§8", RankType.MEMBER, TagRole.COLORED),
-    SPECTATOR ("Espectador","Y","§8",      "§8", RankType.MEMBER, TagRole.COLORED),
+    BLUE      ("Azul",    "Y", "?9",       "?9", RankType.MEMBER, TagRole.COLORED),
+    YEL       ("Amarelo", "Y", "?e",       "?e", RankType.MEMBER, TagRole.COLORED),
+    ORAN      ("Laranja", "Y", "?6",       "?6", RankType.MEMBER, TagRole.COLORED),
+    PURP      ("Roxo",    "Y", "?5",       "?5", RankType.MEMBER, TagRole.COLORED),
+    AQUA      ("Agua",    "Y", "?b",       "?b", RankType.MEMBER, TagRole.COLORED),
+    WHIT      ("Branco",  "Y", "?f",       "?f", RankType.MEMBER, TagRole.COLORED),
+    GRAY      ("Cinza",   "Y", "?7",       "?7", RankType.MEMBER, TagRole.COLORED),
+    MASKED    ("Mascarada","Y","?8",       "?8", RankType.MEMBER, TagRole.COLORED),
+    SPECTATOR ("Espectador","Y","?8",      "?8", RankType.MEMBER, TagRole.COLORED),
 
     /* ---------- VIP ---------- */
-    VIP        ("VIP",      "V", "§a§lVIP §a",          "§a", RankType.VIP,        TagRole.VIP),
-    NATIVE     ("Native",   "U", "§b§lNATIVE §b",       "§b", RankType.NATIVE,     TagRole.VIP),
-    EMBER      ("Ember",    "T", "§6§lEMBER §6",        "§6", RankType.EMBER,      TagRole.VIP),
-    EMBER_PLUS ("Ember+",   "S", "§6§lEMBER§5+ §6",     "§6", RankType.EMBER_PLUS, TagRole.VIP),
-    SAVAGE     ("Savage",   "R", "§2§lSAVAGE §2",       "§2", RankType.SAVAGE,     TagRole.VIP),
+    VIP        ("VIP",      "V", "?a?lVIP ?a",          "?a", RankType.VIP,        TagRole.VIP),
+    NATIVE     ("Native",   "U", "?b?lNATIVE ?b",       "?b", RankType.NATIVE,     TagRole.VIP),
+    EMBER      ("Ember",    "T", "?6?lEMBER ?6",        "?6", RankType.EMBER,      TagRole.VIP),
+    EMBER_PLUS ("Ember+",   "S", "?6?lEMBER?5+ ?6",     "?6", RankType.EMBER_PLUS, TagRole.VIP),
+    SAVAGE     ("Savage",   "R", "?2?lSAVAGE ?2",       "?2", RankType.SAVAGE,     TagRole.VIP),
 
     /* ---------- SPECIAL ---------- */
-    TAG_BETA      ("Beta",      "K", "§e§lBETA §e",       "§e", RankType.BETA,     TagRole.SPECIAL,
-                   /*animated*/false, null,  "§b§lBETA §b", "§d§lBETA §d",
+    TAG_BETA      ("Beta",      "K", "?e?lBETA ?e",       "?e", RankType.BETA,     TagRole.SPECIAL,
+                   /*animated*/false, null,  "?b?lBETA ?b", "?d?lBETA ?d",
                    /*surnames*/Collections.singletonList("beta")),
-    TAG_PRECIOUS  ("Precious",  "K", "§5§lPRECIOUS §5",   "§5", RankType.PRECIOUS, TagRole.SPECIAL,
+    TAG_PRECIOUS  ("Precious",  "K", "?5?lPRECIOUS ?5",   "?5", RankType.PRECIOUS, TagRole.SPECIAL,
                    /*surnames*/Collections.singletonList("precious")),
-    TAG_CARNAVAL  ("Carnaval",  "L", "§d§lCARNAVAL §d",   "§d", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_FERIAS    ("Ferias",    "L", "§e§lFERIAS §e",     "§e", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_HALLOWEEN ("Halloween", "L", "§6§lHALLOWEEN §6",  "§6", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_NATAL     ("Natal",     "L", "§c§lNATAL §c",      "§c", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_CHAMPION  ("Champion",  "J", "§e§lCHAMPION §e",   "§e", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_2025      ("2025",      "M", "§b§l2025 §b",       "§b", RankType.MEMBER,   TagRole.SPECIAL),
-    TAG_2026      ("2026",      "M", "§b§l2026 §b",       "§b", RankType.MEMBER,   TagRole.SPECIAL),
-    CREATOR       ("Creator",   "I", "§d§lCREATOR §d",    "§d", RankType.MEMBER,   TagRole.SPECIAL,
+    TAG_CARNAVAL  ("Carnaval",  "L", "?d?lCARNAVAL ?d",   "?d", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_FERIAS    ("Ferias",    "L", "?e?lFERIAS ?e",     "?e", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_HALLOWEEN ("Halloween", "L", "?6?lHALLOWEEN ?6",  "?6", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_NATAL     ("Natal",     "L", "?c?lNATAL ?c",      "?c", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_CHAMPION  ("Champion",  "J", "?e?lCHAMPION ?e",   "?e", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_2025      ("2025",      "M", "?b?l2025 ?b",       "?b", RankType.MEMBER,   TagRole.SPECIAL),
+    TAG_2026      ("2026",      "M", "?b?l2026 ?b",       "?b", RankType.MEMBER,   TagRole.SPECIAL),
+    CREATOR       ("Creator",   "I", "?d?lCREATOR ?d",    "?d", RankType.MEMBER,   TagRole.SPECIAL,
                    Arrays.asList("creator", "criador")),
-    CREATOR_PLUS  ("Creator+",  "H", "§d§lCREATOR§5+ §d", "§d", RankType.MEMBER,   TagRole.SPECIAL,
+    CREATOR_PLUS  ("Creator+",  "H", "?d?lCREATOR?5+ ?d", "?d", RankType.MEMBER,   TagRole.SPECIAL,
                    Arrays.asList("creator+", "creatorplus")),
 
     /* ---------- STAFF ---------- */
-    BUILDER  ("Builder",  "G", "§3§lBUILDER §3",  "§3", RankType.BUILDER,  TagRole.STAFF),
-    HELPER   ("Helper",   "F", "§9§lHELPER §9",   "§9", RankType.HELPER,   TagRole.STAFF),
-    MOD      ("Mod",      "E", "§3§lMOD §3",      "§3", RankType.MOD,      TagRole.STAFF),
-    MODPLUS  ("Mod+",     "D", "§3§lMOD§5+ §3",   "§3", RankType.MODPLUS,  TagRole.STAFF),
-    ADMIN    ("Admin",    "C", "§4§lADMIN §4",    "§4", RankType.ADMIN,    TagRole.STAFF),
-    DIRETOR  ("Diretor",  "B", "§4§lDIRETOR §4",  "§4", RankType.DIRETOR,  TagRole.STAFF),
-    VERMELHO ("Vermelho", "A", "§c§lVERMELHO §c", "§c", RankType.VERMELHO, TagRole.STAFF),
+    BUILDER  ("Builder",  "G", "?3?lBUILDER ?3",  "?3", RankType.BUILDER,  TagRole.STAFF),
+    HELPER   ("Helper",   "F", "?9?lHELPER ?9",   "?9", RankType.HELPER,   TagRole.STAFF),
+    MOD      ("Mod",      "E", "?3?lMOD ?3",      "?3", RankType.MOD,      TagRole.STAFF),
+    MODPLUS  ("Mod+",     "D", "?3?lMOD?5+ ?3",   "?3", RankType.MODPLUS,  TagRole.STAFF),
+    ADMIN    ("Admin",    "C", "?4?lADMIN ?4",    "?4", RankType.ADMIN,    TagRole.STAFF),
+    DIRETOR  ("Diretor",  "B", "?4?lDIRETOR ?4",  "?4", RankType.DIRETOR,  TagRole.STAFF),
+    VERMELHO ("Vermelho", "A", "?c?lVERMELHO ?c", "?c", RankType.VERMELHO, TagRole.STAFF),
+
+    /* ---------- ZW ---------- */
+    TAG_ZW("ZW", "!", "?x?9?D?0?0?0?0?lZW ?x?9?D?0?0?0?0", "?x?9?D?0?0?0?0",
+            RankType.ZW, TagRole.STAFF, Collections.singletonList("zw")),
 
     /* ---------- OWNER ---------- */
-    TAG_OWNER("Owner", "0", "§4§lCEO§f✦§4", "§4", RankType.OWNER, TagRole.STAFF,
+    TAG_OWNER("Owner", "0", "?4", "?4", RankType.OWNER, TagRole.STAFF,
               /*animated*/ true,
               Arrays.asList(
-                  "§c§lCEO§f✦§c",
-                  "§6§lCEO§f✦§6",
-                  "§e§lCEO§f✦§e",
-                  "§a§lCEO§f✦§a",
-                  "§2§lCEO§f✦§2",
-                  "§b§lCEO§f✦§b",
-                  "§3§lCEO§f✦§3",
-                  "§9§lCEO§f✦§9",
-                  "§1§lCEO§f✦§1",
-                  "§5§lCEO§f✦§5",
-                  "§d§lCEO§f✦§d",
-                  "§f§lCEO§f✦§f",
-                  "§7§lCEO§f✦§7",
-                  "§8§lCEO§f✦§8",
-                  "§0§lCEO§f✦§0",
-                  "§4§lCEO§f✦§4"
+                  "?c",
+                  "?6",
+                  "?e",
+                  "?a",
+                  "?2",
+                  "?b",
+                  "?3",
+                  "?9",
+                  "?1",
+                  "?5",
+                  "?d",
+                  "?f",
+                  "?7",
+                  "?8",
+                  "?0",
+                  "?4"
               ),
               null, null,
               Arrays.asList("owner", "ceo"));
@@ -188,8 +192,8 @@ public enum Tag {
             case COLOR               -> color;
             case BRACKETS            -> color + "[" + displayName.toUpperCase() + "] ";
             case BRACKETS_NORMAL_CASE -> color + "[" + displayName + "] ";
-            case DEFAULT_WHITE       -> prefix + "§r";
-            case DEFAULT_GRAY        -> prefix + "§r§7";
+            case DEFAULT_WHITE       -> prefix + "?r";
+            case DEFAULT_GRAY        -> prefix + "?r?7";
         };
     }
 

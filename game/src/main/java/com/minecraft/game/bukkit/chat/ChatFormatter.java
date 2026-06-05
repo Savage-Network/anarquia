@@ -17,7 +17,7 @@ public final class ChatFormatter {
         return "§7" + plainMessage.replaceAll("§.", "");
     }
 
-    public static String formatLine(Account sender, Account viewer, String channelPrefix, String content) {
+    public static String formatLine(Account sender, Account viewer, String content) {
         TagPrefix viewerPrefix = viewer != null ? viewer.getTagPrefix() : null;
         String tag = sender.getTag().getByPrefix(viewerPrefix);
         String medal = sender.getMedal() != Medal.NONE ? sender.getMedal().getColoredSymbol() : "";
@@ -26,7 +26,7 @@ public final class ChatFormatter {
             var c = sender.getClan();
             if (c != null) clan = ClanTagFormatter.formatChatTag(c) + " ";
         }
-        return channelPrefix + medal + clan + tag + sender.getNickname() + "§7: " + content;
+        return medal + clan + tag + sender.getNickname() + "§7: " + content;
     }
 
     public static String applyMentions(String content, Iterable<org.bukkit.entity.Player> online) {

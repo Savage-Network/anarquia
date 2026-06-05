@@ -1,0 +1,70 @@
+# Webhook do anticheat: plugins/game/discord.yml → webhooks.anticheat
+enabled: true
+alert-staff: true
+
+punishments:
+  enabled: false
+  kick-vl: 25
+  ban-vl: 50
+  reset-vl-on-quit: true
+
+checks:
+  fly:
+    enabled: true
+    air-ticks: 28
+  speed:
+    enabled: true
+    ground-limit: 0.65
+    air-limit: 0.55
+  no-fall:
+    enabled: true
+    min-fall: 4.0
+  high-jump:
+    enabled: true
+    max-delta-y: 0.85
+  jesus:
+    enabled: true
+  step:
+    enabled: true
+    max-step: 1.25
+  elytra:
+    enabled: true
+    max-speed: 1.8
+  blink:
+    enabled: true
+    max-delta: 10.0
+  reach:
+    enabled: true
+    max-reach: 3.35
+  kill-aura:
+    enabled: true
+    max-targets: 3
+    window-ms: 500
+  auto-click:
+    enabled: true
+    max-cps: 22
+  no-swing:
+    enabled: true
+  velocity:
+    enabled: true
+    min-ratio: 0.35
+  fast-break:
+    enabled: true
+    min-break-ms: 80
+  fast-place:
+    enabled: true
+    max-per-second: 14
+  scaffold:
+    enabled: true
+  fast-eat:
+    enabled: true
+    min-eat-ms: 1400
+  fast-bow:
+    enabled: true
+    min-draw-ms: 350
+  timer:
+    enabled: true
+    max-moves-per-second: 22
+  inventory-move:
+    enabled: true
+    speed-limit: 0.45

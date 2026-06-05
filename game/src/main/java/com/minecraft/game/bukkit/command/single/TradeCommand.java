@@ -1,11 +1,15 @@
 package com.minecraft.game.bukkit.command.single;
 
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.shop.trade.TradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class TradeCommand implements CommandInheritor {
 
@@ -46,5 +50,19 @@ public final class TradeCommand implements CommandInheritor {
         }
 
         TradeManager.invite(player, target);
+    }
+
+    @Completer(name = "trade", subCommands = {"troca", "trocar"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        List<String> out = new ArrayList<>();
+        String partial = ctx.getArgs().length > 0 ? ctx.getArgs()[0].toLowerCase() : "";
+        if ("aceitar".startsWith(partial)) out.add("aceitar");
+        if ("recusar".startsWith(partial)) out.add("recusar");
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!p.equals(ctx.player()) && p.getName().toLowerCase().startsWith(partial)) {
+                out.add(p.getName());
+            }
+        }
+        return out;
     }
 }

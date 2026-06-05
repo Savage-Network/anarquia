@@ -25,8 +25,8 @@ public final class HotbarLayout {
         PlayerInventory inv = player.getInventory();
         inv.clear();
 
-        inv.setItem(0, item(Material.MAP,
-                ModernText.gradient("Servidores", ModernText.SUCCESS, ModernText.ACCENT_A),
+        inv.setItem(0, item(Material.COMPASS,
+                ModernText.gradient("Jogar", ModernText.SUCCESS, ModernText.ACCENT_A),
                 List.of(
                         ModernText.mini("Semi Anarquia e Eventos"),
                         ModernText.action("Clique direito")

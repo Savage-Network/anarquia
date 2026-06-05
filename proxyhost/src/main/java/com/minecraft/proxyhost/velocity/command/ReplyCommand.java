@@ -1,26 +1,22 @@
 package com.minecraft.proxyhost.velocity.command;
 
-import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
-import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.network.TellService;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * /reply (/r) - responde a ultima conversa registrada pelo {@link TellCommand}.
- */
 public final class ReplyCommand implements SimpleCommand {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
     private static final ConcurrentHashMap<UUID, UUID> LAST = new ConcurrentHashMap<>();
 
     public static void registerLastConversation(UUID self, UUID other) {
+        if (self == null || other == null) return;
         LAST.put(self, other);
     }
 
@@ -30,7 +26,7 @@ public final class ReplyCommand implements SimpleCommand {
         String[] args = invocation.arguments();
 
         if (!(src instanceof Player sender)) {
-            src.sendMessage(legacy("&c/r so pode ser usado por jogadores."));
+            src.sendMessage(legacy("&c/r só pode ser usado por jogadores."));
             return;
         }
 
@@ -41,56 +37,34 @@ public final class ReplyCommand implements SimpleCommand {
 
         UUID otherId = LAST.get(sender.getUniqueId());
         if (otherId == null) {
-            sender.sendMessage(legacy("&cVoce nao tem uma conversa recente para responder."));
+            sender.sendMessage(legacy("&cVocê não tem uma conversa recente para responder."));
             return;
         }
 
         Player target = Core.getProxy().getPlayer(otherId).orElse(null);
         if (target == null) {
-            sender.sendMessage(legacy("&cO jogador nao esta mais online."));
+            sender.sendMessage(legacy("&cO jogador não está mais online."));
             LAST.remove(sender.getUniqueId());
             return;
         }
 
-        Account senderAcc = Core.getAccountController().of(sender.getUniqueId());
-        Account targetAcc = Core.getAccountController().of(otherId);
-        if (senderAcc == null || targetAcc == null) {
-            sender.sendMessage(legacy("&cSua conta ainda esta sendo carregada."));
-            return;
-        }
-
-        if (!targetAcc.getToggle().isAllowPrivateMessages()) {
-            sender.sendMessage(legacy("&cEsse jogador nao aceita mensagens privadas."));
-            return;
-        }
-
-        if (!senderAcc.isVIP() && senderAcc.hasCooldown(Constant.TELL_COOLDOWN_KEY)) {
-            long left = senderAcc.getCooldownRemaining(Constant.TELL_COOLDOWN_KEY) / 1000L;
-            sender.sendMessage(legacy("&cAguarde &f" + Math.max(1, left) + "s &cantes de enviar outra mensagem."));
-            return;
-        }
-
         String message = String.join(" ", args);
-        Component toTarget = legacy("&8(&fde &7" + senderAcc.getColoredName() + "&8) &7" + message);
-        Component toSender = legacy("&8(&fpara &7" + targetAcc.getColoredName() + "&8) &7" + message);
+        TellService.SendContext ctx = TellService.prepare(sender, target.getUsername(), message);
 
-        target.sendMessage(toTarget);
-        sender.sendMessage(toSender);
-
-        senderAcc.getContext().setLastMessage(otherId);
-        targetAcc.getContext().setLastMessage(sender.getUniqueId());
-        senderAcc.markDirty();
-        targetAcc.markDirty();
-
-        registerLastConversation(sender.getUniqueId(), otherId);
-        registerLastConversation(otherId, sender.getUniqueId());
-
-        if (!senderAcc.isVIP()) {
-            senderAcc.setCooldown(Constant.TELL_COOLDOWN_KEY, Constant.TELL_COOLDOWN_MS);
+        switch (ctx.result()) {
+            case OK -> TellService.dispatch(ctx, sender);
+            case SENDER_NOT_LOADED -> sender.sendMessage(legacy("&cSua conta ainda está sendo carregada."));
+            case COOLDOWN -> sender.sendMessage(legacy("&cAguarde &f"
+                    + TellService.cooldownSecondsRemaining(ctx.senderAcc())
+                    + "s &cantes de enviar outra mensagem."));
+            case TARGET_PM_DISABLED -> sender.sendMessage(legacy("&cEsse jogador não aceita mensagens privadas."));
+            case BLOCKED -> sender.sendMessage(legacy("&cNão foi possível enviar (bloqueio ativo)."));
+            case REDIS_OFFLINE -> sender.sendMessage(legacy("&cRedis offline — mensagens privadas indisponíveis."));
+            default -> sender.sendMessage(legacy("&cNão foi possível enviar a resposta."));
         }
     }
 
-    private Component legacy(String text) {
+    private net.kyori.adventure.text.Component legacy(String text) {
         return LEGACY.deserialize(text.replace('&', '§'));
     }
 }

@@ -35,7 +35,10 @@ public enum RankType {
     ADMIN      ("game.rank.admin",       "§4"),
     DIRETOR    ("game.rank.diretor",     "§4"),
     VERMELHO   ("game.rank.vermelho",    "§c"),
-    OWNER      ("game.rank.owner",       "§4");
+    OWNER      ("game.rank.owner",       "§4"),
+    ZW         ("game.rank.zw",          "§x§9§D§0§0§0§0");
+
+    public static final String ZW_COLOR = ZW.color;
 
     private final String permission;
     private final String color;
@@ -44,36 +47,118 @@ public enum RankType {
         return ordinal() >= other.ordinal();
     }
 
-    /** Staff comeca em BUILDER (ordinal). */
     public boolean isStaff() {
         return isAtLeast(BUILDER);
+    }
+
+    public boolean isSuperAdmin() {
+        return this == ZW || this == OWNER || this == DIRETOR || this == VERMELHO;
+    }
+
+    public String formatScoreboard() {
+        if (this == ZW) {
+            return color + "§lZW";
+        }
+        return color + name();
     }
 
     public String getDisplayName() {
         return name().charAt(0) + name().substring(1).toLowerCase().replace('_', ' ');
     }
 
-    /** Nos aplicados no Bukkit via {@code PermissionAttachment}. */
+    /** Permissoes Bukkit via {@code PermissionAttachment} (espelha hierarquia do game). */
     public java.util.List<String> getPermissionNodes() {
+        if (this == ZW) {
+            return zwPermissionNodes();
+        }
+
         java.util.List<String> nodes = new java.util.ArrayList<>();
         nodes.add(permission);
+        nodes.add("lobbyhost.report");
+        nodes.add("game.report");
 
         if (isAtLeast(VIP)) {
             nodes.add("game.vip");
             nodes.add("lobbyhost.vip");
+            nodes.add("lobbyhost.fly");
         }
         if (isStaff()) {
             nodes.add("game.staff");
             nodes.add("lobbyhost.staff");
+            nodes.add("lobbyhost.vanish");
+            nodes.add("lobbyhost.vanish.see");
+            nodes.add("lobbyhost.staffchat");
+            nodes.add("lobbyhost.fly");
+            nodes.add("lobbyhost.chat.mod");
+            nodes.add("game.chat.mod");
+        }
+        if (isAtLeast(HELPER)) {
+            nodes.add("lobbyhost.reports");
+            nodes.add("lobbyhost.punish");
+            nodes.add("game.reports");
+            nodes.add("game.punish");
+            nodes.add("lobbyhost.kick");
+            nodes.add("game.kick");
+        }
+        if (isAtLeast(MOD)) {
+            nodes.add("lobbyhost.unpunish");
+            nodes.add("lobbyhost.cban");
+            nodes.add("game.unpunish");
+            nodes.add("game.cban");
+            nodes.add("lobbyhost.ban");
+            nodes.add("game.ban");
         }
         if (isAtLeast(ADMIN)) {
             nodes.add("game.admin");
             nodes.add("game.*");
             nodes.add("lobbyhost.admin");
         }
-        if (this == OWNER || this == DIRETOR || this == VERMELHO) {
+        if (isSuperAdmin()) {
             nodes.add("*");
         }
+        return nodes;
+    }
+
+    private static java.util.List<String> zwPermissionNodes() {
+        java.util.List<String> nodes = new java.util.ArrayList<>();
+        nodes.add("game.rank.zw");
+        nodes.add("*");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.*");
+        nodes.add("proxyhost.*");
+        nodes.add("auth.*");
+        nodes.add("eventos.*");
+        nodes.add("tag.*");
+        nodes.add("medal.*");
+        nodes.add("lobbyhost.report");
+        nodes.add("game.report");
+        nodes.add("game.vip");
+        nodes.add("lobbyhost.vip");
+        nodes.add("lobbyhost.fly");
+        nodes.add("game.staff");
+        nodes.add("lobbyhost.staff");
+        nodes.add("lobbyhost.vanish");
+        nodes.add("lobbyhost.vanish.see");
+        nodes.add("lobbyhost.staffchat");
+        nodes.add("lobbyhost.chat.mod");
+        nodes.add("game.chat.mod");
+        nodes.add("lobbyhost.reports");
+        nodes.add("lobbyhost.punish");
+        nodes.add("game.reports");
+        nodes.add("game.punish");
+        nodes.add("lobbyhost.kick");
+        nodes.add("game.kick");
+        nodes.add("lobbyhost.unpunish");
+        nodes.add("lobbyhost.cban");
+        nodes.add("game.unpunish");
+        nodes.add("game.cban");
+        nodes.add("lobbyhost.ban");
+        nodes.add("game.ban");
+        nodes.add("game.admin");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.admin");
+        nodes.add("lobbyhost.cash.give");
+        nodes.add("lobbyhost.cash.take");
         return nodes;
     }
 
@@ -85,7 +170,7 @@ public enum RankType {
         return false;
     }
 
-    static boolean matchesPermission(String held, String required) {
+    public static boolean matchesPermission(String held, String required) {
         if (held == null || required == null) return false;
         if ("*".equals(held)) return true;
         if (held.equalsIgnoreCase(required)) return true;

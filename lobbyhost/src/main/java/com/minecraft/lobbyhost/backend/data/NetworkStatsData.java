@@ -107,7 +107,7 @@ public final class NetworkStatsData {
             case KILLS -> playerOrder("kills DESC");
             case DEATHS -> playerOrder("deaths DESC");
             case GOLDS -> playerOrder("golds DESC");
-            case KDR -> playerOrder("(CASE WHEN deaths = 0 THEN kills ELSE CAST(kills AS REAL) / deaths END) DESC");
+            case KDR -> playerOrder(kdrOrderExpr());
             case CLANS -> "SELECT * FROM network_stats WHERE category = 'CLAN' ORDER BY clan_power DESC LIMIT ?";
         };
         List<NetworkStatsEntry> out = new ArrayList<>();
@@ -139,6 +139,13 @@ public final class NetworkStatsData {
 
     private static String playerOrder(String orderExpr) {
         return "SELECT * FROM network_stats WHERE category = 'PLAYER' ORDER BY " + orderExpr + " LIMIT ?";
+    }
+
+    private String kdrOrderExpr() {
+        String ratio = database.getType() == HikariProvider.DatabaseType.MYSQL
+                ? "CAST(kills AS DECIMAL(12,4)) / deaths"
+                : "CAST(kills AS REAL) / deaths";
+        return "(CASE WHEN deaths = 0 THEN kills ELSE " + ratio + " END) DESC";
     }
 
     private static void bind(PreparedStatement ps, NetworkStatsEntry e) throws SQLException {

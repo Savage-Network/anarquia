@@ -12,4 +12,7 @@ public class GameStats {
     private int killStreak;
     private int bestKillStreak;
     private int bounty;
+
+    /** Livro de boas-vindas do modo GAME (persistido pelo game.jar). */
+    private boolean welcomeBookGiven;
 }

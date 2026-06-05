@@ -38,7 +38,6 @@ public final class PrefsCommand implements CommandInheritor {
         account.send("§6§lPreferencias");
         account.send(line("mensagens",        t.isAllowPrivateMessages()));
         account.send(line("amizades",         t.isAllowFriendRequests()));
-        account.send(line("party",            t.isAllowPartyInvites()));
         account.send(line("cla",              t.isAllowClanInvites()));
         account.send(line("clantag",          t.isShowClanTag()));
         account.send(line("stats",            t.isShowStats()));
@@ -59,7 +58,6 @@ public final class PrefsCommand implements CommandInheritor {
         switch (rawKey.toLowerCase()) {
             case "mensagens", "messages"     -> t.setAllowPrivateMessages(!t.isAllowPrivateMessages());
             case "amizades", "friends"       -> t.setAllowFriendRequests(!t.isAllowFriendRequests());
-            case "party"                     -> t.setAllowPartyInvites(!t.isAllowPartyInvites());
             case "cla", "clan"               -> t.setAllowClanInvites(!t.isAllowClanInvites());
             case "clantag" -> {
                 t.setShowClanTag(!t.isShowClanTag());

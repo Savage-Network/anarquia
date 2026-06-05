@@ -1,6 +1,7 @@
 package com.minecraft.lobbyhost.bukkit.command.single;
 
 import com.minecraft.lobbyhost.LobbyHostPlugin;
+import com.minecraft.lobbyhost.config.DiscordConfig;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
@@ -32,8 +33,9 @@ public final class LobbyProcessCommand implements CommandInheritor {
                 ctx.reply("§aNPCs recarregados.");
             }
             case "discordreload" -> {
+                DiscordConfig.load(LobbyHostPlugin.getInstance());
                 DiscordHologramManager.initialize();
-                ctx.reply("§aHolograma do Discord recarregado.");
+                ctx.reply("§aDiscord recarregado (discord.yml + holograma).");
             }
             default -> ctx.reply("§eUso: /lobbyprocess <reload|reloadArchitect|npcReload|discordReload>");
         }

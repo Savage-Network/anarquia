@@ -4,9 +4,13 @@ import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
+import com.minecraft.game.bukkit.display.JoinBroadcast;
+import com.minecraft.game.bukkit.display.GameTabList;
 import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import com.minecraft.game.bukkit.manager.PermissionManager;
 import com.minecraft.game.bukkit.manager.TagManager;
+import com.minecraft.game.bukkit.vanish.VanishService;
+import com.minecraft.game.bukkit.welcome.WelcomeBookService;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -58,15 +62,21 @@ public final class AccountListener implements Listener {
             }
         }
 
-        Component msg = Component.text("§e+ §a" + player.getName() + " §7entrou no servidor.");
-        event.joinMessage(msg);
+        if (account != null && !VanishService.willAutoVanishOnJoin(account)
+                && !VanishService.isVanished(player)
+                && account.getToggle().isAllowJoinMessage()) {
+            event.joinMessage(JoinBroadcast.create(account, player, "entrou no jogo!"));
+        } else {
+            event.joinMessage(null);
+        }
 
-        player.sendMessage("§6§lSEMI-ANARQUIA §7| §f/loja §7| §f/sell §7| §f/ah §7| §f/kit §7| §f/spawn");
+        player.sendMessage("§6§lSavageMC §7| §f/loja §7| §f/kits §7| §f/leaderboard §7| §f/spawn");
 
         // Tab + nametag para todos os viewers (com TagPrefix individual)
         final Account loaded = account;
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
+            WelcomeBookService.tryGiveOnJoin(loaded, player);
             PlayerDisplayService.applyAll(loaded, player);
             com.minecraft.game.bukkit.skin.SkinService.refreshFromMojangIfStale(loaded, player);
             for (Player other : Bukkit.getOnlinePlayers()) {
@@ -74,6 +84,7 @@ public final class AccountListener implements Listener {
                 Account otherAcc = Core.getAccountController().of(other.getUniqueId());
                 if (otherAcc != null) TagManager.applyTagForViewer(player, other);
             }
+            GameTabList.refreshAll();
         }, 5L);
     }
 
@@ -81,11 +92,12 @@ public final class AccountListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        event.quitMessage(Component.text("§e- §c" + player.getName() + " §7saiu do servidor."));
+        event.quitMessage(null);
 
         PermissionManager.unloadPermissions(player);
         TagManager.removeTag(player);
         AboveNameDisplay.remove(player);
+        Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), GameTabList::refreshAll, 1L);
 
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),
                 () -> Core.getAccountController().unload(player.getUniqueId()));

@@ -13,4 +13,7 @@ public class GameStats {
     private int bestKillStreak;
     /** Recompensa acumulada na cabeca (bounty). */
     private int bounty;
+
+    /** Livro de boas-vindas do modo GAME ja entregue. */
+    private boolean welcomeBookGiven;
 }

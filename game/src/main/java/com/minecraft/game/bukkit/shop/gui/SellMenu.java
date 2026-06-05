@@ -3,6 +3,7 @@ package com.minecraft.game.bukkit.shop.gui;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
+import com.minecraft.game.bukkit.shop.ItemDisplayNames;
 import com.minecraft.game.bukkit.shop.ShopEconomy;
 import com.minecraft.game.bukkit.shop.catalog.SellCatalog;
 import org.bukkit.Material;
@@ -34,13 +35,16 @@ public final class SellMenu extends Menu {
                 .click(p -> sellAll(p)));
 
         set(22, MenuItem.of(Material.BOOK)
-                .name("§7Precos de referencia")
+                .name("§6§lPreços de referência")
                 .lore(
-                        "§8DIAMOND §7= §a" + sym + SellCatalog.price(Material.DIAMOND) + "/un",
-                        "§8IRON_INGOT §7= §a" + sym + SellCatalog.price(Material.IRON_INGOT) + "/un",
-                        "§8COBBLESTONE §7= §a" + sym + SellCatalog.price(Material.COBBLESTONE) + "/un",
+                        ItemDisplayNames.loreReference(Material.DIAMOND,
+                                "§a" + sym + SellCatalog.price(Material.DIAMOND) + " §7/un"),
+                        ItemDisplayNames.loreReference(Material.IRON_INGOT,
+                                "§a" + sym + SellCatalog.price(Material.IRON_INGOT) + " §7/un"),
+                        ItemDisplayNames.loreReference(Material.COBBLESTONE,
+                                "§a" + sym + SellCatalog.price(Material.COBBLESTONE) + " §7/un"),
                         "",
-                        "§7Edite sell-prices.yml"
+                        "§7Edite §fsell-prices.yml"
                 ));
 
         back(49);

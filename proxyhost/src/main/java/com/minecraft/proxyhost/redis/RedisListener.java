@@ -2,10 +2,11 @@ package com.minecraft.proxyhost.redis;
 
 import com.minecraft.proxyhost.Constant;
 import com.minecraft.proxyhost.Core;
-import com.minecraft.proxyhost.ProxySettings;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.api.punishment.PunishmentCategory;
-import com.minecraft.proxyhost.punishment.PunishmentService;
+import com.minecraft.proxyhost.network.BroadcastService;
+import com.minecraft.proxyhost.network.StaffChatService;
+import com.minecraft.proxyhost.network.TellService;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -13,16 +14,6 @@ import redis.clients.jedis.JedisPubSub;
 
 import java.util.UUID;
 
-/**
- * Receiver Redis para mensagens publicadas pelos backends Bukkit.
- *
- * <p>Formato esperado (JSON-ish simples, separado por pipe):
- * <ul>
- *   <li>{@code proxy-tell-channel} = {@code <senderUUID>|<targetUUID>|<senderColoredName>|<message>}</li>
- *   <li>{@code proxy-staffchat-channel} = {@code <senderColoredName>|<server>|<message>}</li>
- *   <li>{@code account-update-channel} = {@code <accountUUID>} - invalida cache</li>
- * </ul>
- */
 public final class RedisListener extends JedisPubSub {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
@@ -31,8 +22,9 @@ public final class RedisListener extends JedisPubSub {
     public void onMessage(String channel, String message) {
         try {
             switch (channel) {
-                case Constant.REDIS_PROXY_TELL_CHANNEL -> onTell(message);
-                case Constant.REDIS_PROXY_STAFFCHAT_CHANNEL -> onStaffChat(message);
+                case Constant.REDIS_PROXY_TELL_CHANNEL -> TellService.deliverFromRedis(message);
+                case Constant.REDIS_PROXY_STAFFCHAT_CHANNEL -> StaffChatService.deliverFromRedis(message);
+                case Constant.REDIS_NETWORK_ALERT_CHANNEL -> BroadcastService.deliverFromRedis(message);
                 case Constant.REDIS_ACCOUNT_UPDATE_CHANNEL -> onAccountUpdate(message);
                 case Constant.REDIS_PROXY_SETTINGS_CHANNEL -> onProxySettings(message);
                 case Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL -> onPunishment(message);
@@ -41,37 +33,6 @@ public final class RedisListener extends JedisPubSub {
         } catch (Throwable t) {
             Core.getLogger().warn("Erro ao processar msg Redis em {}: {}", channel, t.getMessage());
         }
-    }
-
-    private void onTell(String message) {
-        String[] parts = message.split("\\|", 4);
-        if (parts.length < 4) return;
-        try {
-            UUID target = UUID.fromString(parts[1]);
-            String coloredFrom = parts[2];
-            String body = parts[3];
-            Core.getProxy().getPlayer(target).ifPresent(p ->
-                    p.sendMessage(legacy("&8(&fde &7" + coloredFrom + "&8) &7" + body))
-            );
-        } catch (IllegalArgumentException ignored) {}
-    }
-
-    private void onStaffChat(String message) {
-        String[] parts = message.split("\\|", 3);
-        if (parts.length < 3) return;
-        String coloredFrom = parts[0];
-        String server = parts[1];
-        String body = parts[2];
-
-        String prefix = ProxySettings.STAFFCHAT_PREFIX;
-        Component formatted = legacy(prefix + "&f" + coloredFrom + "&7 (&f" + server + "&7): &f" + body);
-
-        Core.getProxy().getAllPlayers().forEach(p -> {
-            Account a = Core.getAccountController().of(p.getUniqueId());
-            if (a != null && (a.isStaffer() || p.hasPermission("proxyhost.staffchat"))) {
-                p.sendMessage(formatted);
-            }
-        });
     }
 
     private void onProxySettings(String message) {
@@ -90,7 +51,7 @@ public final class RedisListener extends JedisPubSub {
             if (!"APPLY".equalsIgnoreCase(parts[3])) return;
             Core.getProxy().getPlayer(target).ifPresent(p ->
                     Core.getPunishmentData().findActive(target, PunishmentCategory.BAN).ifPresent(ban ->
-                            p.disconnect(LEGACY.deserialize(PunishmentService.banKickMessage(ban)))));
+                            p.disconnect(com.minecraft.proxyhost.util.DisconnectMessages.ban(ban))));
         } catch (IllegalArgumentException ignored) {
         }
     }
@@ -100,11 +61,11 @@ public final class RedisListener extends JedisPubSub {
             UUID id = UUID.fromString(uuid.trim());
             Account online = Core.getAccountController().of(id);
             if (online == null) return;
-            // Recarrega do banco e substitui o contexto
             Core.getAccountData().loadAsync(id).thenAccept(opt ->
                     opt.ifPresent(fresh -> online.replaceContext(fresh.getContext()))
             );
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     private Component legacy(String text) {

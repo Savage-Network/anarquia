@@ -4,8 +4,10 @@ import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.bukkit.vanish.VanishConfig;
 import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
 import com.minecraft.lobbyhost.punishment.PunishmentService;
+import com.minecraft.lobbyhost.util.ModernText;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -33,6 +35,12 @@ public final class PublicChatHandler {
             return true;
         }
 
+        if (ChatManager.isLocked() && !account.isStaffer()) {
+            account.send(ChatManager.lockedMessage());
+            event.setCancelled(true);
+            return true;
+        }
+
         String plain = LEGACY.serialize(event.message()).trim();
         if (plain.isEmpty()) {
             account.send("§cMensagem vazia.");
@@ -44,8 +52,8 @@ public final class PublicChatHandler {
             return true;
         }
 
-        if (VanishService.isVanished(sender)) {
-            account.send("§cVoce esta em vanish. Use §e!mensagem §cou §e/sc §cpara o staff chat.");
+        if (VanishConfig.isBlockPublicChat() && VanishService.isVanished(sender)) {
+            account.send(ModernText.legacy(VanishConfig.msgChatBlocked()));
             event.setCancelled(true);
             return true;
         }
@@ -62,20 +70,9 @@ public final class PublicChatHandler {
             return true;
         }
 
-        String normalized = plain.toLowerCase(Locale.ROOT);
-        if (!account.isVIP() && !account.isStaffer()) {
-            if (account.hasCooldown(Constant.CHAT_COOLDOWN_KEY)) {
-                long left = account.getCooldownRemaining(Constant.CHAT_COOLDOWN_KEY);
-                account.send("§cAguarde " + Math.max(1, left / 1000L) + "s para falar novamente.");
-                event.setCancelled(true);
-                return true;
-            }
-            if (ChatSpamTracker.isSpam(sender.getUniqueId(), normalized)) {
-                account.send("§cPare de repetir a mesma mensagem.");
-                event.setCancelled(true);
-                return true;
-            }
-            account.setCooldown(Constant.CHAT_COOLDOWN_KEY, Constant.CHAT_COOLDOWN_MS);
+        if (!applyRateLimit(account, sender, plain)) {
+            event.setCancelled(true);
+            return true;
         }
 
         String content = ChatFormatter.formatContent(account, plain);
@@ -97,16 +94,39 @@ public final class PublicChatHandler {
             if (viewerAcc != null && !viewerAcc.getToggle().isAllowLobbyChat()) {
                 continue;
             }
-            String line = ChatFormatter.formatLine(account, viewerAcc,
-                    LobbySettings.LOBBY_CHAT_PREFIX, content);
-            viewer.sendMessage(Component.text(line));
+            viewer.sendMessage(Component.text(ChatFormatter.formatLine(account, viewerAcc, content)));
         }
 
-        String selfLine = ChatFormatter.formatLine(account, account,
-                LobbySettings.LOBBY_CHAT_PREFIX, content);
-        sender.sendMessage(Component.text(selfLine));
-
+        sender.sendMessage(Component.text(ChatFormatter.formatLine(account, account, content)));
         Core.getLogger().info("[CHAT] " + account.getNickname() + ": " + plain);
+        return true;
+    }
+
+    private static boolean applyRateLimit(Account account, Player sender, String plain) {
+        long slowMs = ChatManager.getSlowModeMs();
+        if (slowMs > 0 && !account.isStaffer()) {
+            if (account.hasCooldown(ChatManager.SLOW_COOLDOWN_KEY)) {
+                long left = account.getCooldownRemaining(ChatManager.SLOW_COOLDOWN_KEY);
+                account.send("§cAguarde " + Math.max(1, left / 1000L) + "s (slow mode).");
+                return false;
+            }
+            account.setCooldown(ChatManager.SLOW_COOLDOWN_KEY, slowMs);
+            return true;
+        }
+
+        String normalized = plain.toLowerCase(Locale.ROOT);
+        if (!account.isVIP() && !account.isStaffer()) {
+            if (account.hasCooldown(Constant.CHAT_COOLDOWN_KEY)) {
+                long left = account.getCooldownRemaining(Constant.CHAT_COOLDOWN_KEY);
+                account.send("§cAguarde " + Math.max(1, left / 1000L) + "s para falar novamente.");
+                return false;
+            }
+            if (ChatSpamTracker.isSpam(sender.getUniqueId(), normalized)) {
+                account.send("§cPare de repetir a mesma mensagem.");
+                return false;
+            }
+            account.setCooldown(Constant.CHAT_COOLDOWN_KEY, Constant.CHAT_COOLDOWN_MS);
+        }
         return true;
     }
 

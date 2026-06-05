@@ -49,6 +49,7 @@ public final class Constant {
     public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
     public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
     public static final String REDIS_NETWORK_REPORT_CHANNEL = "network-report-channel";
+    public static final String REDIS_ANTICHEAT_ALERT_CHANNEL = "anticheat-alert-channel";
 
     /** Chave Redis: {@code network:online:<velocityServerId>} (TTL no proxy). */
     public static final String REDIS_NETWORK_ONLINE_KEY_PREFIX = "network:online:";
@@ -60,11 +61,11 @@ public final class Constant {
             REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL,
             REDIS_NETWORK_ALERT_CHANNEL,
             REDIS_NETWORK_STATUS_CHANNEL,
-            REDIS_PARTY_CONNECT_CHANNEL,
             REDIS_STATS_UPDATE_CHANNEL,
             REDIS_PROXY_TELL_CHANNEL,
             REDIS_PROXY_STAFFCHAT_CHANNEL,
-            REDIS_NETWORK_REPORT_CHANNEL
+            REDIS_NETWORK_REPORT_CHANNEL,
+            REDIS_ANTICHEAT_ALERT_CHANNEL
     };
 
     /* ----- Banco ----- */
@@ -102,4 +103,10 @@ public final class Constant {
                     + "§cMotivo: %s\n"
                     + "§cID: %s\n\n"
                     + "§7Apelo: §e" + LobbySettings.SERVER_STORE_URL + "\n";
+
+    public static final String STAFF_KICK_TEMPLATE =
+            "§6§l" + SERVER_NAME.toUpperCase() + "\n\n"
+                    + "§cVocê foi expulso.\n"
+                    + "§7Motivo: §f%s\n"
+                    + "§7Staff: §e%s\n";
 }

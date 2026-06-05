@@ -80,7 +80,7 @@ public final class PluginHiderListener implements Listener {
         }
         PluginDescriptionFile desc = plugin.getDescription();
         String authors = desc.getAuthors() == null || desc.getAuthors().isEmpty()
-                ? "SavageLabs" : String.join(", ", desc.getAuthors());
+                ? "SavageMC" : String.join(", ", desc.getAuthors());
         return new String[]{
                 "§6§l" + desc.getName() + " §7v" + desc.getVersion(),
                 "§7" + nullToEmpty(desc.getDescription()),

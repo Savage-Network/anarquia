@@ -3,13 +3,12 @@ package com.minecraft.proxyhost.routing;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
+import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import com.velocitypowered.api.event.player.PlayerChooseInitialServerEvent;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,8 +34,7 @@ public final class InitialServerListener {
             Core.getLogger().warn("Manutencao: falha ao carregar conta de {}: {}",
                     player.getUsername(), e.getMessage());
             event.setResult(LoginEvent.ComponentResult.denied(
-                    Component.text(com.minecraft.proxyhost.Constant.ACCOUNT_LOAD_FAILED_MESSAGE)
-                            .color(NamedTextColor.RED)));
+                    DisconnectMessages.accountLoadFailed()));
         }
     }
 

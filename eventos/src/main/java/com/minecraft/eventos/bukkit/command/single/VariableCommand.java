@@ -1,9 +1,14 @@
 package com.minecraft.eventos.bukkit.command.single;
 
 import com.minecraft.eventos.bukkit.command.annotation.Command;
+import com.minecraft.eventos.bukkit.command.annotation.Completer;
 import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
 import com.minecraft.eventos.game.variable.Variable;
+import com.minecraft.eventos.util.TabCompleteUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class VariableCommand implements CommandInheritor {
 
@@ -48,6 +53,22 @@ public final class VariableCommand implements CommandInheritor {
             }
             default -> ctx.reply("§cSubcomando desconhecido.");
         }
+    }
+
+    @Completer(name = "variable", subCommands = {"var"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], "list", "get", "set", "reset");
+        }
+        if (ctx.getArgs().length == 2) {
+            String sub = ctx.getArgs()[0].toLowerCase();
+            if (sub.equals("get") || sub.equals("set") || sub.equals("reset")) {
+                List<String> keys = new ArrayList<>(List.of("all"));
+                for (Variable.Key key : Variable.Key.values()) keys.add(key.name().toLowerCase());
+                return TabCompleteUtil.filter(ctx.getArgs()[1], keys);
+            }
+        }
+        return List.of();
     }
 
     private Object parse(String raw, Object hint) {

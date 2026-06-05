@@ -10,6 +10,7 @@ import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.semi.HomeService;
 import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
 import com.minecraft.game.bukkit.semi.SpawnProtection;
+import com.minecraft.game.util.TabCompleteUtil;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -99,5 +100,13 @@ public final class HomeCommand implements CommandInheritor {
     @Completer(name = "delhome")
     public List<String> tabDel(BukkitCommandContext ctx) {
         return tabHome(ctx);
+    }
+
+    @Completer(name = "sethome")
+    public List<String> tabSetHome(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], "home");
+        }
+        return List.of();
     }
 }

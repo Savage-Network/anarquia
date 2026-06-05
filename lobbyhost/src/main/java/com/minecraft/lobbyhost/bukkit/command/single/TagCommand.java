@@ -61,7 +61,7 @@ public final class TagCommand implements CommandInheritor {
         ctx.reply("§aTag alterada para " + tag.getColoredName() + "§a.");
     }
 
-    @Completer(name = "tag")
+    @Completer(name = "tag", subCommands = {"tags"})
     public List<String> tab(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) return new ArrayList<>();

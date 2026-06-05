@@ -1,6 +1,7 @@
 package com.minecraft.proxyhost.velocity.command;
 
 import com.minecraft.proxyhost.Core;
+import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
 import com.minecraft.proxyhost.api.punishment.PunishmentCategory;
 import com.minecraft.proxyhost.api.punishment.PunishmentReason;
@@ -52,12 +53,14 @@ public final class PunishCommand implements SimpleCommand {
         switch (label) {
             case "despunir", "unpunish", "unban", "unmute" -> despunir(src, args);
             case "cban" -> cban(src, args);
+            case "ban" -> ban(src, args);
+            case "kick" -> kick(src, args);
             default -> punir(src, args);
         }
     }
 
     private void punir(CommandSource src, String[] args) {
-        if (!src.hasPermission("proxyhost.punish")) {
+        if (!hasRankPermission(src, "proxyhost.punish", RankType.HELPER)) {
             src.sendMessage(legacy("&cSem permissão."));
             return;
         }
@@ -101,21 +104,24 @@ public final class PunishCommand implements SimpleCommand {
     private void showPresets(CommandSource src, PunishmentCategory cat, String target) {
         List<Preset> presets = PRESETS.get(cat);
         if (presets == null || presets.isEmpty()) {
-            src.sendMessage(legacy("&cNenhum preset para " + cat.getDisplayName()));
+            src.sendMessage(legacy("§c§lNenhum preset disponível para " + cat.getDisplayName()));
             return;
         }
-        src.sendMessage(legacy("&e" + cat.getDisplayName() + " &7para &a" + target + "&7:"));
+        src.sendMessage(legacy("\n§6§l⚡ PRESETS DE PUNIÇÃO ⚡"));
+        src.sendMessage(legacy("§7Categoria: §e" + cat.getDisplayName() + " §7| Alvo: §a" + target));
+        src.sendMessage(legacy(""));
         int i = 1;
         for (Preset p : presets) {
-            String time = p.time().equals("-1") ? "Permanente" : p.time();
-            src.sendMessage(legacy("&7[" + i++ + "] &f" + p.label() + " &8(" + time + ")"));
-            src.sendMessage(legacy("&8  /punir " + p.category().name() + " " + p.reason().name()
+            String time = p.time().equals("-1") ? "§4Permanente" : "§e" + p.time();
+            src.sendMessage(legacy("§8[§6" + i++ + "§8] §f" + p.label() + " §8(§7Duração: " + time + "§8)"));
+            src.sendMessage(legacy("§8    └─ §7/punir " + p.category().name() + " " + p.reason().name()
                     + " " + p.time() + " " + target + " " + p.label()));
         }
+        src.sendMessage(legacy(""));
     }
 
     private void cban(CommandSource src, String[] args) {
-        if (!src.hasPermission("proxyhost.cban")) {
+        if (!hasRankPermission(src, "proxyhost.cban", RankType.MOD)) {
             src.sendMessage(legacy("&cSem permissão."));
             return;
         }
@@ -126,13 +132,76 @@ public final class PunishCommand implements SimpleCommand {
         runApply(src, args[0], PunishmentCategory.BAN, PunishmentReason.CHEATING, args[1], "Cheating");
     }
 
-    private void despunir(CommandSource src, String[] args) {
-        if (!src.hasPermission("proxyhost.unpunish")) {
+    private void ban(CommandSource src, String[] args) {
+        if (!hasRankPermission(src, "proxyhost.ban", RankType.MOD)) {
             src.sendMessage(legacy("&cSem permissão."));
             return;
         }
+        if (args.length < 1) {
+            src.sendMessage(legacy("&cUso: /ban <nick> [tempo] [motivo]"));
+            return;
+        }
+        BanArgs parsed = parseBanArgs(args);
+        runApply(src, parsed.target(), PunishmentCategory.BAN, PunishmentReason.COMMUNITY,
+                parsed.time(), parsed.cause());
+    }
+
+    private void kick(CommandSource src, String[] args) {
+        if (!hasRankPermission(src, "proxyhost.kick", RankType.HELPER)) {
+            src.sendMessage(legacy("&cSem permissão."));
+            return;
+        }
+        if (args.length < 1) {
+            src.sendMessage(legacy("&cUso: /kick <nick> [motivo]"));
+            return;
+        }
+        UUID authorId = null;
+        String authorName = "CONSOLE";
+        if (src instanceof Player p) {
+            authorId = p.getUniqueId();
+            authorName = p.getUsername();
+        }
+        String target = args[0];
+        String reason = join(args, 1);
+        UUID finalAuthorId = authorId;
+        String finalAuthorName = authorName;
+        PunishmentService.kick(finalAuthorId, finalAuthorName, target, reason)
+                .thenAccept(result -> {
+                    if (result.success()) {
+                        src.sendMessage(legacy("&a" + result.targetName() + " expulso da rede."));
+                    } else {
+                        src.sendMessage(legacy("&c" + result.message()));
+                    }
+                });
+    }
+
+    private record BanArgs(String target, String time, String cause) {}
+
+    private static BanArgs parseBanArgs(String[] args) {
+        String target = args[0];
+        String time = "-1";
+        String cause = "Não informado";
+        if (args.length >= 2) {
+            if (com.minecraft.proxyhost.util.PunishmentTimeUtil.isValidTime(args[1])
+                    || args[1].equalsIgnoreCase("-1")
+                    || args[1].equalsIgnoreCase("perm")
+                    || args[1].equalsIgnoreCase("perma")) {
+                time = args[1];
+                if (args.length >= 3) cause = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            } else {
+                cause = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+            }
+        }
+        return new BanArgs(target, time, cause);
+    }
+
+    private void despunir(CommandSource src, String[] args) {
+        if (!hasRankPermission(src, "proxyhost.unpunish", RankType.MOD)) {
+            src.sendMessage(legacy("§c§lSem permissão."));
+            return;
+        }
         if (args.length < 2) {
-            src.sendMessage(legacy("&cUso: /despunir <ID> <motivo>"));
+            src.sendMessage(legacy("§e§lUso: §7/despunir <ID> <motivo>"));
             return;
         }
         String punishmentId = args[0];
@@ -150,9 +219,17 @@ public final class PunishCommand implements SimpleCommand {
         String finalAuthorName = authorName;
         String finalId = punishmentId;
         PunishmentService.revoke(finalAuthorId, finalAuthorName, finalId, reason)
-                .thenAccept(result -> src.sendMessage(legacy(result.success()
-                        ? "&aPunição " + finalId + " revogada."
-                        : "&c" + result.message())));
+                .thenAccept(result -> {
+                    if (result.success()) {
+                        src.sendMessage(legacy("\n§a§l✓ PUNIÇÃO REVOGADA!"));
+                        src.sendMessage(legacy("§7ID: §6" + finalId));
+                        src.sendMessage(legacy("§7Jogador: §f" + result.targetName()));
+                        src.sendMessage(legacy("§7Motivo: §e" + reason));
+                        src.sendMessage(legacy(""));
+                    } else {
+                        src.sendMessage(legacy("§c§l✘ ERRO: §c" + result.message()));
+                    }
+                });
     }
 
     private void runApply(CommandSource src, String targetName, PunishmentCategory category,
@@ -168,12 +245,16 @@ public final class PunishCommand implements SimpleCommand {
         PunishmentService.apply(finalAuthorId, finalAuthorName, targetName, category, reason, time, cause)
                 .thenAccept(result -> {
                     if (!result.success()) {
-                        src.sendMessage(legacy("&c" + result.message()));
+                        src.sendMessage(legacy("§c§l✘ ERRO: §c" + result.message()));
                         return;
                     }
-                    src.sendMessage(legacy("&cVocê puniu &f" + result.targetName()
-                            + " &7(" + category.getDisplayName() + "/" + reason.getDisplayName()
-                            + ") &8ID: &f" + result.punishment().getId()));
+                    src.sendMessage(legacy("\n§a§l✓ PUNIÇÃO APLICADA COM SUCESSO!"));
+                    src.sendMessage(legacy("§7Jogador: §f" + result.targetName()));
+                    src.sendMessage(legacy("§7Tipo: §e" + category.getDisplayName()));
+                    src.sendMessage(legacy("§7Motivo: §c" + reason.getDisplayName()));
+                    src.sendMessage(legacy("§7Detalhes: §f" + cause));
+                    src.sendMessage(legacy("§7ID: §6" + result.punishment().getId()));
+                    src.sendMessage(legacy(""));
                 });
     }
 
@@ -184,6 +265,17 @@ public final class PunishCommand implements SimpleCommand {
 
     private static net.kyori.adventure.text.Component legacy(String s) {
         return LEGACY.deserialize(s.replace('&', '§'));
+    }
+
+    private static boolean hasRankPermission(CommandSource src, String node, RankType minRank) {
+        if (src instanceof Player player) {
+            Account account = Core.getAccountController().of(player.getUniqueId());
+            if (account != null) {
+                if (account.hasPermission(node)) return true;
+                if (account.hasRank(minRank)) return true;
+            }
+        }
+        return src.hasPermission(node);
     }
 
     @Override

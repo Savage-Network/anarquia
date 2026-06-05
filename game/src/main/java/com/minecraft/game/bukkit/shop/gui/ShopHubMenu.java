@@ -13,7 +13,7 @@ public final class ShopHubMenu extends Menu {
     private final Account account;
 
     public ShopHubMenu(Player player, Account account) {
-        super(player, "§8§lEconomia §7| §fCentral", 5, null);
+        super(player, "§8§lSavageMC §7| §fMercado", 5, null);
         this.account = account;
     }
 
@@ -23,27 +23,27 @@ public final class ShopHubMenu extends Menu {
         String sym = ShopEconomy.symbol();
 
         set(4, MenuItem.of(Material.NETHER_STAR)
-                .name("§6§lSAVAGE §7| §fMercado")
-                .lore("§7Saldo: §a" + sym + account.getGolds()));
+                .name("§6§lSavageMC §7| §fMercado")
+                .lore("§7Saldo: §a" + sym + account.getGolds(), "§7savagemc.net"));
 
         set(20, MenuItem.of(Material.EMERALD)
                 .name("§a§lLoja do Servidor")
-                .lore("§7Compre itens com GUI", "§7estilo BAWMC", "", "§eClique para abrir")
+                .lore("§7Compre blocos, PvP e ferramentas", "§7no spawn protegido", "", "§eClique para abrir")
                 .click(p -> new ServerShopMenu(p, account, this).open()));
 
         set(22, MenuItem.of(Material.GOLD_INGOT)
                 .name("§6§lVender Itens")
-                .lore("§7Venda para o servidor", "§7precos em sell-prices.yml", "", "§eClique para abrir")
+                .lore("§7Venda itens ao servidor SavageMC", "", "§eClique para abrir")
                 .click(p -> new SellMenu(p, account, this).open()));
 
         set(24, MenuItem.of(Material.ENDER_CHEST)
-                .name("§5§lLeilao (/ah)")
+                .name("§5§lLeilão (/ah)")
                 .lore("§7Compre e venda entre jogadores", "", "§eClique para abrir")
                 .click(p -> new AuctionBrowseMenu(p, account, this, 0).open()));
 
         set(30, MenuItem.of(Material.OAK_SIGN)
                 .name("§e§lLojas de Placa")
-                .lore("§7Chest shop com placas", "", "§eClique para tutorial")
+                .lore("§7Monte sua loja com placas", "", "§eClique para tutorial")
                 .click(p -> SignShopManager.sendHelp(p)));
 
         set(32, MenuItem.of(Material.PLAYER_HEAD)

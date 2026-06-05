@@ -25,6 +25,7 @@ public final class TaskManager {
     private BukkitTask sidebarTask;
     private BukkitTask tabListTask;
     private BukkitTask leaderboardTask;
+    private BukkitTask queueTask;
 
     public void start() {
         long sidebarTicks = LobbySettings.SIDEBAR_UPDATE_TICKS;
@@ -38,6 +39,12 @@ public final class TaskManager {
         long lbTicks = LobbySettings.LEADERBOARD_REFRESH_TICKS;
         leaderboardTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
                 LeaderboardCache::refreshAll, lbTicks, lbTicks);
+
+        // Fila: flush a cada 2s, action bar de posição a cada 2s
+        queueTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            com.minecraft.lobbyhost.network.QueueManager.flush();
+            com.minecraft.lobbyhost.network.QueueManager.broadcastPositions();
+        }, 40L, 40L);
         // Auto-save a cada 5 minutos (apenas contas dirty)
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
@@ -69,6 +76,9 @@ public final class TaskManager {
         }
         if (leaderboardTask != null && !leaderboardTask.isCancelled()) {
             leaderboardTask.cancel();
+        }
+        if (queueTask != null && !queueTask.isCancelled()) {
+            queueTask.cancel();
         }
     }
 }

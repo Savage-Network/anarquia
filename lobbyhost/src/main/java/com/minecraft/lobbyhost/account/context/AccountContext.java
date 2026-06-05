@@ -73,6 +73,8 @@ public class AccountContext {
 
     private int level = 1;
     private int golds = 0;
+    /** Moeda de rede (lobby/loja) — separada do money/golds do game. */
+    private int cash = 0;
 
     private long lastLogin = System.currentTimeMillis();
 

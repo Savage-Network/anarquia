@@ -1,6 +1,7 @@
 package com.minecraft.auth.util;
 
 import com.minecraft.auth.Core;
+import com.minecraft.auth.config.AuthConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,8 +13,9 @@ public final class AuthRedirects {
     private AuthRedirects() {}
 
     public static void toHub(Player player) {
-        int delay = com.minecraft.auth.AuthSettings.POST_LOGIN_DELAY_TICKS;
-        String target = com.minecraft.auth.AuthSettings.POST_LOGIN_TARGET;
+        AuthConfig cfg = AuthConfig.get();
+        int delay = cfg.getPostLoginDelayTicks();
+        String target = cfg.getPostLoginTarget();
 
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;

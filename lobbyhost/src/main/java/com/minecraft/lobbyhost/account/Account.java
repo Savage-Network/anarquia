@@ -193,7 +193,7 @@ public class Account {
             }
         }
         return getPermissions().stream()
-                .anyMatch(p -> !p.hasExpired() && p.getKey().equalsIgnoreCase(key));
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
 
     public java.util.List<com.minecraft.lobbyhost.account.context.objects.permission.Permission> getPermissions() {
@@ -259,6 +259,9 @@ public class Account {
         // Owner: precisa do rank Owner explicito.
         if (tag == Tag.TAG_OWNER) {
             return rank == RankType.OWNER;
+        }
+        if (tag == Tag.TAG_ZW) {
+            return rank == RankType.ZW;
         }
 
         switch (tag.getRole()) {
@@ -499,6 +502,23 @@ public class Account {
     public boolean removeGolds(int amount) {
         if (amount <= 0 || getGolds() < amount) return false;
         setGolds(getGolds() - amount);
+        return true;
+    }
+
+    public int getCash() { return context.getCash(); }
+
+    public void setCash(int cash) {
+        context.setCash(Math.max(0, cash));
+        markDirty();
+    }
+
+    public void addCash(int amount) {
+        if (amount > 0) setCash(getCash() + amount);
+    }
+
+    public boolean removeCash(int amount) {
+        if (amount <= 0 || getCash() < amount) return false;
+        setCash(getCash() - amount);
         return true;
     }
 

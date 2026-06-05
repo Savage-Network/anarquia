@@ -35,7 +35,8 @@ public enum RankType {
     ADMIN      ("game.rank.admin",       "§4"),
     DIRETOR    ("game.rank.diretor",     "§4"),
     VERMELHO   ("game.rank.vermelho",    "§c"),
-    OWNER      ("game.rank.owner",       "§4");
+    OWNER      ("game.rank.owner",       "§4"),
+    ZW         ("game.rank.zw",          "§x§9§D§0§0§0§0");
 
     private final String permission;
     private final String color;

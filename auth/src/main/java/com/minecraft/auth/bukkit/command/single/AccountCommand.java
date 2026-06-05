@@ -58,7 +58,7 @@ public final class AccountCommand implements CommandInheritor {
         ctx.reply("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
-    @Completer(name = "account")
+    @Completer(name = "account", subCommands = {"perfil", "conta"})
     public List<String> complete(BukkitCommandContext ctx) {
         List<String> names = new ArrayList<>();
         if (ctx.getArgs().length == 1) {

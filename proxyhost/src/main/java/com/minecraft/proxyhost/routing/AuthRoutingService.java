@@ -67,12 +67,42 @@ public final class AuthRoutingService {
         return proxy.getServer(fallback);
     }
 
-    /** Persiste flag de conta original na conta (campo {@code premium} = Mojang original). */
+    /**
+     * Sincroniza {@code premium} e estado de auth para contas originais
+     * (nao passam pelo servidor auth /login).
+     */
     public static void syncOriginFlag(Player player, Account account) {
         if (account == null) return;
-        boolean original = PlayerOriginDetector.isMojangOriginal(player);
-        if (account.isPremium() != original) {
-            account.setPremium(original);
+        if (PlayerOriginDetector.isMojangOriginal(player)) {
+            applyOriginalBypass(account);
+            return;
+        }
+        if (account.isPremium()) {
+            account.setPremium(false);
+            account.markDirty();
+            Core.getAccountData().saveAsync(account);
+        }
+    }
+
+    /** Marca conta Mojang como autenticada sem senha local. */
+    public static void applyOriginalBypass(Account account) {
+        if (account == null) return;
+        boolean changed = false;
+        if (!account.isPremium()) {
+            account.setPremium(true);
+            changed = true;
+        }
+        var auth = account.getContext().getAuth();
+        if (auth != null) {
+            AuthState state = auth.getState();
+            if (state != AuthState.LOGIN && state != AuthState.OK) {
+                auth.setState(AuthState.OK);
+                auth.setTimestamp(System.currentTimeMillis());
+                changed = true;
+            }
+        }
+        if (changed) {
+            account.markDirty();
             Core.getAccountData().saveAsync(account);
         }
     }

@@ -5,6 +5,9 @@ import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +50,65 @@ public class Clan {
     public void setPower(int power) {
         storage.setPower(power);
         persist();
+    }
+
+    public String getMotd() {
+        return storage.getMotd() != null ? storage.getMotd() : "§7Bem-vindo ao clã!";
+    }
+
+    public void setMotd(String motd) {
+        storage.setMotd(motd != null && !motd.isBlank() ? motd : "§7Bem-vindo ao clã!");
+        persist();
+    }
+
+    public String getDescription() {
+        return storage.getDescription() != null ? storage.getDescription() : "";
+    }
+
+    public void setDescription(String description) {
+        storage.setDescription(description != null ? description : "");
+        persist();
+    }
+
+    public boolean isFriendlyFire() {
+        return storage.isFriendlyFire();
+    }
+
+    public void setFriendlyFire(boolean friendlyFire) {
+        storage.setFriendlyFire(friendlyFire);
+        persist();
+    }
+
+    public boolean hasHome() {
+        return storage.getHomeWorld() != null && !storage.getHomeWorld().isBlank();
+    }
+
+    public void setHome(Location location) {
+        if (location == null || location.getWorld() == null) return;
+        storage.setHomeWorld(location.getWorld().getName());
+        storage.setHomeX(location.getX());
+        storage.setHomeY(location.getY());
+        storage.setHomeZ(location.getZ());
+        storage.setHomeYaw(location.getYaw());
+        storage.setHomePitch(location.getPitch());
+        persist();
+    }
+
+    public void clearHome() {
+        storage.setHomeWorld(null);
+        persist();
+    }
+
+    public Location getHome() {
+        if (!hasHome()) return null;
+        World world = Bukkit.getWorld(storage.getHomeWorld());
+        if (world == null) return null;
+        return new Location(world, storage.getHomeX(), storage.getHomeY(), storage.getHomeZ(),
+                storage.getHomeYaw(), storage.getHomePitch());
+    }
+
+    public int getOnlineCount() {
+        return getOnlineMembers().size();
     }
 
     public void persist() {
@@ -124,7 +186,17 @@ public class Clan {
             if (oldLeader != null) oldLeader.setRole(ClanRole.RECRUITER);
             leader = target.getId();
         }
-        broadcast("§7" + target.getNickname() + " agora e " + role.getColor() + role.getDisplayName() + "§7.");
+        broadcast("§7" + target.getNickname() + " agora é " + role.getColor() + role.getDisplayName() + "§7.");
+        persist();
+    }
+
+    public void demote(Account actor, Account target) {
+        ClanMember m = getMember(target.getId());
+        if (m == null || isLeader(target.getId())) return;
+        if (m.getRole() == ClanRole.MEMBER) return;
+        m.setRole(ClanRole.MEMBER);
+        broadcast("§7" + target.getNickname() + " foi rebaixado a " + ClanRole.MEMBER.getColor()
+                + ClanRole.MEMBER.getDisplayName() + "§7.");
         persist();
     }
 

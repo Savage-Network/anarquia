@@ -35,7 +35,9 @@ public final class LobbyTabList {
         Component combined = Component.empty();
         for (int i = 0; i < lines.size(); i++) {
             if (i > 0) combined = combined.append(Component.newline());
-            combined = combined.append(ModernText.parse(replace(lines.get(i), player)));
+            String replaced = replace(lines.get(i), player);
+            // MiniMessage — suporta gradientes, hex e todas as tags modernas
+            combined = combined.append(ModernText.parse(replaced));
         }
         return combined;
     }

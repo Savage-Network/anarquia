@@ -8,7 +8,10 @@ import com.minecraft.auth.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.auth.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.auth.bukkit.manager.TaskManager;
 import com.minecraft.auth.redis.AccountRedisListener;
+import com.minecraft.auth.config.AuthConfig;
+import com.minecraft.auth.message.AuthMessages;
 import com.minecraft.auth.validation.ValidationWebServer;
+import com.minecraft.auth.AuthSettings;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,6 +53,9 @@ public final class AuthPlugin extends JavaPlugin {
         long start = System.currentTimeMillis();
 
         try {
+            AuthConfig.load(this);
+            AuthMessages.load(this);
+            com.minecraft.auth.config.DiscordConfig.load(this);
             FileConfiguration config = getConfig();
 
             // 1) Banco de dados
@@ -92,7 +98,7 @@ public final class AuthPlugin extends JavaPlugin {
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
 
             // 8) Servidor HTTP de validacao (opcional)
-            int port = com.minecraft.auth.AuthSettings.VALIDATION_HTTP_PORT;
+            int port = AuthSettings.VALIDATION_HTTP_PORT;
             if (port > 0) {
                 validationServer = new ValidationWebServer(port);
                 try {
@@ -130,6 +136,8 @@ public final class AuthPlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
-        getLogger().info("Configuracoes recarregadas.");
+        AuthConfig.load(this);
+        AuthMessages.reload(this);
+        getLogger().info("Configurações e mensagens recarregadas.");
     }
 }

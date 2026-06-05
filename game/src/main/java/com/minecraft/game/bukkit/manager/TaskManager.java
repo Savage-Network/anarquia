@@ -7,6 +7,8 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.account.AccountController;
 import com.minecraft.game.bukkit.display.GameScoreboard;
 import com.minecraft.game.bukkit.display.GameTabList;
+import com.minecraft.game.leaderboard.LeaderboardCache;
+import com.minecraft.game.network.NetworkPollTask;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -17,9 +19,12 @@ public final class TaskManager {
 
     private BukkitTask autoSaveTask;
     private BukkitTask sidebarTask;
-    private BukkitTask tabListTask;
+    private BukkitTask tablistTask;
+    private BukkitTask networkPollTask;
+    private BukkitTask leaderboardTask;
 
     public void start() {
+        LeaderboardCache.refreshAll();
         long sidebarTicks = GameSettings.SIDEBAR_UPDATE_TICKS;
         sidebarTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             GameScoreboard.refreshOnlineCount();
@@ -27,8 +32,17 @@ public final class TaskManager {
         }, sidebarTicks, sidebarTicks);
 
         long tabTicks = GameSettings.TABLIST_UPDATE_TICKS;
-        tabListTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
+        tablistTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 GameTabList::refreshAll, tabTicks, tabTicks);
+
+        long networkTicks = GameSettings.NETWORK_POLL_TICKS;
+        networkPollTask = new NetworkPollTask().runTaskTimerAsynchronously(
+                plugin, 0L, networkTicks);
+
+        leaderboardTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
+                LeaderboardCache::refreshAll,
+                GameSettings.LEADERBOARD_REFRESH_TICKS,
+                GameSettings.LEADERBOARD_REFRESH_TICKS);
 
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
@@ -51,6 +65,8 @@ public final class TaskManager {
     public void stop() {
         if (autoSaveTask != null && !autoSaveTask.isCancelled()) autoSaveTask.cancel();
         if (sidebarTask != null && !sidebarTask.isCancelled()) sidebarTask.cancel();
-        if (tabListTask != null && !tabListTask.isCancelled()) tabListTask.cancel();
+        if (tablistTask != null && !tablistTask.isCancelled()) tablistTask.cancel();
+        if (networkPollTask != null && !networkPollTask.isCancelled()) networkPollTask.cancel();
+        if (leaderboardTask != null && !leaderboardTask.isCancelled()) leaderboardTask.cancel();
     }
 }

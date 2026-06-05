@@ -2,10 +2,14 @@ package com.minecraft.lobbyhost.bukkit.command.single;
 
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
+import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
 import com.minecraft.lobbyhost.bukkit.menu.FriendMenu;
 import com.minecraft.lobbyhost.social.FriendService;
+import com.minecraft.lobbyhost.util.TabCompleteUtil;
+
+import java.util.List;
 
 public final class AmigoCommand implements CommandInheritor {
 
@@ -60,5 +64,24 @@ public final class AmigoCommand implements CommandInheritor {
             }
             default -> ctx.reply("§e/amigo §7| §e/amigo add|aceitar|remover|lista");
         }
+    }
+
+    @Completer(name = "amigo", subCommands = {"amigos", "friend", "friends"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        String[] args = ctx.getArgs();
+        if (args.length <= 1) {
+            return TabCompleteUtil.filter(args.length == 1 ? args[0] : "",
+                    "add", "adicionar", "enviar", "aceitar", "accept",
+                    "remover", "remove", "delete", "lista", "list");
+        }
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("add") || sub.equals("adicionar") || sub.equals("enviar")
+                    || sub.equals("aceitar") || sub.equals("accept")
+                    || sub.equals("remover") || sub.equals("remove") || sub.equals("delete")) {
+                return TabCompleteUtil.onlinePlayersExceptSender(ctx);
+            }
+        }
+        return List.of();
     }
 }

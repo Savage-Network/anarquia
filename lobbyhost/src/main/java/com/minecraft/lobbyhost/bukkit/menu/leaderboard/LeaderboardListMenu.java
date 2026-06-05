@@ -47,7 +47,7 @@ public final class LeaderboardListMenu extends Menu {
                     "§7Melhor streak: §f" + e.getBestKillStreak()
             };
             case DEATHS -> new String[]{"§7Mortes: §c" + e.getDeaths()};
-            case GOLDS -> new String[]{"§7Saldo: §a" + e.getGolds()};
+            case GOLDS -> new String[]{"§7Money (game): §a" + e.getGolds()};
             case KDR -> new String[]{
                     String.format("§7K/D: §e%.2f", e.kdr()),
                     "§7" + e.getKills() + "K / " + e.getDeaths() + "D"

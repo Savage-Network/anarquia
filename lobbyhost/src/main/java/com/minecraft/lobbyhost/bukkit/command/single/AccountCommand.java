@@ -11,7 +11,9 @@ import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
+import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
+import com.minecraft.lobbyhost.bukkit.lobby.LobbyScoreboard;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import com.minecraft.lobbyhost.bukkit.skin.SkinService;
 import com.minecraft.lobbyhost.util.AccountSync;
@@ -51,8 +53,7 @@ public final class AccountCommand implements CommandInheritor {
 
         String sub = ctx.getArgs()[0].toLowerCase(Locale.ROOT);
         if (isStaffSub(sub)) {
-            if (!ctx.getSender().hasPermission("lobbyhost.admin")
-                    && !ctx.getSender().hasPermission("game.admin")) {
+            if (!canStaffAccount(ctx)) {
                 ctx.reply("§cSem permissao (lobbyhost.admin).");
                 return;
             }
@@ -65,9 +66,20 @@ public final class AccountCommand implements CommandInheritor {
 
     private static boolean isStaffSub(String sub) {
         return switch (sub) {
-            case "info", "setrank", "settag", "setmedal", "addmedal", "remmedal", "setgolds" -> true;
+            case "info", "setrank", "settag", "setmedal", "addmedal", "remmedal", "setgolds", "setcash" -> true;
             default -> false;
         };
+    }
+
+    private static boolean canStaffAccount(BukkitCommandContext ctx) {
+        if (ctx.getSender().hasPermission("lobbyhost.admin")
+                || ctx.getSender().hasPermission("game.admin")) {
+            return true;
+        }
+        if (!ctx.isPlayer()) return false;
+        Account account = Core.getAccountController().of(ctx.player().getUniqueId());
+        return account != null
+                && (account.hasPermission("lobbyhost.admin") || account.hasPermission("game.admin"));
     }
 
     private void dispatchStaff(BukkitCommandContext ctx, String sub) {
@@ -167,13 +179,28 @@ public final class AccountCommand implements CommandInheritor {
                     int amount = Integer.parseInt(args[2]);
                     mutate(ctx, args[1], a -> {
                         a.setGolds(amount);
-                        ctx.reply("§aGolds de §f" + a.getName() + " §a-> §6" + amount);
+                        ctx.reply("§aMoney (game) de §f" + a.getName() + " §a-> §6" + amount);
                     });
                 } catch (NumberFormatException e) {
                     ctx.reply("§cQuantidade invalida.");
                 }
             }
-            default -> ctx.reply("§6/account §7info|setrank|settag|setmedal|addmedal|remmedal|setgolds");
+            case "setcash" -> {
+                if (args.length < 3) {
+                    ctx.reply("§cUso: /account setcash <jogador> <quantia>");
+                    return;
+                }
+                try {
+                    int amount = Integer.parseInt(args[2]);
+                    mutate(ctx, args[1], a -> {
+                        a.setCash(amount);
+                        ctx.reply("§aCash de §f" + a.getName() + " §a-> §b" + LobbySettings.CASH_SYMBOL + amount);
+                    });
+                } catch (NumberFormatException e) {
+                    ctx.reply("§cQuantidade invalida.");
+                }
+            }
+            default -> ctx.reply("§6/account §7info|setrank|settag|setmedal|setcash|setgolds");
         }
     }
 
@@ -239,6 +266,7 @@ public final class AccountCommand implements CommandInheritor {
         TagManager.updateAllForViewer(p);
         AboveNameDisplay.refresh(p);
         SkinService.refresh(account, p);
+        LobbyScoreboard.refreshCash(p);
     }
 
     private static Account onlineAccount(String name) {
@@ -256,7 +284,9 @@ public final class AccountCommand implements CommandInheritor {
         ctx.reply("§eRank: §f" + target.getRankType());
         ctx.reply("§eTag: " + tag.getColor() + tag.getDisplayName());
         ctx.reply("§eMedalha: §f" + medal.name() + " " + medal.getSymbol());
-        ctx.reply("§eGolds: §6" + target.getGolds() + "§7  Level: §f" + target.getLevel());
+        ctx.reply("§eCash: §b" + LobbySettings.CASH_SYMBOL + target.getCash()
+                + "§7  Money (game): §6" + target.getGolds()
+                + "§7  Level: §f" + target.getLevel());
         ctx.reply("§eIP: §f" + target.getIpAddress());
         ctx.reply("§ePremium: §f" + target.isPremium());
         ctx.reply("§eCosmeticos ativos: §f" + target.getActiveCollectibles().size());
@@ -264,12 +294,12 @@ public final class AccountCommand implements CommandInheritor {
         ctx.reply("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
-    @Completer(name = "account")
+    @Completer(name = "account", subCommands = {"perfil", "conta", "a"})
     public List<String> complete(BukkitCommandContext ctx) {
         List<String> out = new ArrayList<>();
         if (ctx.getArgs().length == 1) {
             String p = ctx.getArgs()[0].toLowerCase(Locale.ROOT);
-            for (String sub : List.of("info", "setrank", "settag", "setmedal", "setgolds")) {
+            for (String sub : List.of("info", "setrank", "settag", "setmedal", "setgolds", "setcash")) {
                 if (sub.startsWith(p)) out.add(sub);
             }
             for (Account account : Core.getAccountController().list()) {

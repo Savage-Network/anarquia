@@ -1,6 +1,6 @@
 # lobbyhost.jar — apenas infraestrutura. Hub/UI em LobbySettings.java
-# Mapa/NPCs: plugins/lobbyhost/architect.json e npcs.yml
-# Discord holograma: plugins/lobbyhost/discord-hologram.yml (/setdiscord)
+# Discord: plugins/lobbyhost/discord.yml | Holograma posição: discord-hologram.yml
+# Mapa/NPCs: architect.json e npcs.yml
 
 database:
   type: MYSQL

@@ -8,6 +8,7 @@ import com.minecraft.lobbyhost.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,12 @@ import java.util.UUID;
  * <p>Tags animadas (Owner) recebem um pulse a cada 40 ticks (~2s).
  */
 public final class TagManager {
+
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
+            .character('§')
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     private static final Map<UUID, Integer> animationState = new HashMap<>();
     private static BukkitTask animationTask;
@@ -82,8 +89,11 @@ public final class TagManager {
         Player target = account.player();
         Tag targetTag = account.getTag();
 
-        Component displayName = Component.text(getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId())
-                + account.getNickname() + suffixOf(account));
+        String prefix = getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId());
+        String nick   = account.getNickname();
+        String suffix = truncateSuffix(suffixOf(account));
+
+        Component displayName = legacy(prefix + nick + suffix);
         target.displayName(displayName);
         target.playerListName(displayName);
 
@@ -112,7 +122,19 @@ public final class TagManager {
     /** Nick puro para nametag empilhado (sem cla — cla vai em linha propria). */
     public static String formatNametagNickLine(Account account) {
         if (account == null) return "";
-        return "§f" + account.getNickname();
+        // Herda a cor do prefixo da tag ativa
+        Tag tag = account.getTag();
+        String color = "§f";
+        if (tag != null) {
+            String prefix = tag.getPrefix();
+            if (prefix != null && !prefix.isBlank()) {
+                // pega o último código §x antes do texto
+                for (int i = 0; i < prefix.length() - 1; i++) {
+                    if (prefix.charAt(i) == '§') color = prefix.substring(i, i + 2);
+                }
+            }
+        }
+        return color + account.getNickname();
     }
 
     public static String formatNametagClanLine(Account account) {
@@ -158,9 +180,11 @@ public final class TagManager {
         String prefix = getAdjustedPrefix(viewerAcc.getTagPrefix(), tag, target.getUniqueId());
         String suffix = truncateSuffix(suffixOf(targetAcc));
 
-        team.prefix(Component.text(prefix));
-        team.suffix(Component.text(suffix));
-        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        team.prefix(legacy(prefix));
+        team.suffix(legacy(suffix));
+        
+        // Manter nametags vanilla visíveis para melhor experiência
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
         team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
@@ -195,25 +219,22 @@ public final class TagManager {
             }
         }
 
+        // Preserve animated tag behavior
         if (tag.isAnimated() && !tag.getAnimationFrames().isEmpty()) {
             int state = animationState.getOrDefault(targetId, 0);
             int idx = Math.floorMod(state, tag.getAnimationFrames().size());
             return titlePrefix + tag.getAnimationFrames().get(idx);
         }
-        if (tag.hasAlternates() && viewerStyle == TagPrefix.DEFAULT) {
-            int state = animationState.getOrDefault(targetId, 0);
-            String[] frames = new String[]{
-                    tag.getPrefix(),
-                    tag.getAlternatePrefix() != null ? tag.getAlternatePrefix() : tag.getPrefix(),
-                    tag.getThirdPrefix() != null ? tag.getThirdPrefix() : tag.getPrefix()
-            };
-            return titlePrefix + frames[Math.floorMod(state, frames.length)];
-        }
-        return titlePrefix + tag.getByPrefix(viewerStyle);
+        // Always use the default tag prefix for consistency in tab list
+        return titlePrefix + tag.getByPrefix(TagPrefix.DEFAULT);
     }
 
     private static String suffixOf(Account account) {
         return account.getFormattedClanTagSuffix();
+    }
+
+    private static Component legacy(String raw) {
+        return LEGACY.deserialize(raw == null ? "" : raw);
     }
 
     private static String truncateSuffix(String s) {

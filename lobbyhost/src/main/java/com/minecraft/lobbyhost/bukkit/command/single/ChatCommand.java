@@ -2,12 +2,15 @@ package com.minecraft.lobbyhost.bukkit.command.single;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.account.context.objects.rank.RankType;
 import com.minecraft.lobbyhost.bukkit.chat.BlockListService;
+import com.minecraft.lobbyhost.bukkit.chat.ChatManager;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -17,8 +20,8 @@ import java.util.UUID;
 public final class ChatCommand implements CommandInheritor {
 
     @Command(name = "chat", aliases = {"c"}, playerOnly = true,
-            description = "Ajuda e opcoes de chat",
-            usage = "/chat [help|ignore|unignore|list] [nick]")
+            description = "Chat — ignore, clearchat, lock",
+            usage = "/chat [help|ignore|clear|lock|unlock|slow] ...")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) {
@@ -27,21 +30,50 @@ public final class ChatCommand implements CommandInheritor {
         }
         String[] args = ctx.getArgs();
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            sendHelp(account);
+            sendHelp(account, ctx.getSender());
             return;
         }
         switch (args[0].toLowerCase()) {
             case "ignore", "bloquear", "block" -> ignore(account, ctx, args);
             case "unignore", "desbloquear", "unblock" -> unignore(account, ctx, args);
             case "list", "lista", "ignorados" -> list(account);
-            default -> sendHelp(account);
+            case "clear", "limpar", "clearchat" -> clearChat(ctx);
+            case "lock", "travar", "chatlock" -> setLock(ctx, true);
+            case "unlock", "destravar", "chatunlock" -> setLock(ctx, false);
+            case "slow", "slowmode" -> slowMode(ctx, args);
+            default -> sendHelp(account, ctx.getSender());
         }
     }
 
-    @Completer(name = "chat")
+    @Command(name = "clearchat", rank = RankType.HELPER, permission = "lobbyhost.chat.mod",
+            description = "Limpa o chat", usage = "/clearchat")
+    public void clearchatAlias(BukkitCommandContext ctx) {
+        clearChat(ctx);
+    }
+
+    @Command(name = "chatlock", rank = RankType.MOD, permission = "lobbyhost.chat.mod",
+            description = "Trava o chat publico", usage = "/chatlock")
+    public void chatlockAlias(BukkitCommandContext ctx) {
+        setLock(ctx, true);
+    }
+
+    @Command(name = "chatunlock", rank = RankType.MOD, permission = "lobbyhost.chat.mod",
+            description = "Libera o chat publico", usage = "/chatunlock")
+    public void chatunlockAlias(BukkitCommandContext ctx) {
+        setLock(ctx, false);
+    }
+
+    @Completer(name = "chat", subCommands = {"c"})
     public List<String> tab(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 1) {
-            return filter(List.of("help", "ignore", "unignore", "list"), ctx.getArgs()[0]);
+            List<String> opts = new ArrayList<>(List.of("help", "ignore", "unignore", "list"));
+            if (canMod(ctx.getSender())) {
+                opts.addAll(List.of("clear", "lock", "unlock", "slow"));
+            }
+            return filter(opts, ctx.getArgs()[0]);
+        }
+        if (ctx.getArgs().length == 2 && ctx.getArgs()[0].equalsIgnoreCase("slow") && canMod(ctx.getSender())) {
+            return filter(List.of("0", "3", "5", "10", "15", "30"), ctx.getArgs()[1]);
         }
         if (ctx.getArgs().length == 2 && (ctx.getArgs()[0].equalsIgnoreCase("ignore")
                 || ctx.getArgs()[0].equalsIgnoreCase("unignore"))) {
@@ -53,6 +85,66 @@ public final class ChatCommand implements CommandInheritor {
             return names;
         }
         return List.of();
+    }
+
+    @Completer(name = "clearchat")
+    public List<String> tabClearChat(BukkitCommandContext ctx) { return List.of(); }
+
+    @Completer(name = "chatlock")
+    public List<String> tabChatLock(BukkitCommandContext ctx) { return List.of(); }
+
+    @Completer(name = "chatunlock")
+    public List<String> tabChatUnlock(BukkitCommandContext ctx) { return List.of(); }
+
+    private void clearChat(BukkitCommandContext ctx) {
+        if (!canMod(ctx.getSender())) {
+            ctx.reply("§cSem permissao.");
+            return;
+        }
+        Player staff = ctx.isPlayer() ? ctx.player() : null;
+        ChatManager.clearChat(staff);
+        ctx.reply("§aChat limpo.");
+    }
+
+    private void setLock(BukkitCommandContext ctx, boolean lock) {
+        if (!canMod(ctx.getSender())) {
+            ctx.reply("§cSem permissao.");
+            return;
+        }
+        ChatManager.setLocked(lock);
+        String name = ctx.isPlayer() ? ctx.player().getName() : "CONSOLE";
+        ChatManager.broadcastLockNotice(lock, name);
+        ctx.reply(lock ? "§cChat travado." : "§aChat liberado.");
+    }
+
+    private void slowMode(BukkitCommandContext ctx, String[] args) {
+        if (!canMod(ctx.getSender())) {
+            ctx.reply("§cSem permissao.");
+            return;
+        }
+        if (args.length < 2) {
+            int current = ChatManager.getSlowModeSeconds();
+            ctx.reply(current <= 0
+                    ? "§7Slow mode: §fdesativado"
+                    : "§7Slow mode: §f" + current + "s §7entre mensagens");
+            ctx.reply("§e/chat slow <segundos> §7— use §e0 §7para desativar");
+            return;
+        }
+        int seconds;
+        try {
+            seconds = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            ctx.reply("§cUse um numero valido. Ex: §e/chat slow 5");
+            return;
+        }
+        if (seconds < 0 || seconds > 120) {
+            ctx.reply("§cIntervalo entre 0 e 120 segundos.");
+            return;
+        }
+        ChatManager.setSlowModeSeconds(seconds);
+        String name = ctx.isPlayer() ? ctx.player().getName() : "CONSOLE";
+        ChatManager.broadcastSlowNotice(seconds, name);
+        ctx.reply(seconds <= 0 ? "§aSlow mode desativado." : "§eSlow mode: §f" + seconds + "s");
     }
 
     private void ignore(Account account, BukkitCommandContext ctx, String[] args) {
@@ -71,7 +163,7 @@ public final class ChatCommand implements CommandInheritor {
             return;
         }
         BlockListService.block(account, tid);
-        account.send("§aVoce ignorou §f" + args[1] + "§a. Mensagens publicas dele nao aparecerao para voce.");
+        account.send("§aVoce ignorou §f" + args[1] + "§a.");
     }
 
     private void unignore(Account account, BukkitCommandContext ctx, String[] args) {
@@ -102,13 +194,23 @@ public final class ChatCommand implements CommandInheritor {
         }
     }
 
-    private void sendHelp(Account account) {
+    private void sendHelp(Account account, CommandSender sender) {
         account.send("§6§lChat");
-        account.send("§7Chat publico: §f[Lobby] §7+ tag + nick");
-        account.send("§7Menções: §e@Nick §7no texto");
-        account.send("§7Staff: §f! msg §7ou §f/sc msg §7| modo em §e/prefs");
-        account.send("§7Privado: §f/tell §7e §f/r §7(no proxy)");
-        account.send("§e/chat ignore|unignore|list §7— bloquear jogadores");
+        account.send("§7Formato: §ftag + nick §7+ mensagem §8(sem prefixo de servidor)");
+        account.send("§7Menções: §e@Nick");
+        account.send("§7Staff: §f! msg §7| §f/sc §7| modo em §e/prefs");
+        account.send("§7Privado: §f/tell §7e §f/r");
+        account.send("§e/chat ignore|unignore|list");
+        if (canMod(sender)) {
+            account.send("§cStaff:");
+            account.send("§e/chat clear §7| §e/clearchat");
+            account.send("§e/chat lock|unlock §7| §e/chatlock §7| §e/chatunlock");
+            account.send("§e/chat slow <seg> §7— cooldown global (0 desliga)");
+        }
+    }
+
+    private static boolean canMod(CommandSender sender) {
+        return sender.hasPermission("lobbyhost.chat.mod");
     }
 
     private UUID resolveUuid(String name) {

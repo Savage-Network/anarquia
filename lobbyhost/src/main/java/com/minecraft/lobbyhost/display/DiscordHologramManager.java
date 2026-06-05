@@ -1,6 +1,7 @@
 package com.minecraft.lobbyhost.display;
 
 import com.minecraft.lobbyhost.Core;
+import com.minecraft.lobbyhost.config.DiscordConfig;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.util.ModernText;
@@ -36,7 +37,7 @@ public final class DiscordHologramManager {
     public static void initialize() {
         cleanup();
         YamlConfiguration cfg = loadData();
-        if (!cfg.getBoolean("enabled", false)) return;
+        if (!DiscordConfig.isEnabled() || !DiscordConfig.feature("lobby-hologram")) return;
 
         String worldName = cfg.getString("world", LobbySettings.DEFAULT_SPAWN_WORLD);
         World world = Bukkit.getWorld(worldName);
@@ -48,17 +49,17 @@ public final class DiscordHologramManager {
         double x = cfg.getDouble("x", LobbySettings.DEFAULT_SPAWN_X);
         double y = cfg.getDouble("y", LobbySettings.DEFAULT_SPAWN_Y + 3);
         double z = cfg.getDouble("z", LobbySettings.DEFAULT_SPAWN_Z);
-        String url = LobbySettings.DISCORD_URL;
+        String url = DiscordConfig.inviteDisplay();
+        String holoTitle = DiscordConfig.message("hologram-title");
+        if (holoTitle.isBlank()) holoTitle = "DISCORD";
 
-        spawned.add(spawnLine(new Location(world, x, y + 0.9, z),
-                ModernText.parse("<!italic><gradient:#C084FC:#818CF8><bold>DISCORD</bold></gradient>")));
-        spawned.add(spawnLine(new Location(world, x, y + 0.6, z),
-                ModernText.parse("<!italic><#38BDF8>" + url)));
         spawned.add(spawnLine(new Location(world, x, y + 0.3, z),
-                ModernText.parse("<!italic><" + ModernText.BRAND_B + ">" + LobbySettings.SERVER_ADDRESS)));
-        spawned.add(spawnLine(new Location(world, x, y, z),
-                ModernText.parse("<!italic><#94A3B8>Loja <" + ModernText.BRAND_B + ">"
-                        + LobbySettings.SERVER_STORE_URL)));
+                ModernText.parse(
+                    "<!italic><gradient:#C084FC:#818CF8><bold>" + holoTitle + "</bold></gradient>\n"
+                  + "<#38BDF8>" + url + "\n"
+                  + "<" + ModernText.BRAND_B + ">" + LobbySettings.SERVER_ADDRESS + "\n"
+                  + "<#94A3B8>Loja <" + ModernText.BRAND_B + ">" + LobbySettings.SERVER_STORE_URL
+                )));
 
         Core.getLogger().info("[DiscordHologram] " + spawned.size() + " linhas em " + worldName
                 + " (" + x + "," + y + "," + z + ")");

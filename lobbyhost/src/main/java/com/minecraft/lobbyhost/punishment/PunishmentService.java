@@ -112,6 +112,8 @@ public final class PunishmentService {
                     + " puniu " + target.getName() + " (" + category.name() + "/"
                     + reason.name() + ") id=" + punishment.getId());
 
+            PunishmentBroadcast.staff(punishment, target.getName(), authorName != null ? authorName : "CONSOLE");
+
             return PunishmentResult.ok(punishment, target.getName());
         });
     }
@@ -149,6 +151,38 @@ public final class PunishmentService {
                 punishment.isTemporary() ? "temporariamente" : "permanentemente",
                 punishment.getReason().getDisplayName(),
                 punishment.getId());
+    }
+
+    public static String staffKickMessage(String staffName, String reason) {
+        if (reason == null || reason.isBlank()) reason = "Não informado";
+        if (staffName == null || staffName.isBlank()) staffName = "CONSOLE";
+        return String.format(Constant.STAFF_KICK_TEMPLATE, reason, staffName);
+    }
+
+    public static CompletableFuture<KickResult> kick(UUID authorId, String authorName,
+                                                     String targetName, String reason) {
+        if (reason == null || reason.isBlank()) reason = "Não informado";
+        String finalReason = reason;
+        return resolveTarget(targetName).thenApply(optTarget -> {
+            if (optTarget.isEmpty()) {
+                return KickResult.fail("Jogador não encontrado.");
+            }
+            Account target = optTarget.get();
+            Account actor = authorId != null ? Core.getAccountController().of(authorId) : null;
+            if (!canPunish(actor, target)) {
+                return KickResult.fail("Você não pode expulsar este jogador.");
+            }
+            Player p = Bukkit.getPlayer(target.getId());
+            if (p == null || !p.isOnline()) {
+                return KickResult.fail("Jogador offline.");
+            }
+            String staff = authorName != null ? authorName : "CONSOLE";
+            Bukkit.getScheduler().runTask(Core.getJavaPlugin(),
+                    () -> p.kickPlayer(staffKickMessage(staff, finalReason)));
+            Core.getLogger().info("[kick] " + staff + " expulsou " + target.getName() + " (" + finalReason + ")");
+            PunishmentBroadcast.kick(target.getName(), staff, finalReason);
+            return KickResult.ok(target.getName());
+        });
     }
 
     private static void enforceOnline(Punishment punishment, Account target) {
@@ -189,6 +223,16 @@ public final class PunishmentService {
 
         static PunishmentResult fail(String msg) {
             return new PunishmentResult(false, msg, null, null);
+        }
+    }
+
+    public record KickResult(boolean success, String message, String targetName) {
+        static KickResult ok(String target) {
+            return new KickResult(true, null, target);
+        }
+
+        static KickResult fail(String msg) {
+            return new KickResult(false, msg, null);
         }
     }
 }

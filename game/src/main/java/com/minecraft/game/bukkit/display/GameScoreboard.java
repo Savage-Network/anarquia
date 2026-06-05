@@ -44,7 +44,7 @@ public final class GameScoreboard {
         Account account = Core.getAccountController().of(player.getUniqueId());
         String rankDisplay = "§7MEMBER";
         if (account != null) {
-            rankDisplay = account.getRankType().getColor() + account.getRankType().name();
+            rankDisplay = account.getRankType().formatScoreboard();
         }
 
         String clanDisplay = "§7Nenhum";
@@ -71,7 +71,6 @@ public final class GameScoreboard {
         }
 
         setLine(obj, 8, "§e" + GameSettings.SERVER_ADDRESS);
-        setLine(obj, 7, "§7Loja: §6" + GameSettings.SERVER_STORE_URL);
     }
 
     public static void refreshOnlineCount() {

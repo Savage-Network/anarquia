@@ -66,11 +66,6 @@ commands:
     description: Modo de exibicao das tags
     usage: /prefixtype [modo]
     aliases: [prefixo, modotag]
-  customtitle:
-    description: Define titulo flutuante acima do nick
-    usage: /customtitle <texto|remover>
-    permission: eventos.admin
-    aliases: [titulo]
   prefs:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]

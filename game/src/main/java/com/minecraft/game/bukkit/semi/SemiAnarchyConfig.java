@@ -59,6 +59,8 @@ public final class SemiAnarchyConfig {
         pendingSpawnX = GameSettings.SPAWN_X;
         pendingSpawnY = GameSettings.SPAWN_Y;
         pendingSpawnZ = GameSettings.SPAWN_Z;
+        pendingSpawnYaw = GameSettings.SPAWN_YAW;
+        pendingSpawnPitch = GameSettings.SPAWN_PITCH;
         spawnPoint = null;
 
         resolveSpawnPoint();
@@ -72,21 +74,26 @@ public final class SemiAnarchyConfig {
         }
     }
 
-    /** Resolve spawn quando os mundos ja existem (onEnable pode rodar antes de carregar o world). */
+    /** Resolve spawn quando o mundo {@link GameSettings#SPAWN_WORLD} estiver carregado. */
     private static void resolveSpawnPoint() {
-        World world = resolveWorld(pendingSpawnWorld);
-        if (world == null) return;
+        World world = Bukkit.getWorld(pendingSpawnWorld);
+        if (world == null) {
+            spawnPoint = null;
+            return;
+        }
         spawnPoint = new Location(world, pendingSpawnX, pendingSpawnY, pendingSpawnZ,
                 pendingSpawnYaw, pendingSpawnPitch);
     }
 
-    private static World resolveWorld(String worldName) {
-        if (worldName != null && !worldName.isBlank()) {
-            World named = Bukkit.getWorld(worldName);
-            if (named != null) return named;
+    /** Chamado apos {@code /mundo load} ou auto-load do mapa spawn. */
+    public static void onWorldLoaded(String worldName) {
+        if (worldName != null && worldName.equalsIgnoreCase(pendingSpawnWorld)) {
+            resolveSpawnPoint();
         }
-        if (Bukkit.getWorlds().isEmpty()) return null;
-        return Bukkit.getWorlds().getFirst();
+        GamePlugin plugin = GamePlugin.getInstance();
+        if (plugin != null) {
+            loadWarps(plugin);
+        }
     }
 
     private static void loadWarps(GamePlugin plugin) {
@@ -118,12 +125,21 @@ public final class SemiAnarchyConfig {
     public static Location spawnPoint() {
         resolveSpawnPoint();
         if (spawnPoint != null) return spawnPoint.clone();
-        World fallback = resolveWorld(pendingSpawnWorld);
-        if (fallback != null) {
-            return new Location(fallback, pendingSpawnX, pendingSpawnY, pendingSpawnZ,
+
+        if (com.minecraft.game.bukkit.world.WorldManager.existsOnDisk(pendingSpawnWorld)
+                && !com.minecraft.game.bukkit.world.WorldManager.isLoaded(pendingSpawnWorld)) {
+            com.minecraft.game.bukkit.world.WorldManager.load(pendingSpawnWorld);
+            resolveSpawnPoint();
+            if (spawnPoint != null) return spawnPoint.clone();
+        }
+
+        World world = Bukkit.getWorld(pendingSpawnWorld);
+        if (world != null) {
+            return new Location(world, pendingSpawnX, pendingSpawnY, pendingSpawnZ,
                     pendingSpawnYaw, pendingSpawnPitch);
         }
-        throw new IllegalStateException("Nenhum mundo carregado para o spawn da semi-anarquia.");
+        throw new IllegalStateException("Mundo spawn '" + pendingSpawnWorld
+                + "' nao carregado. Use /mundo load " + pendingSpawnWorld);
     }
     public static int killRewardBase() { return killRewardBase; }
     public static int killStreakBonus() { return killStreakBonus; }

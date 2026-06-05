@@ -237,7 +237,7 @@ public final class TpaCommand implements CommandInheritor {
         return tabTpa(ctx);
     }
 
-    @Completer(name = "tpaccept")
+    @Completer(name = "tpaccept", subCommands = {"tpaceitar"})
     public List<String> tabTpAccept(BukkitCommandContext ctx) {
         List<String> out = new ArrayList<>();
         String partial = ctx.getArgs().length > 0 ? ctx.getArgs()[0].toLowerCase() : "";
@@ -255,7 +255,7 @@ public final class TpaCommand implements CommandInheritor {
         return out;
     }
 
-    @Completer(name = "tpdeny")
+    @Completer(name = "tpdeny", subCommands = {"tprecusar"})
     public List<String> tabTpDeny(BukkitCommandContext ctx) {
         return tabTpAccept(ctx);
     }

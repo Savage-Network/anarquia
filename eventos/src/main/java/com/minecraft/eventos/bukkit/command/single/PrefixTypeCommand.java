@@ -46,7 +46,7 @@ public final class PrefixTypeCommand implements CommandInheritor {
         ctx.reply("§aModo de prefixo: §e" + prefix.getDisplayName());
     }
 
-    @Completer(name = "prefixtype")
+    @Completer(name = "prefixtype", subCommands = {"prefixo", "modotag"})
     public List<String> tab(BukkitCommandContext ctx) {
         List<String> out = new ArrayList<>();
         String partial = ctx.getArgs().length > 0 ? ctx.getArgs()[0].toLowerCase() : "";

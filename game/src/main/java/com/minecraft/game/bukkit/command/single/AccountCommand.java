@@ -53,8 +53,7 @@ public final class AccountCommand implements CommandInheritor {
 
         String sub = ctx.getArgs()[0].toLowerCase(Locale.ROOT);
         if (isStaffSub(sub)) {
-            if (!ctx.getSender().hasPermission("game.admin")
-                    && !ctx.getSender().hasPermission("lobbyhost.admin")) {
+            if (!canStaffAccount(ctx)) {
                 ctx.reply("§cSem permissao (game.admin).");
                 return;
             }
@@ -70,6 +69,17 @@ public final class AccountCommand implements CommandInheritor {
             case "info", "setrank", "settag", "setmedal", "addmedal", "remmedal", "setgolds" -> true;
             default -> false;
         };
+    }
+
+    private static boolean canStaffAccount(BukkitCommandContext ctx) {
+        if (ctx.getSender().hasPermission("game.admin")
+                || ctx.getSender().hasPermission("lobbyhost.admin")) {
+            return true;
+        }
+        if (!ctx.isPlayer()) return false;
+        Account account = Core.getAccountController().of(ctx.player().getUniqueId());
+        return account != null
+                && (account.hasPermission("game.admin") || account.hasPermission("lobbyhost.admin"));
     }
 
     private void dispatchStaff(BukkitCommandContext ctx, String sub) {
@@ -244,7 +254,7 @@ public final class AccountCommand implements CommandInheritor {
         ctx.reply("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
-    @Completer(name = "account")
+    @Completer(name = "account", subCommands = {"perfil", "conta", "a"})
     public List<String> complete(BukkitCommandContext ctx) {
         List<String> out = new ArrayList<>();
         if (ctx.getArgs().length == 1) {

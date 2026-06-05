@@ -2,11 +2,16 @@ package com.minecraft.game.bukkit.command.single;
 
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.command.annotation.Command;
+import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.bukkit.menu.report.ReportMenus;
 import com.minecraft.game.report.ReportReason;
 import com.minecraft.game.report.ReportService;
 import com.minecraft.game.util.ModernText;
+import com.minecraft.game.util.TabCompleteUtil;
+
+import java.util.List;
 
 public final class ReportCommand implements CommandInheritor {
 
@@ -23,7 +28,7 @@ public final class ReportCommand implements CommandInheritor {
 
         String[] args = ctx.getArgs();
         if (args.length == 0) {
-            sendHelp(ctx);
+            ReportMenus.open(ctx.player(), account);
             return;
         }
 
@@ -33,7 +38,7 @@ public final class ReportCommand implements CommandInheritor {
                 ReportService.submit(account, args[0], pending, "");
                 return;
             }
-            sendHelp(ctx);
+            ReportMenus.open(ctx.player(), account);
             return;
         }
 
@@ -52,16 +57,25 @@ public final class ReportCommand implements CommandInheritor {
         }
 
         if (reason == null) {
-            sendHelp(ctx);
+            ctx.reply(ModernText.parse(ModernText.mini("Motivo inválido. Use /report para abrir o menu.")));
+            ctx.reply(ModernText.parse(ModernText.mini("Motivos: cheat, chat, assedio, bug, outro")));
             return;
         }
 
         ReportService.submit(account, args[0], reason, details);
     }
 
-    private void sendHelp(BukkitCommandContext ctx) {
-        ctx.reply(ModernText.parse(ModernText.mini("Uso: /report <nick> <motivo> [detalhes]")));
-        ctx.reply(ModernText.parse(ModernText.mini("Ou: /report <nick> <motivo> [detalhes]")));
-        ctx.reply(ModernText.parse(ModernText.mini("Motivos: cheat, chat, assedio, bug, outro")));
+    @Completer(name = "report", subCommands = {"denunciar", "denuncia"})
+    public List<String> tab(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.onlinePlayersExceptSender(ctx);
+        }
+        if (ctx.getArgs().length == 2) {
+            List<String> reasons = new java.util.ArrayList<>();
+            for (ReportReason r : ReportReason.values()) reasons.add(r.name().toLowerCase());
+            reasons.addAll(List.of("cheat", "chat", "assedio", "bug", "outro"));
+            return TabCompleteUtil.filter(ctx.getArgs()[1], reasons);
+        }
+        return List.of();
     }
 }

@@ -3,6 +3,7 @@ package com.minecraft.proxyhost.proxy;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
+import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.minecraft.proxyhost.util.LegacyTexts;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
@@ -29,15 +30,15 @@ public final class ProxySettingsManager {
 
     private final Path file;
 
-    private String motdLine1 = "&6&lSAVAGE &7| &fSemi-Anarquia";
-    private String motdLine2 = "&7Jogue agora";
+    private String motdLine1 = "&6&lSavageMC &7| &fModo principal";
+    private String motdLine2 = "&7savagemc.net &8| &6loja.savagemc.net";
     private int maxPlayersOverride = -1;
     private boolean hidePlayerSample;
 
     private boolean maintenanceEnabled;
     @Getter private RankType maintenanceMinRank = RankType.HELPER;
-    private String maintenanceMotdLine1 = "&c&lMANUTENCAO";
-    private String maintenanceMotdLine2 = "&7Apenas staff autorizado pode entrar.";
+    private String maintenanceMotdLine1 = "&c&lMANUTENÇÃO";
+    private String maintenanceMotdLine2 = "&7SavageMC em manutenção — staff autorizado";
     private List<String> maintenanceKickMessage = defaultKickLines();
 
     public ProxySettingsManager(Path dataDirectory) {
@@ -96,6 +97,9 @@ public final class ProxySettingsManager {
 
     public void reload() {
         load();
+        if (com.minecraft.proxyhost.whitelist.WhitelistManager.get() != null) {
+            com.minecraft.proxyhost.whitelist.WhitelistManager.get().reload();
+        }
     }
 
     /* ----- MOTD ----- */
@@ -114,7 +118,7 @@ public final class ProxySettingsManager {
     }
 
     public void resetMotd() {
-        motdLine1 = "&6&lSAVAGE &7| &fSemi-Anarquia";
+        motdLine1 = "&6&lSavageMC &7| &fModo principal";
         motdLine2 = "&7" + com.minecraft.proxyhost.ProxySettings.SERVER_ADDRESS
                 + " &8| &6" + com.minecraft.proxyhost.ProxySettings.SERVER_STORE_URL;
         save();
@@ -182,7 +186,7 @@ public final class ProxySettingsManager {
     }
 
     public Component maintenanceKickComponent() {
-        return LegacyTexts.joinLines(LegacyTexts.colorize(maintenanceKickMessage));
+        return DisconnectMessages.maintenance(maintenanceKickMessage);
     }
 
     public boolean canJoin(Account account, CommandSource source) {
@@ -274,11 +278,16 @@ public final class ProxySettingsManager {
 
     private static List<String> defaultKickLines() {
         return new ArrayList<>(List.of(
-                "&6&lSAVAGE",
+                "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                "&6&lSavageMC",
+                "&7savagemc.net",
                 "",
-                "&cO servidor esta em manutencao.",
-                "&7Apenas membros da equipe podem entrar.",
-                "&7Volte em breve!"
+                "&c&lMANUTENÇÃO",
+                "&7O servidor está em manutenção.",
+                "&7Apenas staff autorizado pode entrar.",
+                "",
+                "&7Volte em breve!",
+                "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         ));
     }
 }

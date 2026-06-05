@@ -4,8 +4,10 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.GameSettings;
 import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -29,7 +31,19 @@ public final class SpawnCommand implements CommandInheritor {
             return;
         }
 
-        player.teleport(SemiAnarchyConfig.spawnPoint());
+        Location dest;
+        try {
+            dest = SemiAnarchyConfig.spawnPoint();
+        } catch (IllegalStateException e) {
+            ctx.reply("§cMapa spawn nao carregado. Staff: §e/mundo load " + GameSettings.SPAWN_WORLD);
+            return;
+        }
+
+        dest.getChunk().load(true);
+        if (!player.teleport(dest)) {
+            ctx.reply("§cFalha ao teleportar para o spawn.");
+            return;
+        }
         if (!player.isOp()) {
             account.setCooldown("spawn-cmd", SemiAnarchyConfig.spawnCooldownMs());
         }

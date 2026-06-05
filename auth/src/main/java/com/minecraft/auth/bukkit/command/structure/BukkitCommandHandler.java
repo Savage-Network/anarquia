@@ -88,6 +88,12 @@ public final class BukkitCommandHandler {
             if (executor instanceof ReflectExecutor reflect) {
                 reflect.setCompleter(method, inheritor);
             }
+            for (String sub : completer.subCommands()) {
+                TabExecutor subExec = labels.get(sub.toLowerCase());
+                if (subExec instanceof ReflectExecutor subReflect && subReflect != executor) {
+                    subReflect.setCompleter(method, inheritor);
+                }
+            }
         }
 
         return count;

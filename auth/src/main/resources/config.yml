@@ -1,5 +1,13 @@
 # auth.jar — credenciais na tabela player_auth (nao no JSON accounts)
-# Dev: -Dsavage.dev.bypass-auth=true
+# Discord: plugins/auth/discord.yml
+
+auth:
+  max-login-attempts: 5
+  min-password-length: 4
+  post-login-target: lobby
+  post-login-delay-ticks: 10
+  reminder-interval-ticks: 200
+  dev-bypass: false
 
 database:
   type: MYSQL

@@ -1,6 +1,7 @@
 package com.minecraft.lobbyhost.account;
 
 import com.minecraft.lobbyhost.Core;
+import com.minecraft.lobbyhost.LobbySettings;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +38,7 @@ public final class AccountController {
         return Core.getAccountData().loadAsync(id).thenApply(opt -> {
             Account account = opt.orElseGet(() -> {
                 Account fresh = new Account(id, name);
+                fresh.setCash(LobbySettings.STARTING_CASH);
                 Core.getAccountData().saveAsync(fresh);
                 return fresh;
             });

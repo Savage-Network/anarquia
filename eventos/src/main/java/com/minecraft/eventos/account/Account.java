@@ -202,6 +202,9 @@ public class Account {
         if (tag == Tag.TAG_OWNER) {
             return rank == RankType.OWNER;
         }
+        if (tag == Tag.TAG_ZW) {
+            return rank == RankType.ZW;
+        }
 
         switch (tag.getRole()) {
             case NONE:
@@ -486,6 +489,14 @@ public class Account {
 
     public String getIpAddress() { return context.getIpAddress(); }
     public void setIpAddress(String ip) { context.setIpAddress(ip); markDirty(); }
+
+    public com.minecraft.eventos.account.context.objects.skin.SkinMetadata getSkin() {
+        return context.getSkin();
+    }
+    public void setSkin(com.minecraft.eventos.account.context.objects.skin.SkinMetadata skin) {
+        context.setSkin(skin);
+        markDirty();
+    }
 
     public void updateLastLogin() {
         context.setLastLogin(System.currentTimeMillis());

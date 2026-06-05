@@ -2,8 +2,8 @@ name: game
 version: '${version}'
 main: com.minecraft.game.GamePlugin
 api-version: '1.21'
-authors: [SavageLabs]
-description: Servidor semi-anarquia (plugin unico estilo Savage)
+authors: [SavageMC]
+description: SavageMC — modo principal (savagemc.net)
 softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
 load: STARTUP
 
@@ -24,19 +24,26 @@ commands:
     description: Define o modo de exibicao das tags
     usage: /prefixtype [modo]
     aliases: [prefixo, modotag]
-  customtitle:
-    description: Define titulo flutuante acima do nick
-    usage: /customtitle <texto|remover>
-    permission: game.admin
-    aliases: [titulo]
   prefs:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
   chat:
-    description: Ajuda e bloqueio de chat
-    usage: /chat [help|ignore|unignore|list] [nick]
+    description: Chat — ignore, clearchat, lock, slow
+    usage: /chat [help|ignore|clear|lock|unlock|slow] ...
     aliases: [c]
+  clearchat:
+    description: Limpa o chat (staff)
+    usage: /clearchat
+    permission: game.chat.mod
+  chatlock:
+    description: Trava o chat publico (staff)
+    usage: /chatlock
+    permission: game.chat.mod
+  chatunlock:
+    description: Libera o chat publico (staff)
+    usage: /chatunlock
+    permission: game.chat.mod
   staffchat:
     description: Chat da equipe (rede)
     usage: /sc <mensagem>
@@ -85,6 +92,14 @@ commands:
     description: Ban por cheating
     usage: /cban <nick> <tempo>
     permission: game.cban
+  ban:
+    description: Ban por regras da comunidade
+    usage: /ban <nick> [tempo] [motivo]
+    permission: game.ban
+  kick:
+    description: Expulsa jogador online (sem ban)
+    usage: /kick <nick> [motivo]
+    permission: game.kick
   history:
     description: Historico de punicoes
     usage: /history <nick>
@@ -94,6 +109,11 @@ commands:
     description: Recarrega configuracoes do plugin
     usage: /gamereload
     permission: game.admin
+  mundo:
+    description: Gerencia mundos (load, unload, tp)
+    usage: /mundo list|load|unload|tp|info <mundo>
+    permission: game.admin
+    aliases: [world]
   sethome:
     description: Define uma home
     usage: /sethome [nome]
@@ -146,26 +166,52 @@ commands:
   rtp:
     description: Teleporte aleatorio
     usage: /rtp
+  livro:
+    description: Recebe o guia do jogador
+    usage: /livro
   tpa:
     description: Pedido de teleporte
     usage: /tpa <jogador>
   tpaccept:
     description: Aceita teleporte
     usage: /tpaccept [jogador]
+  anticheat:
+    description: Painel do anticheat (Owner)
+    usage: /anticheat
+    aliases: [ac]
+  acflags:
+    description: Flags e VL de um jogador (Owner)
+    usage: /acflags <jogador>
 
 permissions:
   game.*:
-    description: Acesso total
-    default: op
+    description: Acesso total game (ADMIN+ via rank)
+    default: false
     children:
       game.admin: true
-      game.staff: true
-      game.vip: true
   game.admin:
-    default: op
+    description: Reload, mundo, economia admin
+    default: false
   game.staff:
+    description: Staff base — /go, staff chat
     default: false
   game.vip:
+    description: Beneficios VIP
+    default: false
+  game.go:
+    description: Atalho vanish (/go)
+    default: false
+  game.vanish:
+    description: /vanish modo invisivel
+    default: false
+  game.vanish.see:
+    description: Ver staff invisivel
+    default: false
+  game.staffchat:
+    description: /sc
+    default: false
+  game.chat.mod:
+    description: /clearchat, /chat lock|unlock|slow (staff)
     default: false
   game.kit.vip:
     description: Kit VIP
@@ -174,28 +220,58 @@ permissions:
     description: Kit Staff
     default: false
   game.shop.admin:
-    description: Criar lojas do servidor (estoque infinito)
-    default: op
+    description: Lojas do servidor (estoque infinito)
+    default: false
   game.shop.create:
-    description: Criar lojas de placa
+    description: Lojas de placa
     default: true
+  game.money.give:
+    description: /moneygive
+    default: false
+  game.money.take:
+    description: /moneytake
+    default: false
   game.report:
-    description: /report para denunciar jogadores
+    description: /report
     default: true
   game.reports:
-    description: /reports para staff
-    default: op
+    description: /reports (HELPER+)
+    default: false
   game.punish:
-    description: /punir e /history
-    default: op
+    description: /punir e /history (HELPER+)
+    default: false
   game.unpunish:
-    description: /despunir
-    default: op
+    description: /despunir (MOD+)
+    default: false
   game.cban:
-    description: /cban
-    default: op
+    description: /cban (MOD+)
+    default: false
+  game.ban:
+    description: /ban (MOD+)
+    default: false
+  game.kick:
+    description: /kick (HELPER+)
+    default: false
+  game.rank.member:
+    default: true
+  game.rank.vip:
+    default: false
+  game.rank.builder:
+    default: false
+  game.rank.helper:
+    default: false
+  game.rank.mod:
+    default: false
+  game.rank.admin:
+    default: false
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      '*':
+        description: Todas as permissoes SavageMC
+        default: false
 
-  # tags - liberadas via LuckPerms; default false
   tag.*:
     default: false
   medal.*:

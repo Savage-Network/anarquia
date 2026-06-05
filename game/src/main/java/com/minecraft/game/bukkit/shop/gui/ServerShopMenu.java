@@ -13,7 +13,7 @@ public final class ServerShopMenu extends Menu {
     private final Account account;
 
     public ServerShopMenu(Player player, Account account, Menu parent) {
-        super(player, "§8§lLoja §7| §fCategorias", 5, parent);
+        super(player, "§8§lSavageMC §7| §fLoja", 5, parent);
         this.account = account;
     }
 

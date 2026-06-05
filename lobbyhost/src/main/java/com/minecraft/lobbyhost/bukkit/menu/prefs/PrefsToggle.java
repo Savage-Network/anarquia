@@ -15,8 +15,6 @@ public enum PrefsToggle {
             t -> t.isAllowPrivateMessages(), (t, v) -> t.setAllowPrivateMessages(v)),
     FRIENDS(Category.SOCIAL, "Pedidos de amizade", Material.PLAYER_HEAD,
             t -> t.isAllowFriendRequests(), (t, v) -> t.setAllowFriendRequests(v)),
-    PARTY(Category.SOCIAL, "Convites de party", Material.FIREWORK_ROCKET,
-            t -> t.isAllowPartyInvites(), (t, v) -> t.setAllowPartyInvites(v)),
     CLAN(Category.SOCIAL, "Convites de clã", Material.SHIELD,
             t -> t.isAllowClanInvites(), (t, v) -> t.setAllowClanInvites(v)),
     CLANTAG(Category.VISIBILITY, "Tag do clã visível", Material.NAME_TAG,
@@ -44,7 +42,7 @@ public enum PrefsToggle {
         SOCIAL(
                 "<!italic><gradient:#38BDF8:#818CF8><bold>Social</bold></gradient>",
                 Material.CYAN_STAINED_GLASS_PANE,
-                "<!italic><#94A3B8>Mensagens · amigos · party · clã"),
+                "<!italic><#94A3B8>Mensagens · amigos · clã"),
         VISIBILITY(
                 "<!italic><gradient:#C084FC:#F472B6><bold>Visibilidade</bold></gradient>",
                 Material.MAGENTA_STAINED_GLASS_PANE,

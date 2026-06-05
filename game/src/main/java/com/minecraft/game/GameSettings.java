@@ -7,31 +7,42 @@ public final class GameSettings {
 
     private GameSettings() {}
 
-    public static final String DISPLAY_NAME = "Semi Anarquia";
+    public static final String DISPLAY_NAME = "SavageMC";
     public static final String SERVER_MODE = "GAME";
 
-    public static final String SIDEBAR_TITLE = "§4§lSEMI ANARQUIA";
+    public static final String SIDEBAR_TITLE = "§6§lSavageMC";
     public static final long SIDEBAR_UPDATE_TICKS = 20L;
     public static final long TABLIST_UPDATE_TICKS = 40L;
+    public static final long NETWORK_POLL_TICKS = 40L;
 
     public static final String SERVER_ADDRESS = "savagemc.net";
     public static final String SERVER_STORE_URL = "loja.savagemc.net";
     public static final String SERVER_STORE = "§6" + SERVER_STORE_URL;
 
     public static final List<String> TAB_HEADER = List.of(
-            "§6§lSAVAGE",
-            "§7" + SERVER_ADDRESS);
+            " ",
+            "<!italic><gradient:#FF8C42:#FFD166><bold>SavageMC</bold></gradient>",
+            "<!italic><gradient:#F97316:#FBBF24><bold>Semi-Anarquia</bold></gradient>",
+            "<!italic><#94A3B8>" + SERVER_ADDRESS,
+            " ");
     public static final List<String> TAB_FOOTER = List.of(
-            "§7{online} online §8• §f" + SERVER_ADDRESS,
-            "§7Loja: §6" + SERVER_STORE_URL);
+            " ",
+            "<!italic><#FFD166><bold>" + SERVER_STORE_URL + "</bold>",
+            "<!italic><#64748B>Online: <!italic><#4ADE80>{online}",
+            "<!italic><#94A3B8>" + SERVER_ADDRESS,
+            " ");
 
-    public static final int SPAWN_PROTECTION_RADIUS = 50;
+    /** Raio da zona da loja (spawn protegido — sem build/PvP). */
+    public static final int SPAWN_PROTECTION_RADIUS = 45;
     public static final int COMBAT_TAG_SECONDS = 15;
     public static final int STARTING_BALANCE = 1000;
     public static final String CURRENCY_SYMBOL = "$";
 
-    public static final String GAME_CHAT_PREFIX = "§8[Anarquia]§r ";
+    public static final String GAME_CHAT_PREFIX = "";
     public static final String STAFFCHAT_PREFIX = "§6[Staff]§r ";
+    public static final String ANTICHEAT_ALERT_PREFIX = "§c[ANTICHEAT] ";
+    public static final boolean ANTICHEAT_ENABLED = true;
+    public static final boolean ANTICHEAT_ALERT_STAFF = true;
     public static final String SERVER_CHAT_ID = "game";
 
     public static final int CHAT_MAX_LENGTH = 256;
@@ -40,10 +51,15 @@ public final class GameSettings {
     public static final String[] CHAT_STAFF_PREFIXES = {"!", "@"};
     public static final String CHAT_MENTION_COLOR = "§e";
 
-    public static final String SPAWN_WORLD = "world";
-    public static final double SPAWN_X = 0.5;
-    public static final double SPAWN_Y = 64.0;
-    public static final double SPAWN_Z = 0.5;
+    /** Spawn / loja no mapa {@code spawn}. */
+    public static final String SPAWN_WORLD = "spawn";
+    /** Mapa principal PvP — destino do {@code /rtp}. */
+    public static final String RTP_WORLD = "world";
+    public static final double SPAWN_X = -18.0;
+    public static final double SPAWN_Y = 10.0;
+    public static final double SPAWN_Z = -116.5;
+    public static final float SPAWN_YAW = -91.25f;
+    public static final float SPAWN_PITCH = 2.93f;
 
     public static final int KILL_REWARD_BASE = 200;
     public static final int KILL_STREAK_BONUS = 50;
@@ -60,14 +76,10 @@ public final class GameSettings {
     public static final int AUCTION_TAX_PERCENT = 5;
     public static final int AUCTION_LISTING_FEE = 50;
 
-    public static final boolean SIGN_SHOPS_ENABLED = false;
+    public static final boolean SIGN_SHOPS_ENABLED = true;
     public static final int SIGN_SHOP_MAX_PRICE = 1_000_000;
     public static final int SIGN_SHOP_TAX_PERCENT = 2;
 
-    /** Nametag flutuante (estilo display groups / UnlimitedNameTags). */
-    public static final double NAMETAG_BASE_Y = 2.05;
-    public static final double NAMETAG_LINE_SPACING = 0.28;
-    public static final float NAMETAG_TEXT_SCALE = 1.05f;
-    public static final int NAMETAG_BG_ALPHA = 72;
-    public static final long NAMETAG_FOLLOW_TICKS = 2L;
+    public static final long LEADERBOARD_REFRESH_TICKS = 20L * 60L;
+
 }

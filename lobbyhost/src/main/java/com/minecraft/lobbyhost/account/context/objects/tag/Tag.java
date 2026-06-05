@@ -66,6 +66,9 @@ public enum Tag {
     DIRETOR  ("Diretor",  "B", "§4§lDIRETOR §4",  "§4", RankType.DIRETOR,  TagRole.STAFF),
     VERMELHO ("Vermelho", "A", "§c§o", "§c", RankType.VERMELHO, TagRole.STAFF),
 
+    TAG_ZW("ZW", "!", RankType.ZW_COLOR + "§lZW " + RankType.ZW_COLOR, RankType.ZW_COLOR,
+            RankType.ZW, TagRole.STAFF, Collections.singletonList("zw")),
+
     /* ---------- OWNER ---------- */
     TAG_OWNER("Owner", "0", "§o§4", "§o§4", RankType.OWNER, TagRole.STAFF,
               /*animated*/ true,

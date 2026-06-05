@@ -2,13 +2,13 @@ package com.minecraft.game.bukkit.manager;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
-import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.display.GameScoreboard;
 import com.minecraft.game.account.context.objects.tag.Tag;
 import com.minecraft.game.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,6 +31,12 @@ import java.util.UUID;
  * <p>Tags animadas (Owner) recebem um pulse a cada 40 ticks (~2s).
  */
 public final class TagManager {
+
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
+            .character('§')
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     private static final Map<UUID, Integer> animationState = new HashMap<>();
     private static BukkitTask animationTask;
@@ -81,17 +87,21 @@ public final class TagManager {
     public static void updateTag(Account account) {
         if (account == null || !account.isOnline()) return;
         Player target = account.player();
-        Tag targetTag = account.getTag();
+        if (target == null) return;
 
-        Component displayName = Component.text(getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId())
-                + account.getNickname() + suffixOf(account));
+        Tag targetTag = account.getTag();
+        String prefix = getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId());
+        String nick = account.getNickname();
+        String suffix = truncateSuffix(suffixOf(account));
+
+        Component displayName = legacy(prefix + nick + suffix);
         target.displayName(displayName);
         target.playerListName(displayName);
 
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             applyTagForViewer(viewer, target);
         }
-        AboveNameDisplay.refresh(target);
+        applyTagForViewer(target, target);
     }
 
     /** Linha unica (legado). */
@@ -111,10 +121,28 @@ public final class TagManager {
         return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
     }
 
-    /** Linha do nick (+ cla). */
+    /** Nick para nametag empilhado (sem clã — clã vai no sufixo). */
     public static String formatNametagNickLine(Account account) {
         if (account == null) return "";
-        return "§f" + account.getNickname() + suffixOf(account);
+        Tag tag = account.getTag();
+        String color = "§f";
+        if (tag != null) {
+            String prefix = tag.getPrefix();
+            if (prefix != null && !prefix.isBlank()) {
+                for (int i = 0; i < prefix.length() - 1; i++) {
+                    if (prefix.charAt(i) == '§') color = prefix.substring(i, i + 2);
+                }
+            }
+        }
+        return color + account.getNickname();
+    }
+
+    public static String formatNametagClanLine(Account account) {
+        if (account == null || account.getToggle() == null || !account.getToggle().isShowClanTag()) {
+            return "";
+        }
+        if (!account.hasClan() || account.getClan() == null) return "";
+        return com.minecraft.game.api.clan.ClanTagFormatter.formatBracketed(account.getClan());
     }
 
     public static void updateTag(Account account, Tag newTag) {
@@ -145,16 +173,24 @@ public final class TagManager {
         Scoreboard board = GameScoreboard.ensure(viewer);
 
         Tag tag = targetAcc.getTag();
-        String teamName = sanitize("tag_" + tag.getOrder() + "_" + target.getEntityId());
+        String teamName = sanitize("t_" + tag.getOrder() + "_"
+                + target.getUniqueId().toString().replace("-", "").substring(0, 12));
+
+        for (Team t : board.getTeams()) {
+            if (t.hasEntry(target.getName()) && !t.getName().equals(teamName)) {
+                t.removeEntry(target.getName());
+            }
+        }
+
         Team team = board.getTeam(teamName);
         if (team == null) team = board.registerNewTeam(teamName);
 
         String prefix = getAdjustedPrefix(viewerAcc.getTagPrefix(), tag, target.getUniqueId());
         String suffix = truncateSuffix(suffixOf(targetAcc));
 
-        team.prefix(Component.text(prefix));
-        team.suffix(Component.text(suffix));
-        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.NEVER);
+        team.prefix(legacy(prefix));
+        team.suffix(legacy(suffix));
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
         team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
         if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
@@ -167,7 +203,8 @@ public final class TagManager {
             for (Team team : board.getTeams()) {
                 if (team.hasEntry(target.getName())) {
                     team.removeEntry(target.getName());
-                    if (team.getEntries().isEmpty() && team.getName().startsWith("tag_")) {
+                    if (team.getEntries().isEmpty()
+                            && (team.getName().startsWith("tag_") || team.getName().startsWith("t_"))) {
                         try { team.unregister(); } catch (Throwable ignored) {}
                     }
                 }
@@ -211,6 +248,11 @@ public final class TagManager {
         String s = raw.replace(' ', '_');
         if (s.length() > 16) s = s.substring(0, 16);
         return s;
+    }
+
+    private static Component legacy(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
+        return LEGACY.deserialize(text);
     }
 
     /* ================================================================

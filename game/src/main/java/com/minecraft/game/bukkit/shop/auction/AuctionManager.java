@@ -4,6 +4,7 @@ import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.api.auction.AuctionListing;
 import com.minecraft.game.backend.data.AuctionData;
+import com.minecraft.game.bukkit.shop.ItemDisplayNames;
 import com.minecraft.game.bukkit.shop.ShopEconomy;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -63,7 +64,7 @@ public final class AuctionManager {
         );
         data().save(listing);
         acc.markDirty();
-        return "§aItem anunciado por §f" + ShopEconomy.symbol() + price;
+        return "§aAnunciou §f" + ItemDisplayNames.plain(hand) + " §apor §f" + ShopEconomy.symbol() + price;
     }
 
     public static String buy(Player buyer, UUID listingId) {
@@ -93,7 +94,8 @@ public final class AuctionManager {
 
         data().delete(listingId);
         buyerAcc.markDirty();
-        return "§aCompra realizada por §f" + ShopEconomy.symbol() + total;
+        return ItemDisplayNames.buyMessage(listing.getAmount(), listing.getMaterial(),
+                "§f" + ShopEconomy.symbol() + total);
     }
 
     public static String cancel(Player player, UUID listingId) {

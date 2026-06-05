@@ -7,9 +7,7 @@ import com.minecraft.game.bukkit.manager.TagManager;
 import com.minecraft.game.bukkit.skin.SkinService;
 import org.bukkit.entity.Player;
 
-/**
- * Aplica tab, sidebar, tags e skin de uma vez (join + sync Redis).
- */
+/** Aplica tab, sidebar, permissões e skin (join + sync Redis). */
 public final class PlayerDisplayService {
 
     private PlayerDisplayService() {}
@@ -23,6 +21,6 @@ public final class PlayerDisplayService {
         ClanSync.refresh(account);
         TagManager.updateTag(account);
         TagManager.updateAllForViewer(player);
-        AboveNameDisplay.refresh(player);
+        AboveNameDisplay.remove(player);
     }
 }

@@ -5,12 +5,14 @@ import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.rank.RankType;
 import com.minecraft.game.api.clan.*;
+import com.minecraft.game.api.clan.ClanService;
 import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.menu.clan.ClanHubMenu;
 import com.minecraft.game.util.PlayerLookup;
+import com.minecraft.game.util.TabCompleteUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -32,7 +34,8 @@ public final class ClanCommand implements CommandInheritor {
 
     private static final List<String> SUBS = List.of(
             "criar", "deletar", "sair", "ver", "convidar", "aceitar", "recusar",
-            "transferir", "expulsar", "tag", "cor", "menu", "info"
+            "transferir", "expulsar", "promover", "rebaixar", "tag", "cor", "menu", "info",
+            "lista", "convites", "motd", "desc", "sethome", "home", "delhome"
     );
 
     @Command(name = "clan", aliases = {"cla"}, playerOnly = true,
@@ -61,8 +64,19 @@ public final class ClanCommand implements CommandInheritor {
             case "recusar", "decline", "deny" -> clanDecline(subCtx);
             case "transferir", "transfer" -> clanTransfer(subCtx);
             case "expulsar", "kick" -> clanKick(subCtx);
+            case "promover", "promote" -> clanPromote(subCtx);
+            case "rebaixar", "demote" -> clanDemote(subCtx);
             case "tag", "cor", "color" -> clanTagColor(subCtx);
             case "menu", "gui" -> new ClanHubMenu(ctx.player(), account).open();
+            case "lista", "list" -> new com.minecraft.game.bukkit.menu.clan.ClanListMenu(
+                    ctx.player(), account, null, 0).open();
+            case "convites", "invites" -> new com.minecraft.game.bukkit.menu.clan.ClanInvitesMenu(
+                    ctx.player(), account, null).open();
+            case "motd" -> clanMotd(subCtx);
+            case "desc", "descricao" -> clanDesc(subCtx);
+            case "sethome" -> clanSetHome(subCtx);
+            case "home" -> clanHome(subCtx);
+            case "delhome" -> clanDelHome(subCtx);
             default -> sendHelp(account, ctx.getLabel());
         }
     }
@@ -97,16 +111,39 @@ public final class ClanCommand implements CommandInheritor {
         }
     }
 
-    @Completer(name = "clan")
+    @Completer(name = "clan", subCommands = {"cla"})
     public List<String> tab(BukkitCommandContext ctx) {
-        List<String> out = new ArrayList<>();
-        if (ctx.getArgs().length <= 1) {
-            String partial = ctx.getArgs().length == 1 ? ctx.getArgs()[0].toLowerCase() : "";
-            for (String s : SUBS) {
-                if (s.startsWith(partial)) out.add(s);
-            }
+        String[] args = ctx.getArgs();
+        if (args.length <= 1) {
+            return TabCompleteUtil.sub(ctx, SUBS.toArray(new String[0]));
         }
-        return out;
+        String sub = args[0].toLowerCase();
+        if (args.length == 2) {
+            return switch (sub) {
+                case "convidar", "invite", "expulsar", "kick", "promover", "promote",
+                     "rebaixar", "demote", "transferir", "transfer", "ver", "view", "info" ->
+                        TabCompleteUtil.onlinePlayersExceptSender(ctx);
+                case "aceitar", "accept", "recusar", "decline", "deny" -> {
+                    if (Core.getClanData() == null) yield List.of();
+                    yield Core.getClanData().listAll().stream()
+                            .map(Clan::getName)
+                            .filter(n -> n.toLowerCase().startsWith(args[1].toLowerCase()))
+                            .toList();
+                }
+                case "deletar", "delete" -> TabCompleteUtil.filter(args[1], "confirmar");
+                case "tag", "cor", "color" -> TabCompleteUtil.filter(args[1], TabCompleteUtil.clanColorIds());
+                default -> List.of();
+            };
+        }
+        return List.of();
+    }
+
+    @Completer(name = "clantag", subCommands = {"clancor"})
+    public List<String> tabClanTag(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) {
+            return TabCompleteUtil.filter(ctx.getArgs()[0], TabCompleteUtil.clanColorIds());
+        }
+        return List.of();
     }
 
     private void clanCreate(BukkitCommandContext ctx) {
@@ -206,51 +243,36 @@ public final class ClanCommand implements CommandInheritor {
     private void clanInvite(BukkitCommandContext ctx) {
         Account account = require(ctx);
         if (account == null) return;
-        if (!account.hasClan()) { account.send(NO_CLAN); return; }
-        if (!account.hasClanRole(ClanRole.RECRUITER)) {
-            account.send("§cSem permissao para convidar.");
-            return;
-        }
         if (ctx.getArgs().length == 0) {
-            account.send("§cUso: /clan convidar <jogador>");
+            if (!account.hasClan()) { account.send(NO_CLAN); return; }
+            if (!account.hasClanRole(ClanRole.RECRUITER)) {
+                account.send("§cSem permissão.");
+                return;
+            }
+            new com.minecraft.game.bukkit.menu.clan.ClanInviteMenu(
+                    ctx.player(), account, account.getClan(), null).open();
             return;
         }
 
         Account target = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
-        if (target == null) { account.send("§cJogador offline ou nao encontrado."); return; }
-        if (target.getId().equals(account.getId())) { account.send("§cVoce nao pode convidar a si."); return; }
-        if (!target.getToggle().isAllowClanInvites()) {
-            account.send("§c" + target.getNickname() + " nao aceita convites de cla.");
-            return;
-        }
-        if (target.hasClan()) {
-            account.send("§cEsse jogador ja tem cla.");
-            return;
-        }
+        if (target == null) { account.send("§cJogador offline ou não encontrado."); return; }
 
-        Clan clan = account.getClan();
-        if (clan.getMembers().size() >= Constant.CLAN_MAX_MEMBERS) {
-            account.send("§cO cla esta cheio (" + Constant.CLAN_MAX_MEMBERS + " membros).");
-            return;
-        }
-        if (Core.getClanData().hasRequest(clan, target.getId())) {
-            account.send("§cEsse jogador ja foi convidado.");
-            return;
-        }
+        ClanService.Result result = ClanService.invite(account, target);
+        account.send(result.success() ? "§a" + result.message() : "§c" + result.message());
+        if (result.success()) sendInviteMessage(account, target, account.getClan());
+    }
 
-        Core.getClanData().addRequest(new ClanRequest(clan.getId(), account.getId(), target.getId()));
-        account.send("§aConvite enviado para §f" + target.getNickname() + "§a.");
-
-        Component invite = Component.text("§6" + account.getNickname() + " §econvidou voce para §b" + clan.getName() + "§e!")
+    private void sendInviteMessage(Account inviter, Account target, Clan clan) {
+        Component invite = Component.text("§6" + inviter.getNickname() + " §econvidou você para §b" + clan.getName() + "§e!")
                 .append(Component.newline())
                 .append(Component.text("        ")
                         .append(Component.text("§a§lACEITAR")
                                 .hoverEvent(HoverEvent.showText(Component.text("§eClique para aceitar")))
-                                .clickEvent(ClickEvent.runCommand("/clan aceitar " + account.getName())))
+                                .clickEvent(ClickEvent.runCommand("/clan aceitar " + clan.getName())))
                         .append(Component.text("        "))
                         .append(Component.text("§c§lRECUSAR")
                                 .hoverEvent(HoverEvent.showText(Component.text("§eClique para recusar")))
-                                .clickEvent(ClickEvent.runCommand("/clan recusar " + account.getName()))));
+                                .clickEvent(ClickEvent.runCommand("/clan recusar " + clan.getName()))));
         target.send(invite);
     }
 
@@ -258,54 +280,47 @@ public final class ClanCommand implements CommandInheritor {
         Account account = require(ctx);
         if (account == null) return;
         if (account.hasClan()) { account.send(IN_CLAN); return; }
+
         if (ctx.getArgs().length == 0) {
-            account.send("§cUso: /clan aceitar <jogador>");
+            new com.minecraft.game.bukkit.menu.clan.ClanInvitesMenu(ctx.player(), account, null).open();
             return;
         }
 
-        Account inviter = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
-        if (inviter == null) { account.send("§cConvite nao encontrado."); return; }
-
-        ClanRequest request = Core.getClanData().getRequest(inviter.getId(), account.getId());
-        if (request == null) {
-            account.send("§cNenhum convite de " + inviter.getNickname() + ".");
-            return;
-        }
-
-        Clan clan = Core.getClanData().of(request.getClanId());
-        Core.getClanData().removeRequest(request);
+        Clan clan = ClanService.resolveClan(ctx.getArgs()[0]);
         if (clan == null) {
-            account.send("§cCla nao encontrado.");
-            return;
+            Account inviter = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
+            if (inviter != null) {
+                ClanRequest request = Core.getClanData().getRequest(inviter.getId(), account.getId());
+                if (request != null) clan = Core.getClanData().of(request.getClanId());
+            }
         }
-        if (clan.getMembers().size() >= Constant.CLAN_MAX_MEMBERS) {
-            account.send("§cO cla esta cheio.");
-            return;
-        }
+        if (clan == null) { account.send("§cConvite não encontrado."); return; }
 
-        clan.addMember(account);
-        account.send("§aVoce entrou no cla §f" + clan.getName() + "§a!");
-        inviter.send("§a" + account.getNickname() + " aceitou seu convite.");
+        ClanService.Result result = ClanService.accept(account, clan.getId());
+        account.send(result.success() ? "§a" + result.message() : "§c" + result.message());
     }
 
     private void clanDecline(BukkitCommandContext ctx) {
         Account account = require(ctx);
         if (account == null) return;
-        if (ctx.getArgs().length == 0) {
-            account.send("§cUso: /clan recusar <jogador>");
-            return;
-        }
-        Account inviter = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
-        if (inviter == null) { account.send("§cConvite nao encontrado."); return; }
 
-        ClanRequest request = Core.getClanData().getRequest(inviter.getId(), account.getId());
-        if (request == null) {
-            account.send("§cNenhum convite pendente.");
+        if (ctx.getArgs().length == 0) {
+            account.send("§cUso: /clan recusar <clã> ou §e/clan convites");
             return;
         }
-        Core.getClanData().removeRequest(request);
-        account.send("§cConvite recusado.");
-        inviter.send("§c" + account.getNickname() + " recusou o convite.");
+
+        Clan clan = ClanService.resolveClan(ctx.getArgs()[0]);
+        if (clan == null) {
+            Account inviter = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
+            if (inviter != null) {
+                ClanRequest request = Core.getClanData().getRequest(inviter.getId(), account.getId());
+                if (request != null) clan = Core.getClanData().of(request.getClanId());
+            }
+        }
+        if (clan == null) { account.send("§cConvite não encontrado."); return; }
+
+        ClanService.Result result = ClanService.decline(account, clan.getId());
+        account.send(result.success() ? "§e" + result.message() : "§c" + result.message());
     }
 
     private void clanTransfer(BukkitCommandContext ctx) {
@@ -327,27 +342,101 @@ public final class ClanCommand implements CommandInheritor {
         account.getClan().promote(account, target, ClanRole.LEADER);
     }
 
+    private void clanPromote(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) {
+            account.send("§cUso: /clan promover <jogador>");
+            return;
+        }
+        Account target = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
+        if (target == null) { account.send("§cMembro não encontrado."); return; }
+        ClanService.Result r = ClanService.promote(account, target);
+        account.send(r.success() ? "§a" + r.message() : "§c" + r.message());
+    }
+
+    private void clanDemote(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) {
+            account.send("§cUso: /clan rebaixar <jogador>");
+            return;
+        }
+        Account target = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
+        if (target == null) { account.send("§cMembro não encontrado."); return; }
+        ClanService.Result r = ClanService.demote(account, target);
+        account.send(r.success() ? "§a" + r.message() : "§c" + r.message());
+    }
+
     private void clanKick(BukkitCommandContext ctx) {
         Account account = require(ctx);
         if (account == null) return;
-        if (!account.hasClanRole(ClanRole.RECRUITER)) {
-            account.send("§cSem permissao.");
-            return;
-        }
         if (ctx.getArgs().length == 0) {
+            if (account.hasClan() && account.hasClanRole(ClanRole.RECRUITER)) {
+                new com.minecraft.game.bukkit.menu.clan.ClanMembersMenu(
+                        ctx.player(), account, account.getClan(), null).open();
+                return;
+            }
             account.send("§cUso: /clan expulsar <jogador>");
             return;
         }
         Account target = PlayerLookup.accountByName(ctx.getArgs()[0]).orElse(null);
-        if (target == null || !account.getClan().isMember(target.getId())) {
-            account.send("§cMembro nao encontrado.");
+        if (target == null) { account.send("§cMembro não encontrado."); return; }
+        ClanService.Result r = ClanService.kick(account, target);
+        account.send(r.success() ? "§a" + r.message() : "§c" + r.message());
+    }
+
+    private void clanMotd(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (!account.isClanLeader()) { account.send("§cApenas o líder."); return; }
+        if (ctx.getArgs().length == 0) {
+            account.send("§7MOTD: §f" + account.getClan().getMotd());
+            account.send("§e/clan motd <mensagem>");
             return;
         }
-        if (account.getClan().isLeader(target.getId())) {
-            account.send("§cNao pode expulsar o lider.");
+        String motd = ctx.joinArgs(0);
+        if (motd.length() > 64) motd = motd.substring(0, 64);
+        account.getClan().setMotd(motd);
+        account.getClan().broadcast("§7MOTD atualizado por §f" + account.getNickname() + "§7.");
+        account.send("§aMOTD atualizado.");
+    }
+
+    private void clanDesc(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (!account.isClanLeader()) { account.send("§cApenas o líder."); return; }
+        if (ctx.getArgs().length == 0) {
+            account.send("§cUso: /clan desc <texto>");
             return;
         }
-        account.getClan().kick(account, target);
+        String desc = ctx.joinArgs(0);
+        if (desc.length() > 120) desc = desc.substring(0, 120);
+        account.getClan().setDescription(desc);
+        account.send("§aDescrição atualizada.");
+    }
+
+    private void clanSetHome(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        ClanService.Result r = ClanService.setHome(account, ctx.player().getLocation());
+        account.send(r.success() ? "§a" + r.message() : "§c" + r.message());
+    }
+
+    private void clanHome(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        ClanService.Result r = ClanService.teleportHome(ctx.player(), account);
+        account.send(r.success() ? "§a" + r.message() : "§c" + r.message());
+    }
+
+    private void clanDelHome(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (!account.isClanLeader()) { account.send("§cApenas o líder."); return; }
+        account.getClan().clearHome();
+        account.getClan().broadcast("§7Base do clã removida.");
+        account.send("§eBase removida.");
     }
 
     private void clanTagColor(BukkitCommandContext ctx) {
@@ -355,7 +444,7 @@ public final class ClanCommand implements CommandInheritor {
         if (account == null) return;
         if (!account.hasClan()) { account.send(NO_CLAN); return; }
         if (!account.hasClanRole(ClanRole.RECRUITER)) {
-            account.send("§cApenas Recrutador ou Lider podem mudar a cor.");
+            account.send("§cApenas Recrutador ou Líder podem mudar a cor.");
             return;
         }
 
@@ -368,12 +457,12 @@ public final class ClanCommand implements CommandInheritor {
 
         ClanColor color = ClanColor.parse(ctx.getArgs()[0]);
         if (color == null) {
-            account.send("§cCor invalida. Cores: padrao, aqua, verde, ouro, roxo, brasil, yingyang...");
+            account.send("§cCor inválida. Cores: padrao, aqua, verde, ouro, roxo, brasil, yingyang...");
             return;
         }
         if (!color.isFree() && color.getPermission() != null
                 && !account.hasPermission(color.getPermission()) && !account.isStaffer()) {
-            account.send("§cVoce nao tem acesso a cor §f" + color.getName());
+            account.send("§cVocê não tem acesso à cor §f" + color.getName());
             return;
         }
 
@@ -386,12 +475,12 @@ public final class ClanCommand implements CommandInheritor {
 
     private void sendHelp(Account account, String label) {
         account.send("§6§lSistema de Clãs",
-                "§e/" + label + " §7- Abre o painel",
+                "§e/" + label + " §7- Painel GUI",
                 "§e/" + label + " criar <nome> <tag>",
-                "§e/" + label + " convidar|aceitar|recusar|sair",
-                "§e/" + label + " ver <nome|tag>",
-                "§e/clantag <cor> §7- Cor da clantag",
-                "§e/cc <msg> §7- Chat do cla");
+                "§e/" + label + " convites|lista|convidar",
+                "§e/" + label + " promover|rebaixar|expulsar",
+                "§e/" + label + " sethome|home|motd",
+                "§e/cc <msg> §7- Chat do clã");
     }
 
     private Account require(BukkitCommandContext ctx) {

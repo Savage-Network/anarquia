@@ -42,13 +42,11 @@ public final class MainArchitect extends Architect {
 
     @Override
     public void onJoin(Player player) {
-        player.setGameMode(GameMode.ADVENTURE);
+        player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20.0);
         player.setFoodLevel(20);
         player.setExp(0f);
         player.setLevel(0);
-        player.setFlying(false);
-        player.setAllowFlight(false);
 
         SignedLocation spawn = location("spawn");
         if (spawn != null) {
@@ -67,11 +65,13 @@ public final class MainArchitect extends Architect {
 
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
-            player.setFlying(false);
-            player.setAllowFlight(account != null && account.getRankType() != com.minecraft.lobbyhost.account.context.objects.rank.RankType.MEMBER);
+            Account acc = Core.getAccountController().of(player.getUniqueId());
+            boolean canFly = acc != null && (acc.isVIP() || player.hasPermission("lobbyhost.fly"));
+            player.setAllowFlight(canFly);
+            if (canFly) player.setFlying(true);
             handleHotbar(player);
             PlayerVisibilityService.apply(player);
-        }, 2L);
+        }, 5L);
 
         player.sendMessage(com.minecraft.lobbyhost.util.ModernText.parse(
                 "<!italic>Bem-vindo ao " + com.minecraft.lobbyhost.util.ModernText.brandGradient("SAVAGE")

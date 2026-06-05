@@ -32,31 +32,8 @@ public final class CosmeticMenus {
     private CosmeticMenus() {}
 
     public static void openMainMenu(Player player) {
-        LobbyMenuHolder holder = new LobbyMenuHolder("cosmetics_main");
-        Inventory inv = Bukkit.createInventory(holder, 27,
-                Component.text("Menu de Cosméticos").color(NamedTextColor.GOLD)
-                        .decoration(TextDecoration.ITALIC, false));
-        holder.bind(inv);
-
-        // Fill background with glass
-        fillGlass(inv);
-
-        inv.setItem(10, labeled(Material.ELYTRA, "§a§lCapas Customizadas",
-                List.of("§7Mostre sua capa nas costas!", "", "§eClique para abrir.")));
-        
-        inv.setItem(12, labeled(Material.BLAZE_POWDER, "§6§lPartículas de Aura",
-                List.of("§7Efeitos visuais ao seu redor!", "", "§eClique para abrir.")));
-        
-        inv.setItem(14, labeled(Material.NAME_TAG, "§b§lTítulos Exclusivos",
-                List.of("§7Adicione um título acima de seu nome!", "", "§eClique para abrir.")));
-        
-        inv.setItem(16, labeled(Material.REDSTONE, "§d§lGadgets Divertidos",
-                List.of("§7Itens interativos na sua hotbar!", "", "§eClique para abrir.")));
-
-        inv.setItem(22, labeled(Material.BARRIER, "§cDesativar Todos",
-                List.of("§7Remove todos os seus cosméticos ativos.")));
-
-        player.openInventory(inv);
+        // Abre diretamente o menu de capas
+        openCapeMenu(player);
     }
 
     public static void openCapeMenu(Player player) {
@@ -65,7 +42,7 @@ public final class CosmeticMenus {
 
         LobbyMenuHolder holder = new LobbyMenuHolder("cosmetics_capes");
         Inventory inv = Bukkit.createInventory(holder, 45,
-                Component.text("Capas Customizadas").color(NamedTextColor.GREEN)
+                Component.text("Asas Customizadas").color(NamedTextColor.LIGHT_PURPLE)
                         .decoration(TextDecoration.ITALIC, false));
         holder.bind(inv);
         fillGlass(inv);
@@ -79,7 +56,7 @@ public final class CosmeticMenus {
             boolean active = account.getActiveCape() == cape;
 
             List<String> lore = new ArrayList<>();
-            lore.add("§7Capa: " + cape.getDisplayName());
+            lore.add("§7Asas: " + cape.getDisplayName());
             lore.add("§7Raridade: " + cape.getRequiredRank().getDisplayName());
             lore.add("");
             if (active) {
@@ -96,7 +73,6 @@ public final class CosmeticMenus {
             inv.setItem(slots[i], item);
         }
 
-        inv.setItem(40, labeled(Material.ARROW, "§aVoltar", List.of("§7Clique para voltar ao menu principal")));
         player.openInventory(inv);
     }
 
@@ -231,150 +207,37 @@ public final class CosmeticMenus {
         Material type = item.getType();
         if (type == Material.GRAY_STAINED_GLASS_PANE) return;
 
-        if (type == Material.ARROW) {
-            openMainMenu(player);
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            return;
-        }
-
         String menuId = holder.getMenuId();
-        if ("cosmetics_main".equals(menuId)) {
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-            switch (slot) {
-                case 10:
-                    openCapeMenu(player);
-                    break;
-                case 12:
-                    openParticleMenu(player);
-                    break;
-                case 14:
-                    openTitleMenu(player);
-                    break;
-                case 16:
-                    openGadgetMenu(player);
-                    break;
-                case 22:
-                    account.setActiveCape(null);
-                    account.setActiveParticle(null);
-                    account.setActiveCosmeticTitle(null);
-                    account.setActiveGadget(null);
-                    CosmeticManager.getCapeRenderer().remove(player);
-                    
-                    // Reseta hotbar
-                    com.minecraft.lobbyhost.bukkit.lobby.HotbarLayout.applyDefault(player);
-                    TagManager.updateTag(account);
-                    
-                    player.sendMessage("§aTodos os cosméticos foram desativados!");
-                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
-                    openMainMenu(player);
-                    break;
-            }
+        
+        // Apenas menu de capas agora
+        if (!"cosmetics_capes".equals(menuId)) {
             return;
         }
 
         String cosId = getCosmeticId(item);
         if (cosId == null) return;
 
-        if ("cosmetics_capes".equals(menuId)) {
-            Cape cape = Cape.fromId(cosId);
-            if (cape == null) return;
+        Cape cape = Cape.fromId(cosId);
+        if (cape == null) return;
 
-            if (!account.hasCape(cape)) {
-                player.sendMessage("§cVocê não possui essa capa! Adquira VIP ou compre no site.");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                return;
-            }
-
-            if (account.getActiveCape() == cape) {
-                account.setActiveCape(null);
-                CosmeticManager.getCapeRenderer().remove(player);
-                player.sendMessage("§aCapa desequipada!");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
-            } else {
-                account.setActiveCape(cape);
-                CosmeticManager.getCapeRenderer().spawn(player, cape);
-                player.sendMessage("§aCapa " + cape.getDisplayName() + " §aequipada!");
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
-            }
-            openCapeMenu(player);
+        if (!account.hasCape(cape)) {
+            player.sendMessage("§cVocê não possui essas asas! Adquira VIP ou compre no site.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;
         }
 
-        if ("cosmetics_particles".equals(menuId)) {
-            ParticleEffect effect = ParticleEffect.fromId(cosId);
-            if (effect == null) return;
-
-            if (!account.hasParticle(effect)) {
-                player.sendMessage("§cVocê não possui essa partícula! Adquira VIP ou compre no site.");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                return;
-            }
-
-            if (account.getActiveParticle() == effect) {
-                account.setActiveParticle(null);
-                player.sendMessage("§aPartícula desequipada!");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
-            } else {
-                account.setActiveParticle(effect);
-                player.sendMessage("§aPartícula " + effect.getDisplayName() + " §aequipada!");
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
-            }
-            openParticleMenu(player);
-            return;
+        if (account.getActiveCape() == cape) {
+            account.setActiveCape(null);
+            CosmeticManager.getCapeRenderer().remove(player);
+            player.sendMessage("§aAsas desequipadas!");
+            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
+        } else {
+            account.setActiveCape(cape);
+            CosmeticManager.getCapeRenderer().spawn(player, cape);
+            player.sendMessage("§aAsas " + cape.getDisplayName() + " §aequipadas!");
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
         }
-
-        if ("cosmetics_titles".equals(menuId)) {
-            CosmeticTitle title = CosmeticTitle.fromId(cosId);
-            if (title == null) return;
-
-            if (!account.hasCosmeticTitle(title)) {
-                player.sendMessage("§cVocê não possui esse título! Adquira VIP ou compre no site.");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                return;
-            }
-
-            if (account.getActiveCosmeticTitle() == title) {
-                account.setActiveCosmeticTitle(null);
-                player.sendMessage("§aTítulo desequipado!");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
-            } else {
-                account.setActiveCosmeticTitle(title);
-                player.sendMessage("§aTítulo " + title.getDisplayName() + " §aequipado!");
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
-            }
-            TagManager.updateTag(account);
-            openTitleMenu(player);
-            return;
-        }
-
-        if ("cosmetics_gadgets".equals(menuId)) {
-            Gadget gadget = Gadget.fromId(cosId);
-            if (gadget == null) return;
-
-            if (!account.hasGadget(gadget)) {
-                player.sendMessage("§cVocê não possui esse gadget! Adquira VIP ou compre no site.");
-                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-                return;
-            }
-
-            if (account.getActiveGadget() == gadget) {
-                account.setActiveGadget(null);
-                player.sendMessage("§aGadget desequipado!");
-                player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1.0f, 2.0f);
-                
-                // Reseta a hotbar para remover o gadget
-                com.minecraft.lobbyhost.bukkit.lobby.HotbarLayout.applyDefault(player);
-            } else {
-                account.setActiveGadget(gadget);
-                player.sendMessage("§aGadget " + gadget.getDisplayName() + " §aequipado no slot 3!");
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
-                
-                // Atualiza hotbar para incluir o gadget
-                com.minecraft.lobbyhost.bukkit.lobby.HotbarLayout.applyDefault(player);
-            }
-            openGadgetMenu(player);
-            return;
-        }
+        openCapeMenu(player);
     }
 
     private static void fillGlass(Inventory inv) {

@@ -37,7 +37,6 @@ public final class StaffChatBridge {
             Account a = Core.getAccountController().of(p.getUniqueId());
             if (a == null) continue;
             if (!a.isStaffer() && !p.hasPermission("lobbyhost.staffchat")) continue;
-            if (!a.getToggle().isAcStaffAlerts()) continue;
             p.sendMessage(c);
         }
         Core.getLogger().info("[STAFF] " + strip(coloredFrom) + " @ " + server + ": " + body);

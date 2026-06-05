@@ -21,21 +21,32 @@ public final class ReportService {
     public static final long DUPLICATE_WINDOW_HOURS = 12L;
     public static final int DETAILS_MAX = 280;
 
+    /** @deprecated use {@link ReportContext} */
+    @Deprecated
     private static final Map<UUID, ReportReason> PENDING_REASON = new ConcurrentHashMap<>();
 
     private ReportService() {}
 
     public static void setPendingReason(Player player, ReportReason reason) {
         if (player == null) return;
+        ReportContext ctx = ReportContext.of(player.getUniqueId());
+        if (ctx == null) ctx = ReportContext.open(player.getUniqueId());
+        ctx.setReason(reason);
         PENDING_REASON.put(player.getUniqueId(), reason);
     }
 
     public static ReportReason getPendingReason(Player player) {
-        return player == null ? null : PENDING_REASON.get(player.getUniqueId());
+        if (player == null) return null;
+        ReportContext ctx = ReportContext.of(player.getUniqueId());
+        if (ctx != null && ctx.reason() != null) return ctx.reason();
+        return PENDING_REASON.get(player.getUniqueId());
     }
 
     public static void clearPending(Player player) {
-        if (player != null) PENDING_REASON.remove(player.getUniqueId());
+        if (player != null) {
+            PENDING_REASON.remove(player.getUniqueId());
+            ReportContext.close(player.getUniqueId());
+        }
     }
 
     public static String serverId() {
@@ -111,6 +122,8 @@ public final class ReportService {
                 reporter.send(ModernText.parse(
                         "<!italic><" + ModernText.SUCCESS + ">Denúncia <#F1F5F9>#" + id
                                 + " <" + ModernText.SUCCESS + ">enviada. A equipe foi notificada."));
+                reporterPlayer.playSound(reporterPlayer.getLocation(),
+                        org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.6f);
                 publishAlert(id, reporter.getName(), displayTarget, reason, cleanDetails);
             });
         });
@@ -145,7 +158,7 @@ public final class ReportService {
                 if (details != null && !details.equals("-")) {
                     staff.sendMessage(ModernText.parse(ModernText.mini(details)));
                 }
-                staff.sendMessage(ModernText.parse(ModernText.hint("reports info " + id)));
+                staff.sendMessage(ModernText.parse(ModernText.hint("/reports — abrir painel")));
             }
         });
     }

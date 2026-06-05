@@ -6,7 +6,7 @@ import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.network.NetworkStateCache;
-import com.minecraft.lobbyhost.social.PartyService;
+import com.minecraft.lobbyhost.network.QueueManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -30,6 +30,8 @@ public final class LobbyMenus {
 
     private static final NamespacedKey MENU_SERVER_KEY =
             new NamespacedKey(LobbyHostPlugin.getInstance(), "menu_server");
+    private static final NamespacedKey MENU_MODE_KEY =
+            new NamespacedKey(LobbyHostPlugin.getInstance(), "menu_mode");
 
     private static final int NAV_SIZE = 27;
     private static final int CLOSE_SLOT = 22;
@@ -85,10 +87,7 @@ public final class LobbyMenus {
         inv.setItem(12, labeledMini(Material.SUNFLOWER,
                 ModernText.brandGradient("Amigos"),
                 List.of(ModernText.action("Clique para abrir"), ModernText.hint("amigo add <nick>"))));
-        inv.setItem(14, labeledMini(Material.IRON_INGOT,
-                ModernText.gradient("Party", "#C084FC", "#F472B6"),
-                List.of(ModernText.hint("party criar"), ModernText.hint("party convidar <nick>"))));
-        inv.setItem(16, labeledMini(Material.GOLD_BLOCK,
+        inv.setItem(14, labeledMini(Material.GOLD_BLOCK,
                 ModernText.brandGradient("Rankings"),
                 List.of(ModernText.mini("Kills, money, clãs…"), ModernText.hint("leaderboard"))));
         inv.setItem(13, labeledMini(Material.COMPARATOR,
@@ -130,24 +129,42 @@ public final class LobbyMenus {
                     + ">Este modo está indisponível no momento."));
             return;
         }
-        String server = meta.getPersistentDataContainer()
-                .get(MENU_SERVER_KEY, PersistentDataType.STRING);
-        if (server == null || server.isBlank()) return;
-        connectBungee(player, server);
+        String modeId = meta.getPersistentDataContainer().get(MENU_MODE_KEY, PersistentDataType.STRING);
+        if (modeId == null || modeId.isBlank()) {
+            modeId = meta.getPersistentDataContainer().get(MENU_SERVER_KEY, PersistentDataType.STRING);
+        }
+        if (modeId == null || modeId.isBlank()) return;
+        joinQueue(player, modeId);
+    }
+
+    /** Entra na fila de conexão do modo escolhido (bússola / menu). */
+    public static void joinQueue(Player player, String modeId) {
+        LobbySettings.NetworkMode mode = QueueManager.findMode(modeId);
+        if (mode == null) return;
+
+        Account account = Core.getAccountController().of(player.getUniqueId());
+        if (NetworkStateCache.isMaintenance()
+                && !NetworkStateCache.canJoinDuringMaintenance(account)) {
+            player.sendMessage(ModernText.parse("<!italic><" + ModernText.ERROR
+                    + ">Rede em manutenção. Apenas staff autorizado pode entrar."));
+            return;
+        }
+
+        player.closeInventory();
+        QueueManager.join(player, mode.id());
     }
 
     public static void handleProfileClick(Player player, int slot) {
         switch (slot) {
             case 12 -> FriendMenu.open(player);
-            case 14 -> player.performCommand("party info");
-            case 16 -> new com.minecraft.lobbyhost.bukkit.menu.leaderboard.LeaderboardHubMenu(player).open();
+            case 14 -> new com.minecraft.lobbyhost.bukkit.menu.leaderboard.LeaderboardHubMenu(player).open();
             case 13 -> {
                 Account account = Core.getAccountController().of(player.getUniqueId());
                 if (account != null) new com.minecraft.lobbyhost.bukkit.menu.prefs.PrefsMenu(player, account).open();
             }
             case 15 -> {
                 Account account = Core.getAccountController().of(player.getUniqueId());
-                if (account != null) new com.minecraft.lobbyhost.bukkit.menu.ReportMenu(player, account).open();
+                if (account != null) com.minecraft.lobbyhost.bukkit.menu.report.ReportMenus.open(player, account);
             }
             default -> {}
         }
@@ -164,12 +181,7 @@ public final class LobbyMenus {
             return;
         }
         player.closeInventory();
-        if (PartyService.inParty(player.getUniqueId())
-                && player.getUniqueId().equals(PartyService.leaderOf(player.getUniqueId()))) {
-            PartyService.connectParty(player, server);
-        } else {
-            BungeeCordUtil.connect(player, plugin, server);
-        }
+        BungeeCordUtil.connect(player, plugin, server);
         player.sendMessage(ModernText.parse("<!italic><" + ModernText.SUCCESS + ">Conectando em <#F8FAFC>"
                 + server + "<" + ModernText.SUCCESS + ">…"));
     }
@@ -202,7 +214,7 @@ public final class LobbyMenus {
             } else {
                 lore.add("<!italic><#94A3B8>Jogadores: <" + ModernText.SUCCESS + ">" + Math.max(online, 0));
                 lore.add("");
-                lore.add(ModernText.action("▶ Clique para jogar"));
+                lore.add(ModernText.action("▶ Clique para entrar na fila"));
             }
             list.add(new NavEntry(mode.id(), mode.bungeeServer(), mode.displayName(),
                     unavailable ? Material.GRAY_STAINED_GLASS_PANE : mode.material(),
@@ -242,6 +254,7 @@ public final class LobbyMenus {
                     new NamespacedKey(LobbyHostPlugin.getInstance(), "nav_blocked"),
                     PersistentDataType.BYTE, (byte) 1);
         } else {
+            meta.getPersistentDataContainer().set(MENU_MODE_KEY, PersistentDataType.STRING, entry.id());
             meta.getPersistentDataContainer().set(MENU_SERVER_KEY, PersistentDataType.STRING, entry.server());
         }
         stack.setItemMeta(meta);
