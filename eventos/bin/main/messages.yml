@@ -1,0 +1,63 @@
+prefix: "<gradient:#FF8C42:#FFD166><bold>SavageMC</bold></gradient> <gray>» </gray>"
+
+pt:
+  command:
+    player-only: "<red>Apenas jogadores podem usar este comando."
+    no-permission: "<red>Voce nao tem permissao."
+    reloaded: "<green>Configuracoes recarregadas."
+
+  event:
+    command:
+      unknown: "<red>Subcomando desconhecido: <yellow>{sub}"
+    status:
+      line: "<gray>Estado: <yellow>{state} <gray>| Modo: <yellow>{mode} <gray>| Jogadores: <yellow>{players}<gray>/{min} <gray>| Arena: <yellow>{arena} <gray>| Auto: <yellow>{auto}"
+    mode:
+      list: "<gray>Modos: <yellow>{modes}"
+      unknown: "<red>Modo desconhecido: <yellow>{mode}"
+      set: "<green>Modo definido: <yellow>{mode}"
+    error:
+      not-waiting: "<red>So e possivel trocar modo em WAITING."
+      cannot-start: "<red>Nao da para iniciar (estado=<yellow>{state}<red>, jogadores=<yellow>{players}<red>/<yellow>{min}<red>)."
+    session:
+      starting: "<green>Evento <yellow>{mode} <green>inicia em <yellow>{seconds}s<green>!"
+      countdown: "<gray>Inicio em <yellow>{seconds}s<gray>..."
+      live: "<green><bold>Evento {mode} comecou!"
+      eliminated: "<red>{player} <gray>foi eliminado! <dark_gray>({reason})"
+      winner: "<gold><bold>Vencedor: <yellow>{player}"
+      winner-team: "<gold><bold>Time vencedor: <yellow>{team}"
+      ended: "<gray>Evento encerrado."
+      stopped: "<yellow>Evento interrompido pela staff."
+      reset: "<gray>Evento reiniciado. Aguardando jogadores..."
+    map:
+      generated: "<green>Arena <yellow>{id} <green>gerada (modo <yellow>{mode}<green>, raio <yellow>{radius}<green>)."
+      cleared: "<green>Arena <yellow>{id}<green> limpa (<yellow>{blocks} <green>blocos)."
+    scheduler:
+      list: "<gray>Scheduler: <yellow>{enabled} <gray>| Tarefas: <yellow>{tasks}"
+      announce: "<gold>Evento automatico <yellow>{mode} <gold>em <yellow>{seconds}s<gold>! (<gray>{task}<gold>)"
+      queue-open: "<green>Fila aberta — <yellow>{mode}<green> (min <yellow>{min}<green> jogadores). Use <yellow>/evento join"
+      starting: "<green>Evento automatico <yellow>{mode} <green>iniciando em <yellow>{seconds}s<green>!"
+      cancelled: "<red>Evento <yellow>{task} <red>cancelado (<gray>{reason}<red>)."
+      forced: "<green>Tarefa <yellow>{task} <green>forcada."
+    queue:
+      joined: "<green>Voce entrou na fila do evento."
+      left: "<yellow>Voce saiu da fila."
+      fail: "<red>Impossivel entrar na fila agora."
+      not-in: "<gray>Voce nao esta na fila."
+    reward:
+      received: "<green>+<yellow>{gold} golds <green>por participar do evento!"
+    player:
+      join: "<green>+ <white>{player} <gray>entrou no evento."
+      quit: "<red>- <white>{player} <gray>saiu."
+      late-join: "<yellow>Voce entrou como espectador (evento em andamento)."
+    mode:
+      blockparty:
+        round: "<gold>Block Party <gray>— cor segura: <yellow>{color} <gray>(rodada {round})"
+      ffa:
+        kill: "<yellow>{killer} <gray>eliminou <red>{victim} <gray>(<yellow>{kills} <gray>kills)"
+
+account:
+  loading: "<gray>Carregando sua conta..."
+  load-failed: "<red>Erro ao carregar conta. Tente reconectar."
+
+errors:
+  internal: "<red>Erro interno. Contate a administracao."

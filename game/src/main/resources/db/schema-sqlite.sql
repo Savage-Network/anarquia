@@ -50,6 +50,16 @@ CREATE TABLE IF NOT EXISTS network_stats (
 
 CREATE INDEX IF NOT EXISTS idx_network_stats_category ON network_stats(category);
 
+CREATE TABLE IF NOT EXISTS network_presence (
+    player_id     TEXT NOT NULL PRIMARY KEY,
+    player_name   TEXT NOT NULL,
+    server_id     TEXT NOT NULL DEFAULT 'proxy',
+    connected_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_network_presence_seen ON network_presence(last_seen_at);
+
 CREATE TABLE IF NOT EXISTS player_reports (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     reporter_uuid   TEXT NOT NULL,

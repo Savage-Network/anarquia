@@ -216,4 +216,12 @@ public final class ProxyHostPlugin {
             return new ConfigSection(root == null ? Map.of() : root);
         }
     }
+
+    /** Recarrega config.yml e guards dependentes (eventos, discord). */
+    public void reloadRoutingConfig() throws Exception {
+        this.config = loadConfig();
+        com.minecraft.proxyhost.routing.EventosAccessGuard.load(config);
+        com.minecraft.proxyhost.config.DiscordConfig.load(dataDirectory, logger);
+        NetworkPublisher.publishStatusNow();
+    }
 }

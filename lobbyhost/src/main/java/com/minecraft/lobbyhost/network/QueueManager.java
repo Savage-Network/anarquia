@@ -3,6 +3,9 @@ package com.minecraft.lobbyhost.network;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.LobbySettings.NetworkMode;
+import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.network.EventosAccessGuard;
+import com.minecraft.lobbyhost.network.NetworkStateCache;
 import com.minecraft.lobbyhost.util.BungeeCordUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -40,6 +43,17 @@ public final class QueueManager {
         NetworkMode mode = findMode(modeId);
         if (mode == null) {
             player.sendMessage("§cModo §e" + modeId + " §cnão encontrado.");
+            return;
+        }
+
+        Account account = Core.getAccountController().of(player.getUniqueId());
+        if (NetworkStateCache.isMaintenance()
+                && !NetworkStateCache.canJoinDuringMaintenance(account)) {
+            player.sendMessage("§cA rede está em manutenção. Apenas staff autorizado pode entrar nos modos.");
+            return;
+        }
+        if (EventosAccessGuard.isBlockedMode(mode.id())) {
+            EventosAccessGuard.sendBlocked(player);
             return;
         }
 

@@ -40,6 +40,11 @@ commands:
     description: Conecta ao servidor de eventos
     usage: /evento
     aliases: [eventos]
+  eventosacesso:
+    description: Libera ou bloqueia entrada nos eventos (staff)
+    usage: /eventosacesso [menu|unlock|lock|toggle|status]
+    permission: lobbyhost.admin
+    aliases: [eventosunlock, eventoslock]
   amigo:
     description: Amigos — pedidos, lista e GUI
     usage: /amigo [add|aceitar|remover|lista] [nick]
@@ -275,10 +280,23 @@ permissions:
       lobbyhost.staff: true
   game.rank.admin:
     default: false
+  game.rank.lulu:
+    description: Rank exclusivo LULU (acesso total, abaixo do ZW)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false
     children:
+      '*': true
       game.*: true
       lobbyhost.*: true
       proxyhost.*: true

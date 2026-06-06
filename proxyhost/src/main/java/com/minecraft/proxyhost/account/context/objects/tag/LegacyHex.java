@@ -48,6 +48,7 @@ public final class LegacyHex {
     public static final String MOD       = of("#06B6D4");
     public static final String ADMIN     = of("#DC2626");
     public static final String VERMELHO  = of("#FF5555");
+    public static final String LULU      = of("#FFEA99");
     public static final String ZW        = of("#9D0000");
     public static final String OWNER     = of("#DC2626");
 

@@ -58,7 +58,7 @@ public final class ClanHubMenu extends Menu {
                             "§7Exemplo: §f/clan criar Savage SVG",
                             "",
                             "§7A tag aparece ao lado do seu nick",
-                            "§7quando ativada em §e/prefs toggle clantag");
+                            "§7quando ativada em §e/prefs");
                 }));
 
         set(40, MenuItem.of(Material.SPYGLASS)

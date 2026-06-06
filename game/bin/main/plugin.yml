@@ -2,16 +2,16 @@ name: game
 version: '${version}'
 main: com.minecraft.game.GamePlugin
 api-version: '1.21'
-authors: [SavageLabs]
-description: Servidor semi-anarquia (plugin unico estilo Savage)
+authors: [SavageMC]
+description: SavageMC — modo principal (savagemc.net)
 softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
 load: STARTUP
 
 commands:
   account:
-    description: Mostra informacoes da sua conta
-    usage: /account [jogador]
-    aliases: [perfil, conta]
+    description: Perfil da conta ou edicao staff
+    usage: /account [jogador] | /account setrank|remrank|settag|remtag|setpackage|rempackage|packages ...
+    aliases: [perfil, conta, a]
   tag:
     description: Lista/escolhe a sua tag
     usage: /tag [nome]
@@ -24,37 +24,541 @@ commands:
     description: Define o modo de exibicao das tags
     usage: /prefixtype [modo]
     aliases: [prefixo, modotag]
-  customtitle:
-    description: Define titulo flutuante acima do nick
-    usage: /customtitle <texto|remover>
-    permission: game.admin
-    aliases: [titulo]
   prefs:
-    description: Preferencias da conta
-    usage: /prefs [list|toggle <chave>]
+    description: Preferencias da conta (menu)
+    usage: /prefs
     aliases: [preferencias]
+  lang:
+    description: Escolhe o idioma das mensagens
+    usage: /lang
+    aliases: [language, idioma]
+  creditos:
+    description: Menu de creditos do servidor
+    usage: /creditos
+    aliases: [credits, credito, devs]
+  holo:
+    description: Gerencia hologramas TextDisplay
+    usage: /holo <list|set|remove|reload|explicacao|kills|deaths|...>
+    permission: game.admin
+    aliases: [hologram, holograma]
+  atualizarleaderboards:
+    description: Atualiza rankings e hologramas de top
+    usage: /atualizarleaderboards
+    permission: game.admin
+    aliases: [updateleaderboards, refreshleaderboards, atualizartop, atualizarranking]
+  chat:
+    description: Chat — ignore, clearchat, lock, slow
+    usage: /chat [help|ignore|clear|lock|unlock|slow] ...
+    aliases: [c]
+  clearchat:
+    description: Limpa o chat (staff)
+    usage: /clearchat
+    permission: game.chat.mod
+  chatlock:
+    description: Trava o chat publico (staff)
+    usage: /chatlock
+    permission: game.chat.mod
+  chatunlock:
+    description: Libera o chat publico (staff)
+    usage: /chatunlock
+    permission: game.chat.mod
+  staffchat:
+    description: Chat da equipe (rede)
+    usage: /sc <mensagem>
+    permission: game.staffchat
+    aliases: [sc]
+  kit:
+    description: Lista e recebe kits do servidor
+    usage: /kit [nome]
+    aliases: [kits]
+  skin:
+    description: Atualiza ou copia skin da Mojang
+    usage: /skin [nick]
+    aliases: [skinchanger, updateskin]
+  clan:
+    description: Sistema de clãs com painel GUI
+    usage: /clan [subcomando]
+    aliases: [cla]
+  clantag:
+    description: Altera a cor da clantag do seu clã
+    usage: /clantag <cor>
+    aliases: [clancor]
+  cc:
+    description: Chat privado do clã
+    usage: /cc <mensagem>
+    aliases: [c]
+  report:
+    description: Denuncia um jogador
+    usage: /report <nick> <motivo> [detalhes]
+    aliases: [denunciar, denuncia]
+  reports:
+    description: Gerencia denuncias (staff)
+    usage: /reports [list|info|close|tp] [id]
+    permission: game.reports
+    aliases: [denuncias]
+  punir:
+    description: Pune um jogador (ban/mute)
+    usage: /punir <jogador>
+    permission: game.punish
+    aliases: [punish, p]
+  despunir:
+    description: Revoga punição por ID
+    usage: /despunir <ID> <motivo>
+    permission: game.unpunish
+    aliases: [unpunish, unban, unmute]
+  cban:
+    description: Ban por cheating
+    usage: /cban <nick> <tempo>
+    permission: game.cban
+  ban:
+    description: Ban por regras da comunidade
+    usage: /ban <nick> [tempo] [motivo]
+    permission: game.ban
+  kick:
+    description: Expulsa jogador online (sem ban)
+    usage: /kick <nick> [motivo]
+    permission: game.kick
+  history:
+    description: Historico de punicoes
+    usage: /history <nick>
+    permission: game.punish
+    aliases: [punishments, punicoes]
+  check:
+    description: Consulta punicao por ID ou jogador
+    usage: /check <ID|nick>
+    permission: game.punish
+    aliases: [punishcheck, verpunicao]
   gamereload:
     description: Recarrega configuracoes do plugin
     usage: /gamereload
     permission: game.admin
+  mundo:
+    description: Gerencia mundos (load, unload, tp)
+    usage: /mundo list|load|unload|tp|info <mundo>
+    permission: game.admin
+    aliases: [world]
+  sethome:
+    description: Define uma home
+    usage: /sethome [nome]
+  delhome:
+    description: Remove uma home
+    usage: /delhome [nome]
+  homes:
+    description: Lista suas homes
+    usage: /homes
+  home:
+    description: Teleporta para uma home
+    usage: /home [nome]
+  money:
+    description: Mostra saldo
+    usage: /money [jogador]
+    aliases: [saldo, balance, bal]
+  pay:
+    description: Transfere dinheiro
+    usage: /pay <jogador> <valor>
+  spawn:
+    description: Volta ao spawn protegido
+    usage: /spawn
+  warp:
+    description: Teleporta para um warp
+    usage: /warp <nome>
+  top:
+    description: Ranking dos jogadores online
+    usage: /top <kills|deaths|kdr|money>
+    aliases: [ranking, leaderboard]
+  stats:
+    description: Menu de estatisticas e conquistas
+    usage: /stats [jogador]
+    aliases: [estatisticas, conquistas]
+  perfil:
+    description: Perfil publico de um jogador
+    usage: /perfil <nick>
+    aliases: [profile]
+  bounty:
+    description: Coloca recompensa na cabeca de um jogador
+    usage: /bounty <jogador> [valor]
+    aliases: [recompensa]
+  loja:
+    description: Central de economia (GUI, placa, leilao)
+    usage: /loja [gui|placa|reload]
+    aliases: [shop, mercado]
+  sell:
+    description: Vende itens ao servidor
+    usage: /sell
+    aliases: [vender, venda]
+  ah:
+    description: Leilao entre jogadores
+    usage: /ah [vender <preco>]
+    aliases: [leilao, auction]
+  trade:
+    description: Troca segura entre jogadores
+    usage: /trade <jogador|aceitar|recusar>
+    aliases: [troca, trocar]
+  rtp:
+    description: Teleporte aleatorio
+    usage: /rtp
+  evento:
+    description: Conecta ao servidor de eventos
+    usage: /evento
+    aliases: [eventos]
+  eventosacesso:
+    description: Libera ou bloqueia entrada nos eventos (staff)
+    usage: /eventosacesso unlock|lock
+    permission: game.admin
+    aliases: [eventosunlock, eventoslock]
+  adminkey:
+    description: Gera, lista e concede VIP temporario (staff)
+    usage: /adminkey gerar <RANK> <TEMPO> | /adminkey dar <jogador> <RANK> <TEMPO> | /adminkey listar
+    permission: game.admin
+    aliases: [akey, vipkey]
+  resgatar:
+    description: Resgata uma key de VIP
+    usage: /resgatar <codigo>
+    aliases: [redeem, resgate, key]
+  vincular:
+    description: Gera codigo para vincular conta ao Discord
+    usage: /vincular
+    aliases: [link, vinculo, discordlink]
+  lixeira:
+    description: Lixeira virtual — itens somem ao fechar
+    usage: /lixeira
+    aliases: [lixo, trash]
+  bau:
+    description: Bau virtual persistente
+    usage: /bau
+    aliases: [baú, chest]
+  ec:
+    description: Ender chest virtual persistente
+    usage: /ec
+    aliases: [enderchest, echest]
+  livro:
+    description: Recebe o guia do jogador
+    usage: /livro
+  plus:
+    description: Menu de configuracao EMBER+
+    usage: /plus
+    aliases: ['+', mais, emberplus, ember+, embertplus, embermais]
+  tpa:
+    description: Pedido de teleporte
+    usage: /tpa <jogador>
+  tpaccept:
+    description: Aceita teleporte
+    usage: /tpaccept [jogador]
+  anticheat:
+    description: Painel do anticheat (Owner)
+    usage: /anticheat
+    aliases: [ac]
+  acflags:
+    description: Flags e VL de um jogador (Owner)
+    usage: /acflags <jogador>
+  sorteio:
+    description: Sorteia jogador(es) online aleatorio(s)
+    usage: /sorteio [quantidade]
+    permission: game.sorteio
+    aliases: [raffle, sortear]
+  votacao:
+    description: Cria enquete com GUI de bau
+    usage: /votacao <opcao1> <opcao2> [opcao3] [opcao4] <segundos>
+    permission: game.votacao
+    aliases: [votação, vote, enquete, poll]
+  votacaoencerrar:
+    description: Encerra a votacao ativa
+    usage: /votacaoencerrar
+    permission: game.votacao
+    aliases: [encerrarvotacao, stopvote]
+  votar:
+    description: Abre a enquete ativa
+    usage: /votar
+    aliases: [voteopen, abrirvotacao]
 
 permissions:
   game.*:
-    description: Acesso total
-    default: op
+    description: Acesso total game (ADMIN+ via rank)
+    default: false
     children:
       game.admin: true
-      game.staff: true
-      game.vip: true
   game.admin:
-    default: op
+    description: Reload, mundo, economia admin
+    default: false
+  game.combat.bypass:
+    description: Ignora combat tag e combat log
+    default: false
+  game.commands.vanilla.bypass:
+    description: Permite comandos vanilla do Minecraft
+    default: false
   game.staff:
+    description: Staff base — /go, staff chat
     default: false
+    children:
+      game.staffchat: true
+      game.sorteio: true
+      game.votacao: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+  game.sorteio:
+    description: Sortear jogadores online
+    default: op
+  game.votacao:
+    description: Criar e encerrar enquetes
+    default: op
   game.vip:
+    description: Beneficios VIP
     default: false
+  game.go:
+    description: Teleporta ate um jogador na rede (/go)
+    default: false
+  game.vanish:
+    description: /vanish modo invisivel
+    default: false
+  game.vanish.see:
+    description: Ver staff invisivel
+    default: false
+  game.staffchat:
+    description: /sc
+    default: false
+  game.chat.mod:
+    description: /clearchat, /chat lock|unlock|slow (staff)
+    default: false
+  game.kit.vip:
+    description: Kit VIP
+    default: false
+  game.kit.staff:
+    description: Kit Staff
+    default: false
+  game.shop.admin:
+    description: Lojas do servidor (estoque infinito)
+    default: false
+  game.shop.create:
+    description: Lojas de placa
+    default: true
+  game.money.give:
+    description: /moneygive
+    default: false
+  game.money.take:
+    description: /moneytake
+    default: false
+  game.report:
+    description: /report
+    default: true
+  game.reports:
+    description: /reports (HELPER+)
+    default: false
+  game.punish:
+    description: /punir e /history (HELPER+)
+    default: false
+  game.unpunish:
+    description: /despunir (MOD+)
+    default: false
+  game.cban:
+    description: /cban (MOD+)
+    default: false
+  game.ban:
+    description: /ban (MOD+)
+    default: false
+  game.kick:
+    description: /kick (HELPER+)
+    default: false
+  game.rank.member:
+    default: true
+  game.rank.vip:
+    default: false
+    children:
+      medal.estrelinha: true
+      medal.aprovado: true
+      medal.brilho: true
+  game.rank.native:
+    default: false
+    children:
+      medal.galaxia: true
+      medal.constelacao: true
+      medal.nova: true
+      medal.orbita: true
+  game.rank.ember:
+    default: false
+    children:
+      medal.brilho: true
+      medal.solar: true
+      medal.lunar: true
+      medal.fortuna: true
+  game.rank.ember_plus:
+    default: false
+    children:
+      medal.brilho: true
+      medal.solar: true
+      medal.lunar: true
+      medal.fortuna: true
+  game.rank.savage:
+    default: false
+    children:
+      medal.solar: true
+      medal.supernova: true
+      medal.aurora: true
+      medal.fortuna: true
+      medal.corona: true
+  game.rank.beta:
+    default: false
+    children:
+      medal.cometa: true
+      medal.orbita: true
+      medal.pulso: true
+      medal.raio: true
+  game.rank.precious:
+    default: false
+    children:
+      medal.precious: true
+  game.rank.builder:
+    default: false
+    children:
+      medal.ajudante: true
+      medal.espadas: true
+  game.rank.helper:
+    default: false
+    children:
+      medal.ajudante: true
+  game.rank.mod:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+      medal.comando: true
+      medal.cruz_sagrada: true
+      medal.impacto: true
+  game.rank.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+      medal.comando: true
+      medal.cruz_sagrada: true
+      medal.impacto: true
+  game.rank.admin:
+    default: false
+    children:
+      medal.maestro: true
+      medal.mestre: true
+      medal.star: true
+  game.rank.vermelho:
+    default: false
+    children:
+      medal.y: true
+  game.rank.lulu:
+    description: Rank exclusivo LULU (acesso total, abaixo do ZW)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
 
-  # tags - liberadas via LuckPerms; default false
   tag.*:
     default: false
+  tag.builder:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.helper:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.mod:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.admin:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.diretor:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.vermelho:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_zw:
+    description: Tag ZW (acesso total)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_lulu:
+    description: Tag LULU (acesso total)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_owner:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
   medal.*:
     default: false

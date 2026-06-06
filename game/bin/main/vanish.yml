@@ -1,0 +1,36 @@
+# SavageMC — Vanish (staff)
+enabled: true
+
+# Comportamento ao ativar
+auto-fly: true
+night-vision: true
+action-bar: true
+action-bar-text: "<!italic><#818CF8>⚠ <#94A3B8>Você está invisível"
+
+# Join / quit
+silent-join: true
+silent-quit: true
+fake-quit-on-enable: true
+fake-join-on-disable: true
+
+# Proteções enquanto vanished
+block-pickup: true
+block-damage: true
+block-hunger: true
+block-mob-target: true
+block-pressure-plates: true
+block-public-chat: true
+
+# Staff com rank BUILDER+ enxergam outros vanished
+staff-see-vanished: true
+
+permissions:
+  use: game.vanish
+  see: game.vanish.see
+
+messages:
+  enabled: "<!italic><#3DDC97>Vanish <bold>ativado</bold>"
+  disabled: "<!italic><#94A3B8>Vanish <#FF6B6B>desativado"
+  chat-blocked: "<!italic><#FF6B6B>Em vanish — use <#FBBF24>!msg <#94A3B8>ou <#FBBF24>/sc"
+  list-empty: "<!italic><#94A3B8>Ninguém está invisível."
+  list-header: "<!italic><#818CF8><bold>Staff invisível</bold> <#64748B>({count})"

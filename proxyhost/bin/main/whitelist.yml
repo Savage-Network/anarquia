@@ -1,0 +1,26 @@
+# Whitelist da rede — gerenciada via /wl
+# proxy = login na rede | lobby/game/eventos = conexão ao backend
+
+proxy:
+  enabled: false
+  min-rank: HELPER
+  extra-ranks: []
+  players: []
+
+lobby:
+  enabled: false
+  min-rank: HELPER
+  extra-ranks: []
+  players: []
+
+game:
+  enabled: false
+  min-rank: HELPER
+  extra-ranks: []
+  players: []
+
+eventos:
+  enabled: false
+  min-rank: HELPER
+  extra-ranks: []
+  players: []

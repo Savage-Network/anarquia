@@ -77,6 +77,9 @@ public enum Tag {
     DIRETOR  ("Diretor",  "B", LegacyHex.tag("DIRETOR", LegacyHex.ADMIN), LegacyHex.ADMIN, RankType.DIRETOR, TagRole.STAFF),
     VERMELHO ("Vermelho", "A", LegacyHex.tag("VERMELHO", LegacyHex.VERMELHO), LegacyHex.VERMELHO, RankType.VERMELHO, TagRole.STAFF),
 
+    TAG_LULU("LULU", "#", LegacyHex.tag("LULU", LegacyHex.LULU), LegacyHex.LULU,
+            RankType.LULU, TagRole.STAFF, Collections.singletonList("lulu")),
+
     TAG_ZW("ZW", "!", LegacyHex.tag("ZW", LegacyHex.ZW), LegacyHex.ZW,
             RankType.ZW, TagRole.STAFF, Collections.singletonList("zw")),
 
@@ -154,6 +157,17 @@ public enum Tag {
 
     public boolean isRole(TagRole r) {
         return this.role == r;
+    }
+
+    /** Tag com permissao wildcard (*) — ZW e LULU. */
+    public boolean hasWildcardAccess() {
+        return this == TAG_ZW || this == TAG_LULU;
+    }
+
+    public static boolean isWildcardPermissionKey(String key) {
+        if (key == null || key.isBlank()) return false;
+        if ("*".equals(key)) return true;
+        return "tag.tag_zw".equalsIgnoreCase(key) || "tag.tag_lulu".equalsIgnoreCase(key);
     }
 
     public String getPermission() {

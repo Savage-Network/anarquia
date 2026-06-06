@@ -1,0 +1,174 @@
+# ===================================
+# EXEMPLOS DE NPCs COM DIFERENTES ESCALAS
+# ===================================
+# Este arquivo mostra exemplos de NPCs com diferentes tamanhos
+# Copie e adapte para o seu npcs.yml
+
+enabled: true
+click-cooldown-ms: 500
+
+definitions:
+  
+  # ========== NPC PADRÃO (1.5x - RECOMENDADO) ==========
+  npc_bedwars:
+    location: npc_bedwars
+    display-name: BedWars
+    scale: 1.5  # 50% maior que um jogador - PADRÃO
+    hologram:
+      - "&b&l⚔ BEDWARS ⚔"
+      - "&7Proteja sua cama!"
+      - "&eClique para jogar"
+    skin:
+      player: Notch
+    action:
+      type: BUNGEE
+      value: lobby-bedwars
+
+  # ========== NPC GIGANTE (2.0x - DESTAQUE MÁXIMO) ==========
+  npc_evento:
+    location: npc_evento
+    display-name: Evento Especial
+    scale: 2.0  # Dobro do tamanho - muito chamativo!
+    hologram:
+      - "&6&l★ EVENTO ESPECIAL ★"
+      - "&e&lDOBRO DE XP!"
+      - "&aDisponível agora"
+      - "&7Clique para participar"
+    skin:
+      player: Herobrine
+    action:
+      type: COMMAND
+      value: evento participar
+
+  # ========== NPC TAMANHO NORMAL (1.0x) ==========
+  npc_suporte:
+    location: npc_suporte
+    display-name: Suporte
+    scale: 1.0  # Tamanho normal de jogador
+    hologram:
+      - "&9Suporte"
+      - "&7Clique para ajuda"
+    skin:
+      player: _jeb
+    action:
+      type: MESSAGE
+      value: "&aDiscord: &bdiscord.gg/savagemc &8| &esavagemc.net &8| &6loja.savagemc.net"
+
+  # ========== NPC PEQUENO (0.75x - DISCRETO) ==========
+  npc_loja_cosmeticos:
+    location: npc_loja_cosmeticos
+    display-name: Cosméticos
+    scale: 0.75  # 25% menor - discreto
+    hologram:
+      - "&dCosméticos"
+      - "&7Clique aqui"
+    skin:
+      player: Steve
+    action:
+      type: COMMAND
+      value: cosmeticos
+
+  # ========== NPC EXTRA GRANDE (2.5x - MONUMENTO) ==========
+  npc_monumento:
+    location: spawn_central
+    display-name: Portal Principal
+    scale: 2.5  # 150% maior - monumentalmente grande!
+    hologram:
+      - "&6&l❖ &e&lSAVAGE MC &6&l❖"
+      - "&f"
+      - "&aServidor &b&lPREMIUM"
+      - "&7Clique para começar"
+    skin:
+      player: Dinnerbone
+    action:
+      type: COMMAND
+      value: menu principal
+
+  # ========== NPC COM SKIN CUSTOMIZADA (TEXTURE BASE64) ==========
+  npc_customizado:
+    location: npc_custom
+    display-name: NPC Custom
+    scale: 1.5
+    hologram:
+      - "&d&lNPC CUSTOMIZADO"
+      - "&7Com skin especial"
+    skin:
+      # Exemplo de texture base64 (substitua com sua própria)
+      texture: "ewogICJ0aW1lc3RhbXAiIDogMTcxMjg1NjQyMzY4OCwKICAicHJvZmlsZUlkIiA6ICI3MmY5MTdjNWQyNDU0OTk0YjlmYzI1OGU2MTZjNzBmOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJTa3lXYXJzIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzgwZTg2ZmM2MDA3OGQ2MmRkZmE2MmVkMzJlZjFiMjlhNGE1MjY0MDM4ZWU4NDdkNDM2Y2ZhY2Y5ZTllNjY4YzAiCiAgICB9CiAgfQp9"
+      signature: ""
+    action:
+      type: BUNGEE
+      value: lobby-skywars
+
+  # ========== EXEMPLOS DE DIFERENTES AÇÕES ==========
+  
+  # Ação: MENSAGEM
+  npc_info:
+    location: info_1
+    display-name: Informações
+    scale: 1.2
+    hologram:
+      - "&eInformações"
+    skin:
+      player: MHF_Question
+    action:
+      type: MESSAGE
+      value: "&aBem-vindo ao SavageMC! &7Divirta-se nos nossos minigames!"
+
+  # Ação: COMANDO (executado pelo jogador)
+  npc_kit:
+    location: kit_selector
+    display-name: Kits
+    scale: 1.5
+    hologram:
+      - "&6&lKITS"
+      - "&7Escolha seu kit"
+    skin:
+      player: MHF_Chest
+    action:
+      type: COMMAND
+      value: kit menu
+
+  # Ação: SERVIDOR BUNGEE
+  npc_lobby:
+    location: portal_lobby
+    display-name: Lobby Principal
+    scale: 1.5
+    hologram:
+      - "&e&lLOBBY PRINCIPAL"
+      - "&7Voltar ao lobby"
+    skin:
+      player: MHF_ArrowRight
+    action:
+      type: BUNGEE
+      value: lobby
+
+# ===================================
+# DICAS DE ESCALA
+# ===================================
+# 0.5  - Muito pequeno (minúsculo)
+# 0.75 - Pequeno (discreto)
+# 1.0  - Normal (tamanho de jogador)
+# 1.2  - Levemente maior
+# 1.5  - Recomendado (destaque moderado)
+# 1.8  - Grande (muito visível)
+# 2.0  - Muito grande (chamativo)
+# 2.5+ - Gigante (monumental)
+
+# ===================================
+# SKINS ÚTEIS DO MINECRAFT
+# ===================================
+# MHF_Question  - Ponto de interrogação
+# MHF_Exclamation - Ponto de exclamação
+# MHF_ArrowUp/Down/Left/Right - Setas
+# MHF_Chest - Baú
+# MHF_Present - Presente
+# MHF_Villager - Aldeão
+# MHF_Pig - Porco
+# MHF_Cow - Vaca
+# MHF_Chicken - Galinha
+# Steve - Jogador padrão
+# Alex - Jogadora padrão
+# Notch - Criador do Minecraft
+# Dinnerbone - Entidade de cabeça para baixo
+# Herobrine - Lendário

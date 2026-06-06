@@ -17,16 +17,16 @@ public final class PrefsMenu extends Menu {
             PrefsToggle.Category.SOCIAL,
             PrefsToggle.Category.VISIBILITY,
             PrefsToggle.Category.CHAT,
+            PrefsToggle.Category.NOTIFICATIONS,
             PrefsToggle.Category.ANTICHEAT,
             PrefsToggle.Category.STAFF
     };
 
-    private static final int[][] SECTION_SLOTS = {
-            {10, 11},
-            {19, 20},
-            {28, 29},
-            {31, 32},
-            {37, 38}
+    private static final int[] ITEM_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43
     };
 
     private final Account account;
@@ -50,21 +50,19 @@ public final class PrefsMenu extends Menu {
                         ModernText.action("Clique para alternar")
                 ));
 
-        int sectionIndex = 0;
+        int slotIdx = 0;
+        int[] slots = ITEM_SLOTS;
+
         for (PrefsToggle.Category category : LAYOUT_ORDER) {
             if (!hasVisibleInCategory(category)) continue;
-            if (sectionIndex >= SECTION_SLOTS.length) break;
+            if (slotIdx >= slots.length) break;
 
-            int headerSlot = SECTION_SLOTS[sectionIndex][0];
-            int toggleSlot = SECTION_SLOTS[sectionIndex][1];
-            sectionIndex++;
-
-            set(headerSlot, categoryHeader(category));
+            set(slots[slotIdx++], categoryHeader(category));
 
             for (PrefsToggle toggle : PrefsToggle.byCategory(category)) {
                 if (!PrefsToggle.visible(toggle, account)) continue;
-                if (toggleSlot > headerSlot + 6) break;
-                set(toggleSlot++, toggleItem(toggle));
+                if (slotIdx >= slots.length) break;
+                set(slots[slotIdx++], toggleItem(toggle));
             }
         }
 

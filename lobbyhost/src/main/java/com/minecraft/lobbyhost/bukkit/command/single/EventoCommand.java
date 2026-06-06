@@ -2,6 +2,7 @@ package com.minecraft.lobbyhost.bukkit.command.single;
 
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbySettings;
+import com.minecraft.lobbyhost.network.EventosAccessGuard;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
@@ -19,6 +20,10 @@ public final class EventoCommand implements CommandInheritor {
             usage = "/evento")
     public void execute(BukkitCommandContext ctx) {
         Player player = ctx.player();
+        if (EventosAccessGuard.isBlockedMode(LobbySettings.EVENTOS_SERVER)) {
+            EventosAccessGuard.sendBlocked(player);
+            return;
+        }
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1.5f);
         ctx.reply("§dConectando ao servidor de eventos...");
         BungeeCordUtil.connect(player, Core.getJavaPlugin(), LobbySettings.EVENTOS_SERVER);

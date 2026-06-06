@@ -26,7 +26,11 @@ public abstract class Menu {
     private Inventory inventory;
 
     protected Menu(Player player, String miniTitle, int rows, Menu parent) {
-        this(player, ModernText.parse(miniTitle), rows, parent);
+        this(player, titleFromString(miniTitle), rows, parent);
+    }
+
+    private static Component titleFromString(String text) {
+        return ModernText.parseLine(text);
     }
 
     protected Menu(Player player, Component title, int rows, Menu parent) {

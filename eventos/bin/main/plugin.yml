@@ -1,0 +1,110 @@
+name: eventos
+version: '${version}'
+main: com.minecraft.eventos.EventosPlugin
+api-version: '1.21'
+authors: [SavageLabs]
+description: Servidor de eventos staff (Sumo, Skit, Team) - Paper 1.21
+softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
+load: STARTUP
+
+commands:
+  start:
+    description: Inicia o countdown do evento
+    usage: /start [segundos]
+    permission: eventos.admin
+  sumo:
+    description: Ativa o modo Sumo
+    usage: /sumo
+    permission: eventos.admin
+  skit:
+    description: Aplica/define kit temporario
+    usage: /skit <subcomando>
+    permission: eventos.admin
+  team:
+    description: Distribui jogadores em times
+    usage: /team <subcomando>
+    permission: eventos.admin
+  variable:
+    description: Get/set variaveis globais do evento
+    usage: /variable <get|set|reset|list> [chave] [valor]
+    aliases: [var]
+    permission: eventos.admin
+  setspawn:
+    description: Define o spawn do evento
+    usage: /setspawn
+    permission: eventos.admin
+  setdie:
+    description: Define a posicao/Y de eliminacao
+    usage: /setdie
+    permission: eventos.admin
+  winner:
+    description: Declara vencedor do evento
+    usage: /winner <nick>
+    permission: eventos.admin
+  leave:
+    description: Sai do evento (envia para o hub)
+    usage: /leave
+    aliases: [sair, hub]
+  clearmobs:
+    description: Limpa mobs do mundo
+    usage: /clearmobs
+    permission: eventos.admin
+  account:
+    description: Mostra informacoes da sua conta
+    usage: /account [jogador]
+    aliases: [perfil, conta]
+    permission: eventos.staff
+  tag:
+    description: Lista/escolhe a sua tag
+    usage: /tag [nome]
+    aliases: [tags]
+  medal:
+    description: Lista/escolhe a sua medalha
+    usage: /medal [nome]
+    aliases: [medalha, medalhas]
+  prefixtype:
+    description: Modo de exibicao das tags
+    usage: /prefixtype [modo]
+    aliases: [prefixo, modotag]
+  prefs:
+    description: Preferencias da conta
+    usage: /prefs [list|toggle <chave>]
+    aliases: [preferencias]
+  eventosreload:
+    description: Recarrega configuracoes do plugin
+    usage: /eventosreload
+    permission: eventos.admin
+  evento:
+    description: Hub de eventos (modos, mapas, automaticos)
+    usage: /evento <subcomando>
+    aliases: [event]
+
+permissions:
+  eventos.*:
+    description: Acesso total
+    default: op
+    children:
+      eventos.admin: true
+      eventos.staff: true
+  eventos.admin:
+    default: op
+  eventos.staff:
+    default: false
+  eventos.player:
+    description: Comandos basicos de jogador no evento
+    default: true
+  eventos.commands.vanilla.bypass:
+    description: Permite usar comandos vanilla/Minecraft sem interceptacao
+    default: op
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      '*': true
+      eventos.*: true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      tag.*: true
+      medal.*: true

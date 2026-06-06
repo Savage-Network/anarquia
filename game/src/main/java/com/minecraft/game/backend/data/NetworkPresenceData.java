@@ -23,6 +23,32 @@ public final class NetworkPresenceData {
 
     private final HikariProvider database;
 
+    public void createTables() {
+        String sql = database.getType() == HikariProvider.DatabaseType.MYSQL
+                ? """
+                CREATE TABLE IF NOT EXISTS network_presence (
+                    player_id     VARCHAR(36)  NOT NULL PRIMARY KEY,
+                    player_name   VARCHAR(16)  NOT NULL,
+                    server_id     VARCHAR(32)  NOT NULL DEFAULT 'proxy',
+                    connected_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    last_seen_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )"""
+                : """
+                CREATE TABLE IF NOT EXISTS network_presence (
+                    player_id     TEXT NOT NULL PRIMARY KEY,
+                    player_name   TEXT NOT NULL,
+                    server_id     TEXT NOT NULL DEFAULT 'proxy',
+                    connected_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_seen_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )""";
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao criar tabela " + TABLE, e);
+        }
+    }
+
     public Optional<Presence> findOnline(UUID playerId) {
         if (playerId == null) return Optional.empty();
         String sql = database.getType() == HikariProvider.DatabaseType.MYSQL

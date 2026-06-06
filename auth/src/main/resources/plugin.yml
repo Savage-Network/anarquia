@@ -46,10 +46,23 @@ permissions:
   auth.commands.vanilla.bypass:
     description: Permite usar comandos vanilla/Minecraft sem interceptacao
     default: op
+  game.rank.lulu:
+    description: Rank exclusivo LULU (acesso total, abaixo do ZW)
+    default: false
+    children:
+      '*': true
+      auth.*: true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false
     children:
+      '*': true
       auth.*: true
       game.*: true
       lobbyhost.*: true

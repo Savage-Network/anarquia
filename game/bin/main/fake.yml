@@ -1,0 +1,103 @@
+enabled: false
+require-vip: true
+cooldown-ms: 60000
+
+hide-rank: true
+hide-medal: true
+hide-clan-tag: true
+hide-cosmetic-title: true
+
+apply-skin: true
+change-profile-name: true
+
+blocked-names:
+  - notch
+  - jeb_
+  - dinnerbone
+  - grumm
+  - owner
+  - admin
+  - staff
+  - mod
+  - helper
+  - savage
+  - savagemc
+
+random:
+  # list = sorteia so da lista | generate = prefixo+suffixo | mixed = alterna entre os dois
+  mode: list
+  names:
+    - DarkWolf
+    - SilentFox
+    - ProGamerBR
+    - xSkyLegend
+    - NeoCraft
+    - RedKing
+    - BlueStar
+    - UltraPvP
+    - RealPlayer
+    - MrLegend
+    - WolfKing
+    - FoxCraft
+    - StarBR
+    - ZeroCool
+    - NightHawk
+    - IronBlade
+    - FrostByte
+    - ShadowBR
+    - LuckyCat
+    - RapidFire
+    - TurboMine
+    - EpicMiner
+    - CraftHero
+    - PvPMaster
+    - SkyBuilder
+    - DiamondBR
+    - EmeraldFox
+    - BlazeKid
+    - StormHD
+    - GhostBR
+    - NinjaMC
+    - PixelBR
+    - VortexBR
+    - FrostGamer
+    - ThunderBR
+    - CosmicBR
+    - VenomBR
+    - PhantomBR
+    - BlazeFox
+    - NovaBR
+    - OmegaBR
+    - TitanBR
+    - HyperBR
+    - MysticBR
+    - RogueBR
+    - SageBR
+    - VoltBR
+    - ZenithBR
+  prefixes:
+    - Dark
+    - Silent
+    - Real
+    - Pro
+    - Mr
+    - xX
+    - Not
+    - Sky
+    - Red
+    - Blue
+    - Neo
+    - Ultra
+  suffixes:
+    - Gamer
+    - Player
+    - PvP
+    - Craft
+    - BR
+    - MC
+    - King
+    - Fox
+    - Wolf
+    - Star
+    - Legend
+    - Zero

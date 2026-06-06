@@ -47,7 +47,8 @@ public final class NetworkPublisher {
         boolean maint = settings.isMaintenanceEnabled();
         RankType min = settings.getMaintenanceMinRank();
         MaintenanceMode mode = settings.getMaintenanceMode();
-        String statusMsg = (maint ? "1" : "0") + "|" + min.name() + "|" + mode.name();
+        String statusMsg = (maint ? "1" : "0") + "|" + min.name() + "|" + mode.name()
+                + "|" + (com.minecraft.proxyhost.routing.EventosAccessGuard.isOpen() ? "1" : "0");
         Core.getRedis().publish(Constant.REDIS_NETWORK_STATUS_CHANNEL, statusMsg);
     }
 
@@ -57,6 +58,7 @@ public final class NetworkPublisher {
         boolean maint = settings.isMaintenanceEnabled();
         Core.getRedis().publish(Constant.REDIS_NETWORK_STATUS_CHANNEL,
                 (maint ? "1" : "0") + "|" + settings.getMaintenanceMinRank().name()
-                        + "|" + settings.getMaintenanceMode().name());
+                        + "|" + settings.getMaintenanceMode().name()
+                        + "|" + (com.minecraft.proxyhost.routing.EventosAccessGuard.isOpen() ? "1" : "0"));
     }
 }

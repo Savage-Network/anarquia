@@ -1,93 +1,22 @@
 package com.minecraft.game.bukkit.command.single;
 
 import com.minecraft.game.account.Account;
-import com.minecraft.game.account.context.objects.toggle.Toggle;
 import com.minecraft.game.bukkit.command.annotation.Command;
-import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
-import com.minecraft.game.bukkit.event.AccountTagEvent;
-import com.minecraft.game.util.TabCompleteUtil;
-import org.bukkit.Bukkit;
+import com.minecraft.game.bukkit.menu.prefs.PrefsMenu;
 
-import java.util.List;
-
-/**
- * Substituto textual do {@code PreferenceMenu} do Savage. Como a GUI completa
- * exige inventario chest custom, oferecemos um set de subcomandos rapidos.
- */
 public final class PrefsCommand implements CommandInheritor {
 
     @Command(name = "prefs", aliases = {"preferencias"}, playerOnly = true,
-            description = "Lista/altera preferencias da conta",
-            usage = "/prefs [list|toggle <chave>]")
+            description = "Preferencias da conta (menu)",
+            usage = "/prefs")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
-
-        if (ctx.getArgs().length == 0 || ctx.getArgs()[0].equalsIgnoreCase("list")) {
-            list(account);
+        if (account == null) {
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
-        if (ctx.getArgs()[0].equalsIgnoreCase("toggle") && ctx.getArgs().length >= 2) {
-            toggle(account, ctx.getArgs()[1]);
-            ctx.reply("§aPreferencia atualizada.");
-            return;
-        }
-        ctx.reply("§eUso: /prefs [list|toggle <chave>]");
-    }
-
-    private void list(Account account) {
-        Toggle t = account.getToggle();
-        account.send("§6§lPreferencias");
-        account.send(line("mensagens",        t.isAllowPrivateMessages()));
-        account.send(line("amizades",         t.isAllowFriendRequests()));
-        account.send(line("cla",              t.isAllowClanInvites()));
-        account.send(line("clantag",          t.isShowClanTag()));
-        account.send(line("stats",            t.isShowStats()));
-        account.send(line("joinmessage",      t.isAllowJoinMessage()));
-        if (account.isStaffer()) {
-            account.send(line("staffchat",    t.isStaffChat()));
-            account.send(line("autovanish",   t.isAutoVanish()));
-        }
-        account.send("§7Use §e/prefs toggle <chave>§7 para alternar.");
-    }
-
-    private String line(String key, boolean on) {
-        return "§7- §f" + key + "§7: " + (on ? "§aativado" : "§cdesativado");
-    }
-
-    private void toggle(Account account, String rawKey) {
-        Toggle t = account.getToggle();
-        switch (rawKey.toLowerCase()) {
-            case "mensagens", "messages"     -> t.setAllowPrivateMessages(!t.isAllowPrivateMessages());
-            case "amizades", "friends"       -> t.setAllowFriendRequests(!t.isAllowFriendRequests());
-            case "cla", "clan"               -> t.setAllowClanInvites(!t.isAllowClanInvites());
-            case "clantag" -> {
-                t.setShowClanTag(!t.isShowClanTag());
-                // Trigger update tab
-                Bukkit.getPluginManager().callEvent(new AccountTagEvent(account, account.getTag()));
-            }
-            case "stats"                     -> t.setShowStats(!t.isShowStats());
-            case "joinmessage"               -> t.setAllowJoinMessage(!t.isAllowJoinMessage());
-            case "staffchat"                 -> { if (account.isStaffer()) t.setStaffChat(!t.isStaffChat()); }
-            case "autovanish"                -> { if (account.isStaffer()) t.setAutoVanish(!t.isAutoVanish()); }
-            default -> { account.send("§cChave desconhecida."); return; }
-        }
-        account.markDirty();
-        list(account);
-    }
-
-    @Completer(name = "prefs", subCommands = {"preferencias"})
-    public List<String> tab(BukkitCommandContext ctx) {
-        Account account = ctx.account().orElse(null);
-        boolean staff = account != null && account.isStaffer();
-        if (ctx.getArgs().length == 1) {
-            return TabCompleteUtil.filter(ctx.getArgs()[0], TabCompleteUtil.prefToggleKeys(staff));
-        }
-        if (ctx.getArgs().length == 2 && "toggle".equalsIgnoreCase(ctx.getArgs()[0])) {
-            return TabCompleteUtil.filter(ctx.getArgs()[1], TabCompleteUtil.prefToggleValues(staff));
-        }
-        return List.of();
+        new PrefsMenu(ctx.player(), account).open();
     }
 }

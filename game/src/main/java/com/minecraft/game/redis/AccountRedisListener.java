@@ -8,6 +8,7 @@ import com.minecraft.game.api.punishment.PunishmentCategory;
 import com.minecraft.game.punishment.PunishmentService;
 import com.minecraft.game.anticheat.AnticheatAlertService;
 import com.minecraft.game.report.ReportService;
+import com.minecraft.game.bukkit.chat.TellBridge;
 import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,6 +27,10 @@ public final class AccountRedisListener extends JedisPubSub {
 
     @Override
     public void onMessage(String channel, String message) {
+        if (Constant.REDIS_PROXY_TELL_CHANNEL.equals(channel)) {
+            TellBridge.deliverFromRedis(message);
+            return;
+        }
         if (Constant.REDIS_NETWORK_REPORT_CHANNEL.equals(channel)) {
             Bukkit.getScheduler().runTask(plugin, () -> ReportService.deliverFromRedis(message));
             return;

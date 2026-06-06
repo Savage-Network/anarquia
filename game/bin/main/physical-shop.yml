@@ -1,0 +1,203 @@
+# Referência — loja PRESENCIAL no spawn (placas)
+# Copie para plugins/game/physical-shop.yml após deploy
+#
+# ═══════════════════════════════════════════════════════════════
+# COMO MONTAR (staff — permissão game.shop.admin)
+# ═══════════════════════════════════════════════════════════════
+# 1. Coloque um BAÚ ou BARRIL no chão
+# 2. Coloque uma PLACA em cima ou na lateral do baú
+# 3. Escreva EXATAMENTE (4 linhas):
+#
+#    Linha 1: [LojaServer]     ← loja do servidor (estoque infinito)
+#    Linha 2: Comprar          ← jogador compra do servidor
+#    Linha 3: NOME_MATERIAL    ← ex: DIAMOND (nome Bukkit, MAIÚSCULO)
+#    Linha 4: PRECO            ← preço POR UNIDADE (número)
+#
+# 4. Salve a placa — ela registra automaticamente
+# 5. Clique direito = 1 un | Shift + clique = 64 un
+#
+# Venda ao servidor (jogador vende itens):
+#    Linha 1: [LojaServer]
+#    Linha 2: Vender
+#    Linha 3: MATERIAL
+#    Linha 4: preço por unidade (use sell-prices.yml)
+#
+# Loja de jogador (fora do spawn): troque [LojaServer] por [Loja]
+#   e encha o baú com estoque. Permissão: game.shop.create
+# ═══════════════════════════════════════════════════════════════
+
+sign-format:
+  header: "[LojaServer]"
+  buy: "Comprar"
+  sell: "Vender"
+
+# Preço por UNIDADE — alinhado com shops.yml (pacote ÷ quantidade)
+buy-signs:
+  blocos:
+    - material: COBBLESTONE
+      unit_price: 2
+    - material: STONE
+      unit_price: 3
+    - material: DEEPSLATE
+      unit_price: 3
+    - material: OAK_LOG
+      unit_price: 4
+    - material: SPRUCE_LOG
+      unit_price: 4
+    - material: GLASS
+      unit_price: 5
+    - material: SAND
+      unit_price: 2
+    - material: GRAVEL
+      unit_price: 2
+    - material: BRICKS
+      unit_price: 8
+    - material: OBSIDIAN
+      unit_price: 100
+    - material: LADDER
+      unit_price: 5
+
+  comida:
+    - material: BREAD
+      unit_price: 3
+    - material: COOKED_BEEF
+      unit_price: 7
+    - material: COOKED_PORKCHOP
+      unit_price: 7
+    - material: GOLDEN_CARROT
+      unit_price: 50
+    - material: GOLDEN_APPLE
+      unit_price: 150
+    - material: MUSHROOM_STEW
+      unit_price: 25
+
+  pvp:
+    - material: IRON_SWORD
+      unit_price: 350
+    - material: IRON_AXE
+      unit_price: 320
+    - material: BOW
+      unit_price: 280
+    - material: ARROW
+      unit_price: 2
+    - material: SHIELD
+      unit_price: 400
+    - material: ENDER_PEARL
+      unit_price: 125
+    - material: GLOWSTONE
+      unit_price: 13
+    - material: COBWEB
+      unit_price: 50
+    - material: TNT
+      unit_price: 150
+
+  ferramentas:
+    - material: IRON_PICKAXE
+      unit_price: 400
+    - material: IRON_AXE
+      unit_price: 350
+    - material: IRON_SHOVEL
+      unit_price: 280
+    - material: SHEARS
+      unit_price: 100
+    - material: FLINT_AND_STEEL
+      unit_price: 150
+    - material: TORCH
+      unit_price: 2
+    - material: WATER_BUCKET
+      unit_price: 200
+    - material: LAVA_BUCKET
+      unit_price: 500
+
+  utilidades:
+    - material: CHEST
+      unit_price: 50
+    - material: BARREL
+      unit_price: 45
+    - material: CRAFTING_TABLE
+      unit_price: 50
+    - material: FURNACE
+      unit_price: 120
+    - material: ANVIL
+      unit_price: 1500
+    - material: ENCHANTING_TABLE
+      unit_price: 2500
+    - material: ENDER_CHEST
+      unit_price: 3500
+    - material: EXPERIENCE_BOTTLE
+      unit_price: 50
+    - material: HOPPER
+      unit_price: 800
+
+  farm:
+    - material: WHEAT_SEEDS
+      unit_price: 2
+    - material: CARROT
+      unit_price: 3
+    - material: POTATO
+      unit_price: 3
+    - material: BONE_MEAL
+      unit_price: 8
+    - material: OAK_SAPLING
+      unit_price: 10
+    - material: SUGAR_CANE
+      unit_price: 6
+    - material: CACTUS
+      unit_price: 6
+
+  mineracao:
+    - material: COAL
+      unit_price: 5
+    - material: IRON_INGOT
+      unit_price: 40
+    - material: GOLD_INGOT
+      unit_price: 50
+    - material: REDSTONE
+      unit_price: 4
+    - material: LAPIS_LAZULI
+      unit_price: 10
+    - material: DIAMOND
+      unit_price: 120
+    - material: EMERALD
+      unit_price: 80
+
+# Placas de VENDA (servidor compra do jogador) — preços de sell-prices.yml
+sell-signs:
+  - material: COBBLESTONE
+    unit_price: 1
+  - material: OAK_LOG
+    unit_price: 2
+  - material: COAL
+    unit_price: 4
+  - material: IRON_INGOT
+    unit_price: 18
+  - material: GOLD_INGOT
+    unit_price: 35
+  - material: DIAMOND
+    unit_price: 55
+  - material: EMERALD
+    unit_price: 45
+  - material: ENDER_PEARL
+    unit_price: 40
+  - material: GOLDEN_APPLE
+    unit_price: 45
+  - material: BLAZE_ROD
+    unit_price: 15
+
+# Exemplo de placa pronta (copiar linha a linha):
+examples:
+  comprar_pedregulho:
+    - "[LojaServer]"
+    - "Comprar"
+    - "COBBLESTONE"
+    - "2"
+  comprar_espada:
+    - "[LojaServer]"
+    - "Comprar"
+    - "IRON_SWORD"
+    - "350"
+  vender_diamante:
+    - "[LojaServer]"
+    - "Vender"
+    - "DIAMOND"
+    - "55"

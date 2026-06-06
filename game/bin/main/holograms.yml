@@ -1,0 +1,11 @@
+# Posicoes dos hologramas TextDisplay (definidas com /holo set <id>)
+# Tipos registrados: explicacao (mais podem ser adicionados no codigo)
+
+explicacao:
+  enabled: true
+  world: spawn
+  x: -12.90
+  y: 12.25
+  z: -120.07
+  yaw: -311.15
+  pitch: -1.87

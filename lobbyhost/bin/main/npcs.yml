@@ -1,0 +1,21 @@
+# NPCs do hub — Display entities 1.21 (Interaction + ItemDisplay + TextDisplay)
+# location = chave em architect.json
+
+enabled: true
+click-cooldown-ms: 500
+
+definitions:
+  npc_anarquia:
+    location: npc_anarquia
+    display-name: Semi Anarquia
+    hologram:
+      - "&4&lSEMI ANARQUIA"
+      - "&c&lSobreviva se puder!"
+      - "&7Clique para entrar"
+    skin:
+      player: desenharWASD
+    scale: 1.5
+    rotate: false
+    action:
+      type: BUNGEE
+      value: game

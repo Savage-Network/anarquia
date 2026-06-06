@@ -5,6 +5,8 @@ import com.minecraft.proxyhost.account.Account;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
 import com.minecraft.proxyhost.proxy.MaintenanceMode;
 import com.minecraft.proxyhost.proxy.MaintenanceScheduler;
+import com.minecraft.proxyhost.routing.EventosAccessController;
+import com.minecraft.proxyhost.routing.EventosAccessGuard;
 import com.minecraft.proxyhost.proxy.NetworkPublisher;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import com.minecraft.proxyhost.network.BroadcastService;
@@ -57,13 +59,14 @@ public final class ProxyCommand implements SimpleCommand {
             case "servers", "servidores" -> servers(src);
             case "reload" -> {
                 s.reload();
-                src.sendMessage(legacy("&aproxy-settings.yml recarregado."));
+                src.sendMessage(legacy("&aproxy-settings.yml e config.yml recarregados."));
             }
             case "motd" -> motd(src, s, args);
             case "maintenance", "manutencao", "maint" -> maintenance(src, s, args);
             case "maxplayers", "slots" -> maxPlayers(src, s, args);
             case "alert", "anuncio" -> alert(src, args);
             case "broadcast", "bc" -> broadcast(src, args);
+            case "eventos", "evento" -> eventosAccess(src, args);
             case "kicknonstaff" -> {
                 s.kickNonStaff(Core.getProxy());
                 src.sendMessage(legacy("&eJogadores sem acesso foram desconectados."));
@@ -403,7 +406,44 @@ public final class ProxyCommand implements SimpleCommand {
         src.sendMessage(legacy("&7MOTD L1: &f" + s.getMotdLine1()));
         src.sendMessage(legacy("&7MOTD L2: &f" + s.getMotdLine2()));
         src.sendMessage(legacy("&7Max ping: &f" + s.getMaxPlayersOverride()));
+        src.sendMessage(legacy("&7Eventos: " + (EventosAccessGuard.isOpen() ? "&aABERTO" : "&cFECHADO")));
         src.sendMessage(legacy(" "));
+    }
+
+    private void eventosAccess(CommandSource src, String[] args) {
+        if (args.length < 2) {
+            src.sendMessage(legacy("&6Eventos: " + (EventosAccessGuard.isOpen() ? "&aABERTO" : "&cFECHADO")));
+            src.sendMessage(legacy("&7Use &f/proxy eventos unlock &7| &flock &7| &ftoggle"));
+            return;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        boolean target;
+        switch (action) {
+            case "on", "enable", "unlock", "abrir", "open" -> target = true;
+            case "off", "disable", "lock", "fechar", "close" -> target = false;
+            case "toggle" -> target = !EventosAccessGuard.isOpen();
+            case "status", "info" -> {
+                src.sendMessage(legacy("&6Eventos: " + (EventosAccessGuard.isOpen() ? "&aABERTO" : "&cFECHADO")));
+                return;
+            }
+            default -> {
+                src.sendMessage(legacy("&cUse: /proxy eventos unlock|lock|toggle|status"));
+                return;
+            }
+        }
+        if (!EventosAccessController.setEnabled(target)) {
+            src.sendMessage(legacy("&7Eventos ja esta " + (target ? "&aaberto" : "&cfechado") + "&7."));
+            return;
+        }
+        if (target) {
+            broadcastStaff("&a[Proxy] &7Entrada nos &d&lEVENTOS &7&alibera&7 na rede.");
+            broadcastAll(legacy("&d&lEVENTOS &7— &aentrada liberada! &7Use &f/evento &7para conectar."));
+            src.sendMessage(legacy("&aEntrada nos eventos liberada."));
+        } else {
+            broadcastStaff("&c[Proxy] &7Entrada nos &d&lEVENTOS &7&cbloqueada&7.");
+            src.sendMessage(legacy("&cEntrada nos eventos bloqueada."));
+        }
+        publishSettings();
     }
 
     private void sendHelp(CommandSource src) {
@@ -416,6 +456,7 @@ public final class ProxyCommand implements SimpleCommand {
         src.sendMessage(legacy("&6/proxy maintenance in 5m [motivo] &7— agenda com avisos"));
         src.sendMessage(legacy("&6/proxy maintenance preview &7— ver tela de kick"));
         src.sendMessage(legacy("&6/proxy maxplayers &7| &6alert &7| &6broadcast &7| &6reload"));
+        src.sendMessage(legacy("&6/proxy eventos unlock|lock|toggle &7— libera/bloqueia eventos"));
     }
 
     private boolean canManage(CommandSource src) {
@@ -496,6 +537,10 @@ public final class ProxyCommand implements SimpleCommand {
             return filter(MOTD_SUBS, args[1]);
         }
 
+        if (("eventos".equalsIgnoreCase(args[0]) || "evento".equalsIgnoreCase(args[0])) && args.length == 2) {
+            return filter(EVENTOS_SUBS, args[1]);
+        }
+
         return List.of();
     }
 
@@ -506,7 +551,10 @@ public final class ProxyCommand implements SimpleCommand {
     }
 
     private static final List<String> TOP_LEVEL = List.of(
-            "help", "status", "servers", "motd", "maintenance", "maxplayers", "alert", "broadcast", "reload");
+            "help", "status", "servers", "motd", "maintenance", "eventos", "maxplayers", "alert", "broadcast", "reload");
+
+    private static final List<String> EVENTOS_SUBS = List.of(
+            "unlock", "lock", "toggle", "status", "on", "off", "open", "close");
 
     private static final List<String> MOTD_SUBS = List.of(
             "line1", "line2", "reset", "preview", "hide", "show");

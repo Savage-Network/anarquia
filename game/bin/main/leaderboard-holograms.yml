@@ -1,0 +1,15 @@
+# Hologramas de ranking (TextDisplay) — posicione com /holo set <tipo>
+# Tipos: kills, deaths, golds, kdr, clans
+# Atualizam automaticamente a cada refresh do cache (padrao: 1 min)
+# Force: /atualizarleaderboards
+
+kills:
+  enabled: false
+deaths:
+  enabled: false
+golds:
+  enabled: false
+kdr:
+  enabled: false
+clans:
+  enabled: false

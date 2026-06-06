@@ -33,6 +33,15 @@ public final class ModernText {
         return MM.deserialize(mini);
     }
 
+    /** MiniMessage ou legacy §/& — evita ParsingException em lore mista. */
+    public static Component parseLine(String text) {
+        if (text == null || text.isBlank()) return Component.empty();
+        if (text.indexOf('§') >= 0 || text.indexOf('&') >= 0) {
+            return fromLegacy(text);
+        }
+        return parse(text);
+    }
+
     public static String legacy(String mini) {
         return LEGACY_HEX.serialize(parse(mini));
     }

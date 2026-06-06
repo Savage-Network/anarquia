@@ -245,9 +245,6 @@ public class Account {
         context.getRankInfo().setRank(normalized);
         RankType type = normalized.getType() != null ? normalized.getType() : RankType.MEMBER;
         setTag(Tag.of(type));
-        if (isOnline()) {
-            com.minecraft.game.bukkit.manager.PermissionManager.loadPermissions(player());
-        }
     }
 
     private static Rank normalizeRank(Rank rank) {
@@ -273,6 +270,10 @@ public class Account {
             if (rank != null && !rank.hasExpired() && rank.getType() != null && rank.getType().grants(key)) {
                 return true;
             }
+        }
+        if (getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && Tag.isWildcardPermissionKey(p.getKey()))) {
+            return true;
         }
         return getPermissions().stream()
                 .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
@@ -390,6 +391,9 @@ public class Account {
         }
         if (tag == Tag.TAG_ZW) {
             return rank == RankType.ZW;
+        }
+        if (tag == Tag.TAG_LULU) {
+            return rank == RankType.LULU;
         }
 
         switch (tag.getRole()) {

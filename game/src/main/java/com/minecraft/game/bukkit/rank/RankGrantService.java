@@ -76,6 +76,7 @@ public final class RankGrantService {
         account.setTag(Tag.of(type));
         RankMedals.applyRankMedals(account, type);
         account.markDirty();
+        refreshOnline(account);
     }
 
     public static void grantTemporary(Account account, RankType grantType, long durationMs) {
@@ -139,6 +140,7 @@ public final class RankGrantService {
                     .expiresAt(0L)
                     .build());
             account.markDirty();
+            refreshOnline(account);
             return RemoveRankOutcome.ok(
                     "Todos os ranks de §f" + account.getName() + " §aforam removidos. Rank atual: §7MEMBER§a.",
                     null);
@@ -159,6 +161,7 @@ public final class RankGrantService {
                         .build());
             }
             account.markDirty();
+            refreshOnline(account);
             return RemoveRankOutcome.ok(
                     "Rank §6" + type + " §aremovido de §f" + account.getName()
                             + "§a. Rank atual: §6" + account.getRankType() + "§a.",
@@ -168,6 +171,7 @@ public final class RankGrantService {
         boolean removed = account.getAvailableRanks().removeIf(r -> r != null && r.getType() == type);
         if (removed) {
             account.markDirty();
+            refreshOnline(account);
             return RemoveRankOutcome.ok(
                     "Rank §6" + type + " §aremovido dos ranks disponiveis de §f" + account.getName() + "§a.",
                     type);
@@ -202,6 +206,7 @@ public final class RankGrantService {
         }
 
         if (changed) account.markDirty();
+        if (changed) refreshOnline(account);
         return changed;
     }
 
@@ -217,6 +222,7 @@ public final class RankGrantService {
         account.setTag(Tag.of(grantType));
         RankMedals.applyRankMedals(account, grantType);
         account.markDirty();
+        refreshOnline(account);
     }
 
     private static void mergeAvailableRank(Account account, Rank grant, long durationMs) {

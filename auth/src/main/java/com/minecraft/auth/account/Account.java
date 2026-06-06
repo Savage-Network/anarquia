@@ -147,6 +147,11 @@ public class Account {
                 return true;
             }
         }
+        if (getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired()
+                        && com.minecraft.auth.account.context.objects.tag.Tag.isWildcardPermissionKey(p.getKey()))) {
+            return true;
+        }
         return getPermissions().stream()
                 .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }

@@ -9,6 +9,8 @@ import com.minecraft.lobbyhost.bukkit.display.PlayerDisplayService;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import com.minecraft.lobbyhost.network.NetworkStateCache;
 import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
+import com.minecraft.lobbyhost.network.EventosAccessGuard;
+import com.minecraft.lobbyhost.network.TellBridge;
 import com.minecraft.lobbyhost.api.punishment.PunishmentCategory;
 import com.minecraft.lobbyhost.punishment.PunishmentService;
 import com.minecraft.lobbyhost.anticheat.AnticheatAlertService;
@@ -40,6 +42,7 @@ public final class LobbyRedisSubscriber extends JedisPubSub {
                     // Entrega centralizada no proxy via Velocity.
                 }
                 case Constant.REDIS_NETWORK_STATUS_CHANNEL -> onNetworkStatus(message);
+                case Constant.REDIS_PROXY_TELL_CHANNEL -> TellBridge.deliverFromRedis(message);
                 case Constant.REDIS_STATS_UPDATE_CHANNEL -> onStatsUpdate();
                 case Constant.REDIS_NETWORK_REPORT_CHANNEL -> onReport(message);
                 case Constant.REDIS_ANTICHEAT_ALERT_CHANNEL -> onAnticheatAlert(message);
@@ -105,6 +108,10 @@ public final class LobbyRedisSubscriber extends JedisPubSub {
             }
         }
         NetworkStateCache.setMaintenance(maint, min);
+        if (parts.length >= 4) {
+            boolean eventosOpen = "1".equals(parts[3].trim()) || "true".equalsIgnoreCase(parts[3].trim());
+            EventosAccessGuard.syncFromNetwork(eventosOpen);
+        }
     }
 
     private void onStatsUpdate() {

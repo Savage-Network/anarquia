@@ -6,6 +6,8 @@ import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.backend.data.ReportData;
 import com.minecraft.game.backend.model.PlayerReport;
+import com.minecraft.game.config.DiscordConfig;
+import com.minecraft.game.util.DiscordWebhookUtil;
 import com.minecraft.game.util.ModernText;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -139,6 +141,20 @@ public final class ReportService {
             Core.getRedis().publish(Constant.REDIS_NETWORK_REPORT_CHANNEL, payload);
         }
         notifyStaffLocal(id, reporter, target, reason, shortDetails);
+        notifyDiscord(id, reporter, target, reason, shortDetails);
+    }
+
+    private static void notifyDiscord(long id, String reporter, String target,
+                                        ReportReason reason, String details) {
+        if (!DiscordConfig.isEnabled() || !DiscordConfig.feature("report-notifications")) return;
+        StringBuilder msg = new StringBuilder("#").append(id)
+                .append(" | ").append(reporter).append(" → ").append(target)
+                .append(" | ").append(reason.label())
+                .append(" | ").append(serverId());
+        if (details != null && !details.isBlank() && !"-".equals(details)) {
+            msg.append(" | ").append(details);
+        }
+        DiscordWebhookUtil.send("reports", msg.toString(), "Nova denúncia");
     }
 
     public static void notifyStaffLocal(long id, String reporter, String target,

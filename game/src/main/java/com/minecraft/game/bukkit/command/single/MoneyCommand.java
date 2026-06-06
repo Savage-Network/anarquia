@@ -70,6 +70,47 @@ public final class MoneyCommand implements CommandInheritor {
         target.sendMessage("§aVocê recebeu §f" + sym + amount + " §ado staff.");
     }
 
+    @Command(name = "pay", playerOnly = true,
+            usage = "/pay <jogador> <valor>", description = "Transfere dinheiro a outro jogador")
+    public void pay(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length < 2) {
+            ctx.reply("§cUso: /pay <jogador> <valor>");
+            return;
+        }
+
+        Account sender = ctx.account().orElse(null);
+        if (sender == null) { ctx.replyKey("errors.account-not-loaded"); return; }
+
+        Player target = Bukkit.getPlayerExact(ctx.getArgs()[0]);
+        if (target == null) { ctx.reply("§cJogador offline."); return; }
+        if (target.equals(ctx.player())) { ctx.reply("§cVocê não pode pagar a si mesmo."); return; }
+
+        Account targetAcc = Core.getAccountController().of(target.getUniqueId());
+        if (targetAcc == null) { ctx.replyKey("errors.account-not-loaded"); return; }
+
+        int amount;
+        try {
+            amount = Integer.parseInt(ctx.getArgs()[1]);
+        } catch (NumberFormatException e) {
+            ctx.reply("§cValor inválido.");
+            return;
+        }
+        if (amount <= 0) { ctx.reply("§cValor deve ser positivo."); return; }
+        if (!sender.removeGolds(amount)) {
+            ctx.reply("§cSaldo insuficiente. Você tem §f" + SemiAnarchyConfig.currencySymbol()
+                    + sender.getGolds() + "§c.");
+            return;
+        }
+
+        targetAcc.addGolds(amount);
+        sender.save();
+        targetAcc.save();
+
+        String sym = SemiAnarchyConfig.currencySymbol();
+        ctx.reply("§aVocê enviou §f" + sym + amount + " §apara §f" + target.getName() + "§a.");
+        target.sendMessage("§aVocê recebeu §f" + sym + amount + " §ade §f" + sender.getName() + "§a.");
+    }
+
     @Command(name = "moneytake", aliases = {"takemoney", "removemoney"}, playerOnly = false,
             rank = RankType.ADMIN, permission = "game.money.take",
             usage = "/moneytake <jogador> <valor>", description = "Remove dinheiro de um jogador")
@@ -117,5 +158,12 @@ public final class MoneyCommand implements CommandInheritor {
     @Completer(name = "moneytake", subCommands = {"takemoney", "removemoney"})
     public List<String> tabMoneyTake(BukkitCommandContext ctx) {
         return tabMoneyGive(ctx);
+    }
+
+    @Completer(name = "pay")
+    public List<String> tabPay(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) return TabCompleteUtil.onlinePlayers(ctx.getArgs()[0]);
+        if (ctx.getArgs().length == 2) return TabCompleteUtil.filter(ctx.getArgs()[1], "100", "500", "1000", "5000");
+        return List.of();
     }
 }

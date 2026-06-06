@@ -1,0 +1,40 @@
+# proxyhost — roteamento da rede + banco/redis
+# Discord: plugins/proxyhost/discord.yml | MOTD/manutenção: proxy-settings.yml
+
+routing:
+  auth-server: auth
+  lobby-server: lobby
+  default-fallback: lobby
+  # Ao cair de um backend (restart/offline), redireciona ao lobby em vez de kick feio
+  on-disconnect-target: "lobby"
+  log-decisions: true
+  trust-saved-auth: true
+  eventos-server: eventos
+  eventos-access:
+    enabled: false
+    message:
+      - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      - "&d&lEVENTOS"
+      - ""
+      - "&7O servidor de eventos ainda esta &eem desenvolvimento&7."
+      - "&7Volte em breve!"
+      - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+dev:
+  enabled: false
+
+database:
+  type: MYSQL
+  mysql:
+    host: mysql52-farm1.kinghost.net
+    port: 3306
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
+  sqlite-file: ../../shared/anarquia-dev.db
+
+redis:
+  enabled: true
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"

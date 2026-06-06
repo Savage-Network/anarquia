@@ -1,0 +1,135 @@
+# Webhook: plugins/game/discord.yml → webhooks.anticheat
+enabled: true
+alert-staff: true
+
+# Compensação de TPS/ping (estilo GrimAC/Vulcan)
+lag-compensation: true
+
+# Setback: teleporta jogador à última posição válida em flags de movimento
+setback:
+  enabled: true
+
+# Buffer: quantas detecções consecutivas antes de alertar (por check)
+buffers:
+  default: 2
+  movement: 3
+  combat: 2
+  world: 2
+  player: 2
+
+# Decay: reduz VL total ao longo do tempo
+vl-decay:
+  enabled: true
+  interval-ticks: 1200
+  amount: 1
+
+punishments:
+  enabled: false
+  kick-vl: 25
+  ban-vl: 50
+  reset-vl-on-quit: true
+
+checks:
+  fly:
+    enabled: true
+    air-ticks: 32
+  speed:
+    enabled: true
+    ground-limit: 0.68
+    air-limit: 0.58
+    sprint-bonus: 0.08
+  no-fall:
+    enabled: true
+    min-fall: 4.0
+  high-jump:
+    enabled: true
+    max-delta-y: 0.85
+  jesus:
+    enabled: true
+  step:
+    enabled: true
+    max-step: 1.25
+  elytra:
+    enabled: true
+    max-speed: 1.85
+  blink:
+    enabled: true
+    max-delta: 9.0
+  ground-spoof:
+    enabled: true
+  no-slow:
+    enabled: true
+    max-speed: 0.22
+  strafe:
+    enabled: true
+    min-speed: 0.35
+    max-yaw-delta: 75
+
+  reach:
+    enabled: true
+    max-reach: 3.35
+  hitbox:
+    enabled: true
+    max-reach: 3.05
+  wall-hit:
+    enabled: true
+  kill-aura:
+    enabled: true
+    max-targets: 3
+    window-ms: 500
+  auto-click:
+    enabled: true
+    max-cps: 22
+  no-swing:
+    enabled: true
+    max-ms: 350
+  velocity:
+    enabled: true
+    min-ratio: 0.35
+    delay-ticks: 3
+  criticals:
+    enabled: true
+  aim-assist:
+    enabled: true
+    max-rotation: 45
+  multi-hit:
+    enabled: true
+    max-hits: 2
+
+  fast-break:
+    enabled: true
+    min-break-ms: 80
+  fast-place:
+    enabled: true
+    max-per-second: 14
+  scaffold:
+    enabled: true
+  nuker:
+    enabled: true
+    max-per-second: 18
+  air-place:
+    enabled: true
+  ghost-hand:
+    enabled: true
+    max-reach: 6.0
+
+  fast-eat:
+    enabled: true
+    min-eat-ms: 1400
+  fast-bow:
+    enabled: true
+    min-draw-ms: 350
+  timer:
+    enabled: true
+    max-moves-per-second: 22
+  inventory-move:
+    enabled: true
+    speed-limit: 0.45
+  auto-totem:
+    enabled: true
+    min-ms: 150
+  auto-armor:
+    enabled: true
+    min-ms: 120
+  multi-action:
+    enabled: true

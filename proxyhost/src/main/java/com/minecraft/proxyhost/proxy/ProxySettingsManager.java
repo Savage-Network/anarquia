@@ -123,6 +123,16 @@ public final class ProxySettingsManager {
         if (com.minecraft.proxyhost.whitelist.WhitelistManager.get() != null) {
             com.minecraft.proxyhost.whitelist.WhitelistManager.get().reload();
         }
+        reloadRoutingConfig();
+    }
+
+    /** Recarrega config.yml (roteamento, eventos, discord). */
+    public void reloadRoutingConfig() {
+        try {
+            Core.getPlugin().reloadRoutingConfig();
+        } catch (Exception e) {
+            Core.getLogger().warn("Falha ao recarregar config.yml: " + e.getMessage());
+        }
     }
 
     /* ----- MOTD ----- */

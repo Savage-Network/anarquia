@@ -17,6 +17,7 @@ import com.minecraft.lobbyhost.message.Messages;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
 import com.minecraft.lobbyhost.redis.LobbyRedisSubscriber;
+import com.minecraft.lobbyhost.network.EventosAccessGuard;
 import com.minecraft.lobbyhost.network.NetworkPollTask;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
@@ -72,6 +73,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
         try {
             DiscordConfig.load(this);
+            EventosAccessGuard.load(getConfig());
             FileConfiguration config = getConfig();
 
             // 1) Banco de dados

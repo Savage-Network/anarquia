@@ -22,6 +22,10 @@ public final class EventosAccessGuard {
         blockedMessage = config.getStringList("routing.eventos-access.message", defaultMessage());
     }
 
+    public static void setEnabled(boolean enabled) {
+        accessEnabled = enabled;
+    }
+
     public static boolean isOpen() {
         return accessEnabled;
     }

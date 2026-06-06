@@ -6,7 +6,7 @@ import lombok.Setter;
 /**
  * Preferencias do jogador (espelho do {@code Toggle} do Savage).
  *
- * <p>Editavel via {@code /prefs}.
+ * <p>Editavel via {@code /prefs} (menu).
  */
 @Getter
 @Setter

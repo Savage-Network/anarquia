@@ -1,0 +1,39 @@
+# discord.yml — Discord SavageMC (lobbyhost.jar)
+# Webhooks e links usados por anticheat, reports, punições, etc.
+
+enabled: true
+
+invite:
+  display: "discord.gg/savagemc"
+  url: "https://discord.gg/savagemc"
+
+server:
+  guild-id: "1486476169770700883"
+  name: "SavageMC Discord"
+
+# Webhooks que o lobbyhost.jar pode enviar (URL completa do Discord)
+webhooks:
+  anticheat: "https://discord.com/api/webhooks/1512576077577326593/h4HHhZp28FqY1TwTvU568Xvo17xMXNF-0XSnN97gTS5GT5VTF8CqJrZw343MWJ4VIBXw"
+  reports: "https://discord.com/api/webhooks/1512222139388919969/HccjvSitbm-OXPFynfxEvYPUCxH2g3ZvPLQFoxrWTf_lDGW1AxSFR1wUZwN5oZBioTyF"
+  punishments: "https://discord.com/api/webhooks/1498739076302373014/JqVeU1qSC7Rj93vRJdGzeHitVdYpyCe08eUQvBZoTw830zDyyNEcGlsdORc1UEP2jfaZ"
+  staff-alerts: "https://discord.com/api/webhooks/1512576376606294179/rKSztV16YQF79OdbZQAdj-leLvWzMSuVC0B9Zxgu_0BtpNEBJ6M_PSTXfVKjXiZGswbg"
+
+# O que este plugin pode usar do Discord
+access:
+  - invite-command
+  - lobby-hologram
+  - player-reports
+  - staff-alerts
+  - invite-link
+
+features:
+  invite-command: true
+  lobby-hologram: true
+  report-notifications: true
+  staff-alerts: true
+
+messages:
+  invite-hint: "Discord: {invite}"
+  command-title: "DISCORD SAVAGE"
+  hologram-title: "DISCORD"
+  tab-footer: "DISCORD.SAVAGEMC.NET"

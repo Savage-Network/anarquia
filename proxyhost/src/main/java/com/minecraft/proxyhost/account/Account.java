@@ -198,6 +198,10 @@ public class Account {
                 return true;
             }
         }
+        if (getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && Tag.isWildcardPermissionKey(p.getKey()))) {
+            return true;
+        }
         return getPermissions().stream()
                 .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
@@ -247,7 +251,7 @@ public class Account {
                 nodes.addAll(Tag.STAFF_CHAT_NODES);
             }
         }
-        if (hasZwRank()) {
+        if (hasWildcardRank()) {
             nodes.add("*");
             nodes.add("game.*");
             nodes.add("lobbyhost.*");
@@ -260,14 +264,19 @@ public class Account {
         return nodes;
     }
 
-    private boolean hasZwRank() {
-        if (getRankType() == RankType.ZW) return true;
+    private boolean hasWildcardRank() {
+        if (getRankType().hasWildcardAccess()) return true;
         for (Rank rank : getAvailableRanks()) {
-            if (rank != null && !rank.hasExpired() && rank.getType() == RankType.ZW) {
+            if (rank != null && !rank.hasExpired()
+                    && rank.getType() != null && rank.getType().hasWildcardAccess()) {
                 return true;
             }
         }
-        return false;
+        for (Tag tag : Tag.values()) {
+            if (tag.hasWildcardAccess() && hasTag(tag)) return true;
+        }
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && Tag.isWildcardPermissionKey(p.getKey()));
     }
 
     /* ================================================================
@@ -293,6 +302,7 @@ public class Account {
         RankType rank = getRankType();
         if (tag == Tag.TAG_OWNER) return rank == RankType.OWNER;
         if (tag == Tag.TAG_ZW) return rank == RankType.ZW;
+        if (tag == Tag.TAG_LULU) return rank == RankType.LULU;
 
         switch (tag.getRole()) {
             case NONE:

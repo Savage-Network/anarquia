@@ -25,8 +25,8 @@ commands:
     usage: /prefixtype [modo]
     aliases: [prefixo, modotag]
   prefs:
-    description: Preferencias da conta
-    usage: /prefs [list|toggle <chave>]
+    description: Preferencias da conta (menu)
+    usage: /prefs
     aliases: [preferencias]
   lang:
     description: Escolhe o idioma das mensagens
@@ -201,6 +201,11 @@ commands:
     description: Conecta ao servidor de eventos
     usage: /evento
     aliases: [eventos]
+  eventosacesso:
+    description: Libera ou bloqueia entrada nos eventos (staff)
+    usage: /eventosacesso unlock|lock
+    permission: game.admin
+    aliases: [eventosunlock, eventoslock]
   adminkey:
     description: Gera, lista e concede VIP temporario (staff)
     usage: /adminkey gerar <RANK> <TEMPO> | /adminkey dar <jogador> <RANK> <TEMPO> | /adminkey listar
@@ -246,6 +251,25 @@ commands:
   acflags:
     description: Flags e VL de um jogador (Owner)
     usage: /acflags <jogador>
+  sorteio:
+    description: Sorteia jogador(es) online aleatorio(s)
+    usage: /sorteio [quantidade]
+    permission: game.sorteio
+    aliases: [raffle, sortear]
+  votacao:
+    description: Cria enquete com GUI de bau
+    usage: /votacao <opcao1> <opcao2> [opcao3] [opcao4] <segundos>
+    permission: game.votacao
+    aliases: [votação, vote, enquete, poll]
+  votacaoencerrar:
+    description: Encerra a votacao ativa
+    usage: /votacaoencerrar
+    permission: game.votacao
+    aliases: [encerrarvotacao, stopvote]
+  votar:
+    description: Abre a enquete ativa
+    usage: /votar
+    aliases: [voteopen, abrirvotacao]
 
 permissions:
   game.*:
@@ -267,8 +291,16 @@ permissions:
     default: false
     children:
       game.staffchat: true
+      game.sorteio: true
+      game.votacao: true
       lobbyhost.staffchat: true
       proxyhost.staffchat: true
+  game.sorteio:
+    description: Sortear jogadores online
+    default: op
+  game.votacao:
+    description: Criar e encerrar enquetes
+    default: op
   game.vip:
     description: Beneficios VIP
     default: false
@@ -413,10 +445,23 @@ permissions:
     default: false
     children:
       medal.y: true
+  game.rank.lulu:
+    description: Rank exclusivo LULU (acesso total, abaixo do ZW)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false
     children:
+      '*': true
       game.*: true
       lobbyhost.*: true
       proxyhost.*: true
@@ -477,8 +522,33 @@ permissions:
       proxyhost.staffchat: true
       game.staff: true
   tag.tag_zw:
+    description: Tag ZW (acesso total)
     default: false
     children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_lulu:
+    description: Tag LULU (acesso total)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
       game.staffchat: true
       lobbyhost.staffchat: true
       proxyhost.staffchat: true

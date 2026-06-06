@@ -47,6 +47,8 @@ public final class Constant {
     public static final String REDIS_STATS_UPDATE_CHANNEL = "stats-update-channel";
     public static final String REDIS_PROXY_TELL_CHANNEL = "proxy-tell-channel";
     public static final String REDIS_PROXY_STAFFCHAT_CHANNEL = "proxy-staffchat-channel";
+    /** Pedidos ao proxy (reload, eventos-access, etc.). */
+    public static final String REDIS_PROXY_SETTINGS_CHANNEL = "proxy-settings-channel";
     /** Canal Velocity/Paper para staff chat cross-server (substitui Redis). */
     public static final String STAFFCHAT_PLUGIN_CHANNEL = "savagemc:staffchat";
     public static final String REDIS_NETWORK_REPORT_CHANNEL = "network-report-channel";

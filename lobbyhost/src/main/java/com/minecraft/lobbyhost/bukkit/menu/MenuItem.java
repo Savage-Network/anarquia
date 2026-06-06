@@ -34,11 +34,11 @@ public final class MenuItem {
     }
 
     public MenuItem name(String legacyName) {
-        return nameComponent(Component.text(legacyName));
+        return nameComponent(ModernText.fromLegacy(legacyName));
     }
 
     public MenuItem miniName(String mini) {
-        return nameComponent(ModernText.noItalic(ModernText.parse(mini)));
+        return nameComponent(ModernText.noItalic(ModernText.parseLine(mini)));
     }
 
     public MenuItem nameComponent(Component name) {
@@ -56,7 +56,11 @@ public final class MenuItem {
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             for (String line : legacyLines) {
                 if (line == null) continue;
-                lore.add(ModernText.noItalic(Component.text(line)));
+                if (line.isEmpty()) {
+                    lore.add(Component.empty());
+                } else {
+                    lore.add(ModernText.noItalic(ModernText.fromLegacy(line)));
+                }
             }
             meta.lore(lore);
             stack.setItemMeta(meta);
@@ -72,7 +76,7 @@ public final class MenuItem {
                 if (line == null || line.isEmpty()) {
                     lore.add(Component.empty());
                 } else {
-                    lore.add(ModernText.noItalic(ModernText.parse(line)));
+                    lore.add(ModernText.noItalic(ModernText.parseLine(line)));
                 }
             }
             meta.lore(lore);

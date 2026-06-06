@@ -86,6 +86,7 @@ public final class GamePlugin extends JavaPlugin {
                 redis.subscribe(new AccountRedisListener(this),
                         Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
                         Constant.REDIS_NETWORK_ALERT_CHANNEL,
+                        Constant.REDIS_PROXY_TELL_CHANNEL,
                         Constant.REDIS_NETWORK_REPORT_CHANNEL,
                         Constant.REDIS_ANTICHEAT_ALERT_CHANNEL,
                         Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL,
@@ -129,6 +130,7 @@ public final class GamePlugin extends JavaPlugin {
                     playerVaultData,
                     accountIdentityData,
                     discordLinkData,
+                    networkPresenceData,
                     activityFeedData,
                     clanMarketData,
                     accountBackupData);
@@ -227,6 +229,7 @@ public final class GamePlugin extends JavaPlugin {
         AboveNameDisplay.shutdown();
         com.minecraft.game.bukkit.manager.CosmeticManager.shutdown();
         com.minecraft.game.bukkit.vanish.VanishService.shutdown();
+        com.minecraft.game.bukkit.poll.VoteService.shutdown();
         TagManager.stopAnimationTask();
         if (taskManager != null) taskManager.stop();
 

@@ -1,0 +1,71 @@
+# eventos.jar — infra + eventos automaticos
+
+database:
+  type: SQLITE
+  sqlite-file: ../../shared/anarquia-dev.db
+  mysql:
+    host: mysql52-farm1.kinghost.net
+    port: 3306
+    database: zrfa04
+    username: zrfa04
+    password: "savagemcanarchy67"
+
+redis:
+  enabled: true
+  host: space.rafa.rip
+  port: 25569
+  password: "SavageMCREDIS67"
+
+event:
+  post-end-target: lobby
+  min-players-default: 2
+  max-players-default: 50
+  starting-countdown: 30
+  ending-countdown: 10
+  auto-map-radius: 14
+  auto-generate-map: true
+  rewards:
+    winner-gold: 500
+    participant-gold: 50
+
+# Eventos automaticos — horarios em HH:mm (timezone abaixo)
+scheduler:
+  enabled: true
+  timezone: America/Sao_Paulo
+  tasks:
+    sumo-noon:
+      mode: sumo
+      times: ["12:00", "18:00", "22:00"]
+      days: ["Every"]
+      min-players: 2
+      announce-before: 60
+      auto-start-delay: 30
+      map-radius: 14
+      generate-map: true
+    spleef-afternoon:
+      mode: spleef
+      times: ["15:00", "21:00"]
+      days: ["Every"]
+      min-players: 2
+      announce-before: 60
+      auto-start-delay: 45
+      map-radius: 12
+      generate-map: true
+    tntrun-evening:
+      mode: tntrun
+      times: ["16:00", "20:00"]
+      days: ["Every"]
+      min-players: 2
+      announce-before: 45
+      auto-start-delay: 30
+      map-radius: 12
+      generate-map: true
+    blockparty-night:
+      mode: blockparty
+      times: ["23:00"]
+      days: ["Every"]
+      min-players: 2
+      announce-before: 60
+      auto-start-delay: 30
+      map-radius: 10
+      generate-map: true

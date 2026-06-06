@@ -71,7 +71,8 @@ public final class AuthPlugin extends JavaPlugin {
             if (redis.isEnabled()) {
                 redis.subscribe(new AccountRedisListener(this),
                         Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
-                        Constant.REDIS_NETWORK_ALERT_CHANNEL);
+                        Constant.REDIS_NETWORK_ALERT_CHANNEL,
+                        Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
             }
 
             // 3) Data layers
@@ -145,6 +146,7 @@ public final class AuthPlugin extends JavaPlugin {
         reloadConfig();
         AuthConfig.load(this);
         AuthMessages.reload(this);
+        com.minecraft.auth.config.DiscordConfig.load(this);
         getLogger().info("Configurações e mensagens recarregadas.");
     }
 }

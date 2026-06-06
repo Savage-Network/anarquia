@@ -5,6 +5,7 @@ import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.network.EventosAccessGuard;
 import com.minecraft.lobbyhost.network.NetworkStateCache;
 import com.minecraft.lobbyhost.network.QueueManager;
 import net.kyori.adventure.text.Component;
@@ -156,6 +157,10 @@ public final class LobbyMenus {
             player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.maintenance-join")));
             return;
         }
+        if (EventosAccessGuard.isBlockedMode(modeId)) {
+            EventosAccessGuard.sendBlocked(player);
+            return;
+        }
 
         player.closeInventory();
         QueueManager.join(player, mode.id());
@@ -210,12 +215,16 @@ public final class LobbyMenus {
             int liveOnline = liveCounts.getOrDefault(mode.bungeeServer(), 0);
             int online = Math.max(redisOnline, liveOnline);
             boolean serverOffline = isServerOffline(mode.heartbeatId());
-            boolean unavailable = blockJoin || serverOffline;
+            boolean eventosBlocked = EventosAccessGuard.isBlockedMode(mode.id());
+            boolean unavailable = blockJoin || serverOffline || eventosBlocked;
             List<String> lore = new ArrayList<>();
             if (blockJoin) {
                 lore.add(MenuTexts.mini(player, "menus.lobby.maintenance"));
                 lore.add(MenuTexts.mini(player, "menus.lobby.maintenance-lore"));
                 lore.add(MenuTexts.mini(player, "menus.lobby.maintenance-staff"));
+            } else if (eventosBlocked) {
+                lore.add("<!italic><light_purple><bold>Eventos indisponíveis</bold>");
+                lore.add(ModernText.mini("Em breve na rede SavageMC."));
             } else if (serverOffline) {
                 lore.add(MenuTexts.mini(player, "menus.lobby.offline"));
                 lore.add(MenuTexts.mini(player, "menus.lobby.offline-lore"));
@@ -273,10 +282,12 @@ public final class LobbyMenus {
     private static ItemStack labeledMini(Player player, Material material, String miniName, List<String> miniLore) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
-        meta.displayName(ModernText.noItalic(ModernText.parse(miniName)));
+        meta.displayName(ModernText.noItalic(ModernText.parseLine(miniName)));
         if (miniLore != null && !miniLore.isEmpty()) {
             meta.lore(miniLore.stream()
-                    .map(l -> ModernText.noItalic(ModernText.parse(l)))
+                    .map(l -> l == null || l.isEmpty()
+                            ? Component.empty()
+                            : ModernText.noItalic(ModernText.parseLine(l)))
                     .toList());
         }
         stack.setItemMeta(meta);

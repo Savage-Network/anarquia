@@ -9,6 +9,8 @@ import com.minecraft.game.api.punishment.PunishmentCategory;
 import com.minecraft.game.api.punishment.PunishmentReason;
 import com.minecraft.game.backend.data.AccountData;
 import com.minecraft.game.backend.data.PunishmentData;
+import com.minecraft.game.config.DiscordConfig;
+import com.minecraft.game.util.DiscordWebhookUtil;
 import com.minecraft.game.util.ModernText;
 import com.minecraft.game.util.PunishmentTimeUtil;
 import org.bukkit.Bukkit;
@@ -268,6 +270,26 @@ public final class PunishmentService {
                 + punishment.getId() + "|"
                 + (punishment.isActive() ? "APPLY" : "REVOKE");
         Core.getRedis().publish(Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL, payload);
+        notifyDiscord(punishment);
+    }
+
+    private static void notifyDiscord(Punishment punishment) {
+        if (!DiscordConfig.isEnabled() || !DiscordConfig.feature("punishment-logs")) return;
+        if (punishment == null || !punishment.isActive()) return;
+        String targetName = Bukkit.getOfflinePlayer(punishment.getPlayer()).getName();
+        if (targetName == null || targetName.isBlank()) {
+            targetName = punishment.getPlayer().toString();
+        }
+        String time = punishment.isTemporary()
+                ? PunishmentTimeUtil.formatRemaining(punishment.getExpiresAt())
+                : "Permanente";
+        String msg = punishment.getCategory().name()
+                + " | " + targetName
+                + " | " + punishment.getReason().getDisplayName()
+                + " | " + punishment.getCause()
+                + " | " + time
+                + " | " + punishment.getId();
+        DiscordWebhookUtil.send("punishments", msg, "Punição aplicada");
     }
 
     public record PunishmentResult(boolean success, String message, Punishment punishment, String targetName) {

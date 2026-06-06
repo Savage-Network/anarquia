@@ -1,0 +1,23 @@
+# Warps do spawn semi-anarquia (/warp <nome>)
+warps:
+  loja:
+    world: world
+    x: 10.5
+    y: 64.0
+    z: 0.5
+    yaw: -90
+    pitch: 0
+  mineracao:
+    world: world
+    x: -30.5
+    y: 64.0
+    z: 20.5
+    yaw: 0
+    pitch: 0
+  pvp:
+    world: world
+    x: 50.5
+    y: 64.0
+    z: -15.5
+    yaw: 90
+    pitch: 0

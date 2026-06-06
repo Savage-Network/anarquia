@@ -37,8 +37,10 @@ public enum RankType {
     DIRETOR    ("game.rank.diretor",     LegacyHex.ADMIN),
     VERMELHO   ("game.rank.vermelho",    LegacyHex.VERMELHO),
     OWNER      ("game.rank.owner",       LegacyHex.OWNER),
+    LULU       ("game.rank.lulu",        LegacyHex.LULU),
     ZW         ("game.rank.zw",          LegacyHex.ZW);
 
+    public static final String LULU_COLOR = LULU.color;
     public static final String ZW_COLOR = ZW.color;
 
     private final String permission;
@@ -53,7 +55,12 @@ public enum RankType {
     }
 
     public boolean isSuperAdmin() {
-        return this == ZW || this == OWNER || this == DIRETOR || this == VERMELHO;
+        return this == ZW || this == LULU || this == OWNER || this == DIRETOR || this == VERMELHO;
+    }
+
+    /** Rank com permissao wildcard (*) — ZW e LULU. */
+    public boolean hasWildcardAccess() {
+        return this == ZW || this == LULU;
     }
 
     public java.util.List<String> getPermissionNodes() {
@@ -87,7 +94,7 @@ public enum RankType {
     }
 
     public boolean grants(String key) {
-        if (this == ZW) return key != null && !key.isEmpty();
+        if (hasWildcardAccess()) return key != null && !key.isEmpty();
         if (key == null || key.isEmpty()) return false;
         for (String node : getPermissionNodes()) {
             if (matchesPermission(node, key)) return true;

@@ -51,7 +51,7 @@ public final class PermissionManager {
     }
 
     private static void expandZwNodes(Account account, Set<String> nodes) {
-        if (!hasZwRank(account)) return;
+        if (!hasWildcardRank(account)) return;
         nodes.add("*");
         nodes.add("auth.*");
         nodes.add("game.*");
@@ -65,14 +65,17 @@ public final class PermissionManager {
         }
     }
 
-    private static boolean hasZwRank(Account account) {
-        if (account.getRankType() == RankType.ZW) return true;
+    private static boolean hasWildcardRank(Account account) {
+        if (account.getRankType().hasWildcardAccess()) return true;
         for (Rank rank : account.getAvailableRanks()) {
-            if (rank != null && !rank.hasExpired() && rank.getType() == RankType.ZW) {
+            if (rank != null && !rank.hasExpired()
+                    && rank.getType() != null && rank.getType().hasWildcardAccess()) {
                 return true;
             }
         }
-        return false;
+        return account.getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired()
+                        && com.minecraft.auth.account.context.objects.tag.Tag.isWildcardPermissionKey(p.getKey()));
     }
 
     public static void unloadPermissions(Player player) {

@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import redis.clients.jedis.JedisPubSub;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public final class RedisListener extends JedisPubSub {
@@ -36,9 +37,37 @@ public final class RedisListener extends JedisPubSub {
     }
 
     private void onProxySettings(String message) {
-        if (!"reload".equalsIgnoreCase(message.trim())) return;
-        ProxySettingsManager settings = ProxySettingsManager.get();
-        if (settings != null) settings.reload();
+        String trimmed = message == null ? "" : message.trim();
+        if (trimmed.isEmpty()) return;
+
+        if ("reload".equalsIgnoreCase(trimmed)) {
+            ProxySettingsManager settings = ProxySettingsManager.get();
+            if (settings != null) settings.reload();
+            return;
+        }
+
+        if (trimmed.toLowerCase(Locale.ROOT).startsWith("eventos-access|")) {
+            String[] parts = trimmed.split("\\|", 2);
+            if (parts.length < 2) return;
+            Boolean enabled = parseToggle(parts[1]);
+            if (enabled == null) return;
+            boolean changed = com.minecraft.proxyhost.routing.EventosAccessController.setEnabled(enabled);
+            if (changed) {
+                Core.getLogger().info("Eventos access {} via Redis.", enabled ? "ABERTO" : "FECHADO");
+            }
+        }
+    }
+
+    private static Boolean parseToggle(String raw) {
+        if (raw == null) return null;
+        String v = raw.trim().toLowerCase(Locale.ROOT);
+        if ("1".equals(v) || "true".equals(v) || "on".equals(v) || "open".equals(v) || "unlock".equals(v) || "abrir".equals(v)) {
+            return true;
+        }
+        if ("0".equals(v) || "false".equals(v) || "off".equals(v) || "close".equals(v) || "lock".equals(v) || "fechar".equals(v)) {
+            return false;
+        }
+        return null;
     }
 
     private void onPunishment(String message) {

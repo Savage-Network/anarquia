@@ -12,6 +12,7 @@ import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.backend.data.AccountIdentityData;
 import com.minecraft.game.backend.data.VipKeyData;
 import com.minecraft.game.backend.data.DiscordLinkData;
+import com.minecraft.game.backend.data.NetworkPresenceData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -40,6 +41,7 @@ public final class GameDatabaseSchema {
             PlayerVaultData playerVaultData,
             AccountIdentityData accountIdentityData,
             DiscordLinkData discordLinkData,
+            NetworkPresenceData networkPresenceData,
             com.minecraft.game.backend.data.ActivityFeedData activityFeedData,
             com.minecraft.game.backend.data.ClanMarketData clanMarketData,
             com.minecraft.game.backend.data.AccountBackupData accountBackupData) {
@@ -55,6 +57,7 @@ public final class GameDatabaseSchema {
         playerVaultData.createTables();
         accountIdentityData.createTables();
         discordLinkData.createTables();
+        networkPresenceData.createTables();
         activityFeedData.createTables();
         clanMarketData.createTables();
         accountBackupData.createTables();
@@ -62,9 +65,9 @@ public final class GameDatabaseSchema {
         createIndexes(database);
 
         Core.getLogger().info(
-                "Schema do game aplicado: accounts, account_identity, clans, network_stats, player_reports, "
-                        + "punishments, sign_shops, auction_listings, vip_keys, player_vaults, discord_links, "
-                        + "activity_feed, clan_market_listings, account_backups");
+                "Schema do game aplicado: accounts, account_identity, clans, network_stats, network_presence, "
+                        + "player_reports, punishments, sign_shops, auction_listings, vip_keys, player_vaults, "
+                        + "discord_links, activity_feed, clan_market_listings, account_backups");
     }
 
     /** Indices extras (idempotente via IF NOT EXISTS). */
@@ -73,6 +76,7 @@ public final class GameDatabaseSchema {
         index(database, "idx_clans_name", "clans(name)");
         index(database, "idx_clans_tag", "clans(tag)");
         index(database, "idx_network_stats_category", "network_stats(category)");
+        index(database, "idx_network_presence_seen", "network_presence(last_seen_at)");
         index(database, "idx_reports_status_created", "player_reports(status, created_at)");
         index(database, "idx_reports_target_created", "player_reports(target_uuid, created_at)");
         index(database, "idx_punishments_player", "punishments(player)");

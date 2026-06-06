@@ -1,0 +1,306 @@
+name: lobbyhost
+version: '${version}'
+main: com.minecraft.lobbyhost.LobbyHostPlugin
+api-version: '1.21'
+authors: [SavageLabs]
+description: Servidor hub + lobbies de modo (Paper 1.21)
+softdepend: [PlaceholderAPI, LuckPerms, ProtocolLib]
+load: STARTUP
+
+commands:
+  fly:
+    description: Alterna modo voo (VIP/staff)
+    usage: /fly
+    aliases: [voar]
+  mission:
+    description: Abre o menu de missoes diarias
+    usage: /mission
+    aliases: [missao, missoes]
+  lobbyprocess:
+    description: Comandos administrativos do lobby
+    usage: /lobbyprocess <subcomando>
+    permission: lobbyhost.admin
+    aliases: [lobbyadmin]
+  setdiscord:
+    description: Define a posicao do holograma do Discord
+    usage: /setdiscord
+    permission: lobbyhost.admin
+  discordhologram:
+    description: Recarrega o holograma do Discord
+    usage: /discordhologram
+    permission: lobbyhost.admin
+  cleandiscord:
+    description: Remove o holograma do Discord
+    usage: /cleandiscord
+    permission: lobbyhost.admin
+  play:
+    description: Abre o menu de selecao de modos
+    usage: /play
+  evento:
+    description: Conecta ao servidor de eventos
+    usage: /evento
+    aliases: [eventos]
+  eventosacesso:
+    description: Libera ou bloqueia entrada nos eventos (staff)
+    usage: /eventosacesso [menu|unlock|lock|toggle|status]
+    permission: lobbyhost.admin
+    aliases: [eventosunlock, eventoslock]
+  amigo:
+    description: Amigos — pedidos, lista e GUI
+    usage: /amigo [add|aceitar|remover|lista] [nick]
+    aliases: [amigos, friend, friends]
+  anuncio:
+    description: Anuncio global na rede (staff)
+    usage: /anuncio <mensagem>
+    permission: lobbyhost.staff
+    aliases: [broadcast, alerta]
+  account:
+    description: Perfil da conta ou edicao staff
+    usage: /account [jogador] | /account setrank|remrank|settag|remtag|setpackage|rempackage|packages ...
+    aliases: [perfil, conta, a]
+  tag:
+    description: Lista/escolhe a sua tag
+    usage: /tag [nome]
+    aliases: [tags]
+  medal:
+    description: Lista/escolhe a sua medalha
+    usage: /medal [nome]
+    aliases: [medalha, medalhas]
+  prefixtype:
+    description: Modo de exibicao das tags
+    usage: /prefixtype [modo]
+    aliases: [prefixo, modotag]
+  prefs:
+    description: Preferencias da conta (menu)
+    usage: /prefs
+    aliases: [preferencias]
+  lang:
+    description: Escolhe o idioma das mensagens
+    usage: /lang
+    aliases: [language, idioma]
+  cash:
+    description: Consulta cash de rede
+    usage: /cash [jogador]
+    aliases: [coins, moedas]
+  cashgive:
+    description: Da cash de rede (admin)
+    usage: /cashgive <jogador> <valor>
+    permission: lobbyhost.cash.give
+    aliases: [givecash, addcash]
+  cashtake:
+    description: Remove cash de rede (admin)
+    usage: /cashtake <jogador> <valor>
+    permission: lobbyhost.cash.take
+    aliases: [takecash, removecash]
+  cashpay:
+    description: Envia cash para outro jogador
+    usage: /cashpay <jogador> <valor>
+    aliases: [paycash, enviarcash]
+  chat:
+    description: Chat — ignore, clearchat, lock, slow
+    usage: /chat [help|ignore|clear|lock|unlock|slow] ...
+    aliases: [c]
+  clearchat:
+    description: Limpa o chat (staff)
+    usage: /clearchat
+    permission: lobbyhost.chat.mod
+  chatlock:
+    description: Trava o chat publico (staff)
+    usage: /chatlock
+    permission: lobbyhost.chat.mod
+  chatunlock:
+    description: Libera o chat publico (staff)
+    usage: /chatunlock
+    permission: lobbyhost.chat.mod
+  staffchat:
+    description: Chat da equipe (rede)
+    usage: /sc <mensagem>
+    permission: lobbyhost.staffchat
+    aliases: [sc]
+  leaderboard:
+    description: Rankings globais (kills, money, clãs)
+    usage: /leaderboard
+    aliases: [lb, ranking, top]
+  vanish:
+    description: Modo invisivel staff
+    usage: /vanish [on|off|list|fakejoin|fakequit]
+    permission: lobbyhost.vanish
+    aliases: [v]
+  report:
+    description: Denuncia um jogador
+    usage: /report [nick] [motivo] [detalhes]
+    aliases: [denunciar, denuncia]
+  reports:
+    description: Gerencia denuncias (staff)
+    usage: /reports [list|info|close|tp] [id]
+    permission: lobbyhost.reports
+    aliases: [denuncias]
+  punir:
+    description: Pune um jogador (ban/mute)
+    usage: /punir <jogador>
+    permission: lobbyhost.punish
+    aliases: [punish, p]
+  despunir:
+    description: Revoga punição por ID
+    usage: /despunir <ID> <motivo>
+    permission: lobbyhost.unpunish
+    aliases: [unpunish, unban, unmute]
+  cban:
+    description: Ban por cheating
+    usage: /cban <nick> <tempo>
+    permission: lobbyhost.cban
+  ban:
+    description: Ban por regras da comunidade
+    usage: /ban <nick> [tempo] [motivo]
+    permission: lobbyhost.ban
+  kick:
+    description: Expulsa jogador online (sem ban)
+    usage: /kick <nick> [motivo]
+    permission: lobbyhost.kick
+  history:
+    description: Historico de punicoes
+    usage: /history <nick>
+    permission: lobbyhost.punish
+    aliases: [punishments, punicoes]
+  check:
+    description: Consulta punicao por ID ou jogador
+    usage: /check <ID|nick>
+    permission: lobbyhost.punish
+    aliases: [punishcheck, verpunicao]
+  skin:
+    description: Atualiza ou copia skin da Mojang
+    usage: /skin [nick]
+    aliases: [skinchanger, updateskin]
+  clan:
+    description: Sistema de clãs com painel GUI
+    usage: /clan [subcomando]
+    aliases: [cla]
+  clantag:
+    description: Altera a cor da clantag do seu clã
+    usage: /clantag <cor>
+    aliases: [clancor]
+  cc:
+    description: Chat privado do clã
+    usage: /cc <mensagem>
+    aliases: [c]
+  lobbyreload:
+    description: Recarrega configuracoes do plugin
+    usage: /lobbyreload
+    permission: lobbyhost.admin
+  npc:
+    description: Gerencia NPCs do hub (Display 1.21)
+    usage: /npc <reload|list|spawn|remove>
+    permission: lobbyhost.admin
+
+permissions:
+  lobbyhost.*:
+    description: Acesso total lobby (herda ranks OWNER+)
+    default: false
+    children:
+      lobbyhost.admin: true
+  lobbyhost.admin:
+    description: NPC, reload, hologramas
+    default: false
+  lobbyhost.commands.vanilla.bypass:
+    description: Permite comandos vanilla do Minecraft
+    default: false
+  lobbyhost.staff:
+    description: Staff base — vanish, fly, anuncio, sc
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+  lobbyhost.vip:
+    description: VIP — fly no lobby
+    default: false
+  lobbyhost.vanish:
+    description: /vanish (modo invisivel)
+    default: false
+  lobbyhost.vanish.see:
+    description: Ver staff invisivel
+    default: false
+  lobbyhost.staffchat:
+    description: /sc
+    default: false
+  lobbyhost.chat.mod:
+    description: /clearchat, /chat lock|unlock|slow (staff)
+    default: false
+  lobbyhost.report:
+    description: /report
+    default: true
+  lobbyhost.reports:
+    description: /reports (HELPER+)
+    default: false
+  lobbyhost.punish:
+    description: /punir e /history (HELPER+)
+    default: false
+  lobbyhost.unpunish:
+    description: /despunir (MOD+)
+    default: false
+  lobbyhost.cban:
+    description: /cban (MOD+)
+    default: false
+  lobbyhost.ban:
+    description: /ban (MOD+)
+    default: false
+  lobbyhost.kick:
+    description: /kick (HELPER+)
+    default: false
+  lobbyhost.fly:
+    description: /fly (VIP+ ou staff)
+    default: false
+  lobbyhost.cash.give:
+    description: /cashgive (ADMIN+)
+    default: false
+  lobbyhost.cash.take:
+    description: /cashtake (ADMIN+)
+    default: false
+  game.rank.member:
+    default: true
+  game.rank.vip:
+    default: false
+  game.rank.builder:
+    default: false
+  game.rank.helper:
+    default: false
+  game.rank.mod:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      lobbyhost.staff: true
+  game.rank.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      lobbyhost.staff: true
+  game.rank.admin:
+    default: false
+  game.rank.lulu:
+    description: Rank exclusivo LULU (acesso total, abaixo do ZW)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      '*': true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
