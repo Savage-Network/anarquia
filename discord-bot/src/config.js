@@ -47,6 +47,15 @@ export const config = {
       NATURE: 'Nature',
     },
   },
+  tickets: {
+    enabled: process.env.TICKETS_ENABLED !== 'false',
+    categoryId: process.env.TICKET_CATEGORY_ID || '',
+    staffRoleId: process.env.STAFF_ROLE_ID || '',
+    logsChannelId: process.env.TICKET_LOGS_CHANNEL_ID || '',
+    maxOpenPerUser: Number(process.env.TICKET_MAX_OPEN || 3),
+    storeUrl: process.env.STORE_URL || 'https://loja.savagemc.net',
+    discordInvite: process.env.DISCORD_INVITE || 'https://discord.gg/savagemc',
+  },
   minotar: (username, size = 120) =>
     `https://minotar.net/avatar/${encodeURIComponent(username)}/${size}`,
 };

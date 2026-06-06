@@ -7,6 +7,7 @@ import com.minecraft.lobbyhost.backend.data.AccountIdentityData;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
 import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
+import com.minecraft.lobbyhost.backend.data.NetworkPresenceData;
 import com.minecraft.lobbyhost.backend.data.PunishmentData;
 import com.minecraft.lobbyhost.backend.data.ReportData;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
@@ -43,6 +44,7 @@ public final class Core {
     @Getter @Setter private static AccountIdentityData accountIdentityData;
     @Getter @Setter private static ClanData clanData;
     @Getter @Setter private static NetworkStatsData networkStatsData;
+    @Getter @Setter private static NetworkPresenceData networkPresenceData;
     @Getter @Setter private static ReportData reportData;
     @Getter @Setter private static PunishmentData punishmentData;
 

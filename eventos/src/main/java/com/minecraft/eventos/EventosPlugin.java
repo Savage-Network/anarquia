@@ -9,10 +9,13 @@ import com.minecraft.eventos.bukkit.command.structure.BukkitCommandHandler;
 import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
 import com.minecraft.eventos.bukkit.listener.handler.ListenerHandler;
 import com.minecraft.eventos.bukkit.manager.TagManager;
-import com.minecraft.eventos.redis.AccountRedisListener;
-import com.minecraft.eventos.bukkit.manager.TaskManager;
+import com.minecraft.eventos.config.EventConfig;
+import com.minecraft.eventos.engine.EventEngine;
 import com.minecraft.eventos.game.Game;
 import com.minecraft.eventos.game.skit.SkitController;
+import com.minecraft.eventos.message.EventMessages;
+import com.minecraft.eventos.redis.AccountRedisListener;
+import com.minecraft.eventos.bukkit.manager.TaskManager;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,12 +23,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Plugin {@code eventos.jar} - servidor de eventos staff Paper 1.21.
- *
- * <p>Porting de {@code Eventos/.../Event.java}. Gerencia {@link Game} FSM
- * + {@link SkitController} + comandos staff.
- */
 @Getter
 public final class EventosPlugin extends JavaPlugin {
 
@@ -33,15 +30,20 @@ public final class EventosPlugin extends JavaPlugin {
     private static EventosPlugin instance;
 
     private TaskManager taskManager;
-    private Game game;
+    private EventEngine eventEngine;
     private SkitController skitController;
+
+    /** Compat legado */
+    public Game getGame() {
+        return eventEngine != null ? eventEngine.getSession() : null;
+    }
 
     @Override
     public void onLoad() {
         instance = this;
         Core.load(this);
         getLogger().info("======================================");
-        getLogger().info(" eventos.jar - staff events Paper 1.21");
+        getLogger().info(" eventos.jar - eventos staff + automaticos");
         getLogger().info("======================================");
     }
 
@@ -51,15 +53,15 @@ public final class EventosPlugin extends JavaPlugin {
         long start = System.currentTimeMillis();
 
         try {
+            EventMessages.load(this);
+            EventConfig.load(this);
             com.minecraft.eventos.config.DiscordConfig.load(this);
             FileConfiguration config = getConfig();
 
-            // 1) Banco
             HikariProvider database = new HikariProvider(this, config);
             database.init();
             Core.setDatabase(database);
 
-            // 2) Redis
             RedisProvider redis = new RedisProvider(this, config);
             redis.init();
             Core.setRedis(redis);
@@ -69,7 +71,6 @@ public final class EventosPlugin extends JavaPlugin {
                         Constant.REDIS_NETWORK_ALERT_CHANNEL);
             }
 
-            // 3) Data
             AccountIdentityData accountIdentityData = new AccountIdentityData(database);
             accountIdentityData.createTables();
             AccountData accountData = new AccountData(database);
@@ -77,30 +78,27 @@ public final class EventosPlugin extends JavaPlugin {
             Core.setAccountIdentityData(accountIdentityData);
             Core.setAccountData(accountData);
 
-            // 4) Controllers
             Core.setAccountController(new AccountController());
 
-            // 5) Game state machine
-            game = new Game();
+            eventEngine = new EventEngine(this);
+            eventEngine.init();
             skitController = new SkitController();
 
-            // 6) Task manager + pulse
             taskManager = new TaskManager(this);
             taskManager.start();
             startGamePulse();
 
-            // 6.5) Tag/medal/chat - Fase 2
             TagManager.startAnimationTask(this);
             AboveNameDisplay.startFollowTask(this);
 
-            // 7) Canal BungeeCord (para /leave e fim de evento)
             getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-            // 8) Scan
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
 
-            // 9) Reload contas online
+            getServer().getScheduler().runTask(this,
+                    () -> com.minecraft.eventos.bukkit.command.vanilla.AllowedCommandIndex.rebuild(this));
+
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->
                     Core.getAccountController().load(p.getUniqueId(), p.getName())));
 
@@ -117,6 +115,7 @@ public final class EventosPlugin extends JavaPlugin {
     public void onDisable() {
         AboveNameDisplay.shutdown();
         TagManager.stopAnimationTask();
+        if (eventEngine != null) eventEngine.shutdown();
         if (skitController != null) skitController.clear();
         if (taskManager != null) taskManager.stop();
 
@@ -131,12 +130,14 @@ public final class EventosPlugin extends JavaPlugin {
 
     private void startGamePulse() {
         Bukkit.getScheduler().runTaskTimer(this, () -> {
-            if (game != null) game.pulse();
+            if (eventEngine != null) eventEngine.pulse();
         }, 20L, 20L);
     }
 
     public void reloadAll() {
         reloadConfig();
-        getLogger().info("Configuracoes recarregadas.");
+        EventConfig.load(this);
+        EventMessages.reload(this);
+        getLogger().info("Configuracoes e mensagens recarregadas.");
     }
 }

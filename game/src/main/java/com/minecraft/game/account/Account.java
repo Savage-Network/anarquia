@@ -317,6 +317,17 @@ public class Account {
         return context.getGameStats();
     }
 
+    public com.minecraft.game.account.context.objects.stats.PlayerProgress getPlayerProgress() {
+        if (context.getPlayerProgress() == null) {
+            context.setPlayerProgress(new com.minecraft.game.account.context.objects.stats.PlayerProgress());
+        }
+        return context.getPlayerProgress();
+    }
+
+    public void setPlayerProgress(com.minecraft.game.account.context.objects.stats.PlayerProgress progress) {
+        context.setPlayerProgress(progress);
+    }
+
     public com.minecraft.game.account.context.objects.home.HomeMetadata getHomes() {
         if (context.getHomes() == null) {
             context.setHomes(new com.minecraft.game.account.context.objects.home.HomeMetadata());

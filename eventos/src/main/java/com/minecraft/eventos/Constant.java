@@ -43,6 +43,7 @@ public final class Constant {
     public static final String REDIS_ACCOUNT_PUNISHMENTS_CHANNEL = "account-punishments-channel";
     public static final String REDIS_ACCOUNT_GLOBAL_MESSAGE_CHANNEL = "account-global-message-channel";
     public static final String REDIS_NETWORK_ALERT_CHANNEL = "network-alert-channel";
+    public static final String REDIS_EVENT_LIVE_CHANNEL = "eventos-live-channel";
 
     public static final String[] REDIS_CHANNELS = new String[]{
             REDIS_ACCOUNT_UPDATE_CHANNEL,

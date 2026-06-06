@@ -55,6 +55,26 @@ pt:
     bucket-blocked: "<red>Voce nao pode usar baldes na area protegida do spawn."
   minecraft:
     advancement: "<yellow>{player} <gray>conquistou <green>{title}"
+  vanilla:
+    plugins:
+      line: "<gray>Plugins (1): <green>{plugin}"
+    help:
+      intro: "<gray>Comandos principais do servidor:"
+      footer: "<dark_gray>Mais info em <yellow>/livro"
+    unknown:
+      body: "<red>Comando <yellow>{command} <red>nao existe neste servidor."
+    default:
+      body: "<gray>O comando <yellow>{command} <gray>nao esta disponivel aqui."
+    admin:
+      body: "<gray>O comando <yellow>{command} <gray>e exclusivo da equipe."
+    teleport:
+      body: "<gray>Teleporte vanilla desativado. Use os comandos do servidor."
+    world:
+      body: "<gray>Comandos de mundo/mapa nao estao liberados."
+    social:
+      body: "<gray>Use o chat e sistemas sociais do SavageMC."
+    info:
+      body: "<gray>Informacao indisponivel via comando vanilla."
   combat:
     tagged: "<red>Voce entrou em combate! Nao deslogue por <yellow>{seconds}<red>s."
     tag-expired: "<green>Voce saiu do combate."
@@ -402,6 +422,26 @@ en:
     bucket-blocked: "<red>You cannot use buckets in the protected spawn area."
   minecraft:
     advancement: "<yellow>{player} <gray>has made the advancement <green>{title}"
+  vanilla:
+    plugins:
+      line: "<gray>Plugins (1): <green>{plugin}"
+    help:
+      intro: "<gray>Main server commands:"
+      footer: "<dark_gray>More info at <yellow>/livro"
+    unknown:
+      body: "<red>Command <yellow>{command} <red>does not exist on this server."
+    default:
+      body: "<gray>Command <yellow>{command} <gray>is not available here."
+    admin:
+      body: "<gray>Command <yellow>{command} <gray>is staff-only."
+    teleport:
+      body: "<gray>Vanilla teleport disabled. Use server commands instead."
+    world:
+      body: "<gray>World/map commands are not enabled."
+    social:
+      body: "<gray>Use SavageMC chat and social features."
+    info:
+      body: "<gray>Info unavailable via vanilla commands."
   combat:
     tagged: "<red>You are in combat! Do not log out for <yellow>{seconds}<red>s."
     tag-expired: "<green>You are no longer in combat."

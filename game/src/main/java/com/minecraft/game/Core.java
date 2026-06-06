@@ -55,6 +55,10 @@ public final class Core {
     @Getter @Setter private static PlayerVaultData playerVaultData;
     @Getter @Setter private static AccountIdentityData accountIdentityData;
     @Getter @Setter private static DiscordLinkData discordLinkData;
+    @Getter @Setter private static com.minecraft.game.backend.data.NetworkPresenceData networkPresenceData;
+    @Getter @Setter private static com.minecraft.game.backend.data.ActivityFeedData activityFeedData;
+    @Getter @Setter private static com.minecraft.game.backend.data.ClanMarketData clanMarketData;
+    @Getter @Setter private static com.minecraft.game.backend.data.AccountBackupData accountBackupData;
 
     public static void load(GamePlugin plugin) {
         javaPlugin = plugin;

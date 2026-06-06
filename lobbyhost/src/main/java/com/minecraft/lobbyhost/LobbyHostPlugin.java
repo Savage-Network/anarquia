@@ -6,6 +6,7 @@ import com.minecraft.lobbyhost.backend.data.AccountIdentityData;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
 import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
+import com.minecraft.lobbyhost.backend.data.NetworkPresenceData;
 import com.minecraft.lobbyhost.backend.sync.StatsBackfillService;
 import com.minecraft.lobbyhost.leaderboard.LeaderboardCache;
 import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
@@ -104,6 +105,10 @@ public final class LobbyHostPlugin extends JavaPlugin {
             networkStatsData.createTables();
             Core.setNetworkStatsData(networkStatsData);
 
+            NetworkPresenceData networkPresenceData = new NetworkPresenceData(database);
+            networkPresenceData.createTables();
+            Core.setNetworkPresenceData(networkPresenceData);
+
             com.minecraft.lobbyhost.backend.data.ReportData reportData =
                     new com.minecraft.lobbyhost.backend.data.ReportData(database);
             reportData.createTables();
@@ -161,6 +166,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
             getLogger().info("Plugin lobbyhost habilitado em "
                     + (System.currentTimeMillis() - start) + "ms.");
+
+            getServer().getScheduler().runTask(this,
+                    () -> com.minecraft.lobbyhost.bukkit.command.vanilla.AllowedCommandIndex.rebuild(this));
         } catch (Throwable t) {
             getLogger().severe("Falha critica ao inicializar o plugin lobbyhost:");
             t.printStackTrace();

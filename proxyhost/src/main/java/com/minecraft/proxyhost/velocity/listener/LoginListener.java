@@ -2,6 +2,7 @@ package com.minecraft.proxyhost.velocity.listener;
 
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.Account;
+import com.minecraft.proxyhost.proxy.MaintenanceActionBar;
 import com.minecraft.proxyhost.util.DisconnectMessages;
 import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
@@ -44,6 +45,7 @@ public final class LoginListener {
     @Subscribe
     public void onServerSwitch(ServerPostConnectEvent event) {
         Player p = event.getPlayer();
+        MaintenanceActionBar.sync(p);
         Account a = Core.getAccountController().of(p.getUniqueId());
         if (a == null) return;
 

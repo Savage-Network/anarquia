@@ -46,7 +46,8 @@ public final class NetworkPublisher {
 
         boolean maint = settings.isMaintenanceEnabled();
         RankType min = settings.getMaintenanceMinRank();
-        String statusMsg = (maint ? "1" : "0") + "|" + min.name();
+        MaintenanceMode mode = settings.getMaintenanceMode();
+        String statusMsg = (maint ? "1" : "0") + "|" + min.name() + "|" + mode.name();
         Core.getRedis().publish(Constant.REDIS_NETWORK_STATUS_CHANNEL, statusMsg);
     }
 
@@ -55,6 +56,7 @@ public final class NetworkPublisher {
         if (settings == null || Core.getRedis() == null || !Core.getRedis().isEnabled()) return;
         boolean maint = settings.isMaintenanceEnabled();
         Core.getRedis().publish(Constant.REDIS_NETWORK_STATUS_CHANNEL,
-                (maint ? "1" : "0") + "|" + settings.getMaintenanceMinRank().name());
+                (maint ? "1" : "0") + "|" + settings.getMaintenanceMinRank().name()
+                        + "|" + settings.getMaintenanceMode().name());
     }
 }

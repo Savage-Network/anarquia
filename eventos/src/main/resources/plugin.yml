@@ -74,6 +74,10 @@ commands:
     description: Recarrega configuracoes do plugin
     usage: /eventosreload
     permission: eventos.admin
+  evento:
+    description: Hub de eventos (modos, mapas, automaticos)
+    usage: /evento <subcomando>
+    aliases: [event]
 
 permissions:
   eventos.*:
@@ -86,6 +90,12 @@ permissions:
     default: op
   eventos.staff:
     default: false
+  eventos.player:
+    description: Comandos basicos de jogador no evento
+    default: true
+  eventos.commands.vanilla.bypass:
+    description: Permite usar comandos vanilla/Minecraft sem interceptacao
+    default: op
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false

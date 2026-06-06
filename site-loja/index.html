@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Loja oficial SavageMC — ranks VIP, pacotes e benefícios. Compra via ticket no Discord.">
+  <title>SavageMC · Loja</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg-glow bg-glow--1"></div>
+  <div class="bg-glow bg-glow--2"></div>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a class="brand" href="#top">
+        <span class="brand__mark">S</span>
+        <span class="brand__text">
+          <strong>SavageMC</strong>
+          <small>Semi-Anarquia</small>
+        </span>
+      </a>
+      <nav class="nav">
+        <a href="#beneficios">Benefícios</a>
+        <a href="#produtos">Produtos</a>
+        <a href="#como-comprar">Como comprar</a>
+      </nav>
+      <a class="btn btn--discord" id="discord-cta-top" href="#" target="_blank" rel="noopener">
+        Abrir ticket no Discord
+      </a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <span class="pill">loja.savagemc.net</span>
+          <h1>Ranks, pacotes e <span class="gradient-text">benefícios exclusivos</span></h1>
+          <p class="hero__lead">
+            Conheça tudo o que o SavageMC oferece. Esta página é apenas vitrine —
+            a compra é feita com segurança pelo nosso sistema de tickets no Discord.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="#produtos">Ver produtos</a>
+            <a class="btn btn--ghost" id="discord-cta-hero" href="#" target="_blank" rel="noopener">Discord</a>
+          </div>
+          <ul class="hero__stats">
+            <li><strong id="stat-products">0</strong><span>produtos</span></li>
+            <li><strong>4</strong><span>categorias de ticket</span></li>
+            <li><strong>24/7</strong><span>suporte</span></li>
+          </ul>
+        </div>
+        <div class="hero__card">
+          <div class="hero-card">
+            <div class="hero-card__header">
+              <span class="hero-card__dot"></span>
+              Ticket · Compras
+            </div>
+            <div class="hero-card__body">
+              <p class="hero-card__label">Produto selecionado</p>
+              <p class="hero-card__product">Savage Completo</p>
+              <ul class="hero-card__list">
+                <li>Rank Savage permanente</li>
+                <li>$50.000 + 200 cash</li>
+                <li>3 homes · cosméticos elite</li>
+              </ul>
+              <div class="hero-card__footer">
+                <span class="hero-card__status">Aguardando staff</span>
+                <span class="hero-card__chip">Via Discord</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="beneficios">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow">Vantagens</span>
+          <h2>Benefícios VIP</h2>
+          <p>Tudo que você desbloqueia ao apoiar o servidor — além do PvP livre e economia semi-anarquia.</p>
+        </div>
+        <div class="benefits-grid" id="benefits-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section--alt" id="produtos">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow">Catálogo</span>
+          <h2>Produtos disponíveis</h2>
+          <p>Escolha o pacote ideal. Valores e formas de pagamento são informados no ticket de compras.</p>
+        </div>
+        <div class="filter-bar">
+          <button class="filter is-active" data-filter="all">Todos</button>
+          <button class="filter" data-filter="permanente">Permanentes</button>
+          <button class="filter" data-filter="temporario">Temporários</button>
+          <button class="filter" data-filter="economia">Economia</button>
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="como-comprar">
+      <div class="container">
+        <div class="section__head">
+          <span class="section__eyebrow">Passo a passo</span>
+          <h2>Como comprar</h2>
+          <p>Sem checkout no site — todo atendimento comercial passa pelo Discord.</p>
+        </div>
+        <div class="steps" id="steps-list"></div>
+        <div class="ticket-types">
+          <article class="ticket-type ticket-type--suporte">
+            <span>🛟</span>
+            <h3>Suporte</h3>
+            <p>Dúvidas gerais, conta, vinculação e ajuda in-game.</p>
+          </article>
+          <article class="ticket-type ticket-type--denuncia">
+            <span>🚨</span>
+            <h3>Denúncia</h3>
+            <p>Reporte jogadores, cheats ou violações de regras.</p>
+          </article>
+          <article class="ticket-type ticket-type--bug">
+            <span>🐛</span>
+            <h3>Bug</h3>
+            <p>Problemas técnicos, glitches ou falhas no servidor.</p>
+          </article>
+          <article class="ticket-type ticket-type--compras">
+            <span>🛒</span>
+            <h3>Compras</h3>
+            <p>Adquira ranks, pacotes e cash com a equipe.</p>
+          </article>
+        </div>
+        <div class="cta-banner">
+          <div>
+            <h3>Pronto para comprar?</h3>
+            <p>Entre no Discord, abra um ticket na categoria <strong>Compras</strong> e informe o produto desejado.</p>
+          </div>
+          <a class="btn btn--primary btn--lg" id="discord-cta-bottom" href="#" target="_blank" rel="noopener">
+            Ir para o Discord
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>© <span id="year"></span> SavageMC · <a href="https://savagemc.net" target="_blank" rel="noopener">savagemc.net</a></p>
+      <p class="footer__note">Loja vitrine — pagamentos e entregas apenas via ticket Discord.</p>
+    </div>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -17,11 +17,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * MOTD, contagem de jogadores e modo manutencao (por rank minimo).
+ * MOTD, contagem de jogadores e modo manutencao avancado.
  * Persistido em {@code proxy-settings.yml} e editavel via {@code /proxy}.
  */
 public final class ProxySettingsManager {
@@ -30,15 +33,24 @@ public final class ProxySettingsManager {
 
     private final Path file;
 
-    private String motdLine1 = "&6&lSavageMC &7| &fModo principal";
+    private String motdLine1 = "&6&lSavageMC &7| &fSemi-Anarquia";
     private String motdLine2 = "&7savagemc.net &8| &6loja.savagemc.net";
     private int maxPlayersOverride = -1;
     private boolean hidePlayerSample;
 
     private boolean maintenanceEnabled;
+    @Getter private MaintenanceMode maintenanceMode = MaintenanceMode.RANK;
     @Getter private RankType maintenanceMinRank = RankType.HELPER;
-    private String maintenanceMotdLine1 = "&c&lMANUTENÇÃO";
-    private String maintenanceMotdLine2 = "&7SavageMC em manutenção — staff autorizado";
+    @Getter private String maintenanceReason = "Atualização da rede";
+    @Getter private String maintenanceEstimatedEnd = "Em breve";
+    @Getter private String maintenanceDiscord = "discord.gg/savagemc";
+    private boolean countdownActionBarEnabled = true;
+    @Getter private String countdownActionBarColor = "#FF8C42";
+    @Getter private String countdownActionBarUrgentColor = "#FF6B6B";
+    @Getter private int countdownActionBarUrgentSeconds = 60;
+    private final Set<String> maintenanceWhitelist = new LinkedHashSet<>();
+    private String maintenanceMotdLine1 = "&c&l⚠ MANUTENÇÃO";
+    private String maintenanceMotdLine2 = "&7{reason} &8| &e{eta}";
     private List<String> maintenanceKickMessage = defaultKickLines();
 
     public ProxySettingsManager(Path dataDirectory) {
@@ -62,8 +74,8 @@ public final class ProxySettingsManager {
                 if (root == null) return;
                 applyRoot(root);
             }
-            Core.getLogger().info("proxy-settings.yml carregado (manutencao={}, rank>={}).",
-                    maintenanceEnabled, maintenanceMinRank.name());
+            Core.getLogger().info("proxy-settings.yml carregado (manutencao={}, modo={}, rank>={}).",
+                    maintenanceEnabled, maintenanceMode.name(), maintenanceMinRank.name());
         } catch (Exception e) {
             Core.getLogger().error("Falha ao carregar proxy-settings.yml: " + e.getMessage(), e);
         }
@@ -82,7 +94,18 @@ public final class ProxySettingsManager {
 
             Map<String, Object> maint = new LinkedHashMap<>();
             maint.put("enabled", maintenanceEnabled);
+            maint.put("mode", maintenanceMode.name());
             maint.put("min-rank", maintenanceMinRank.name());
+            maint.put("reason", maintenanceReason);
+            maint.put("estimated-end", maintenanceEstimatedEnd);
+            maint.put("discord", maintenanceDiscord);
+            Map<String, Object> countdown = new LinkedHashMap<>();
+            countdown.put("actionbar", countdownActionBarEnabled);
+            countdown.put("color", countdownActionBarColor);
+            countdown.put("urgent-color", countdownActionBarUrgentColor);
+            countdown.put("urgent-seconds", countdownActionBarUrgentSeconds);
+            maint.put("countdown", countdown);
+            maint.put("whitelist", new ArrayList<>(maintenanceWhitelist));
             maint.put("motd-line1", maintenanceMotdLine1);
             maint.put("motd-line2", maintenanceMotdLine2);
             maint.put("kick-message", new ArrayList<>(maintenanceKickMessage));
@@ -118,7 +141,7 @@ public final class ProxySettingsManager {
     }
 
     public void resetMotd() {
-        motdLine1 = "&6&lSavageMC &7| &fModo principal";
+        motdLine1 = "&6&lSavageMC &7| &fSemi-Anarquia";
         motdLine2 = "&7" + com.minecraft.proxyhost.ProxySettings.SERVER_ADDRESS
                 + " &8| &6" + com.minecraft.proxyhost.ProxySettings.SERVER_STORE_URL;
         save();
@@ -141,9 +164,18 @@ public final class ProxySettingsManager {
     public Component buildMotdDescription(ProxyServer proxy) {
         String l1 = maintenanceEnabled ? maintenanceMotdLine1 : motdLine1;
         String l2 = maintenanceEnabled ? maintenanceMotdLine2 : motdLine2;
-        String p1 = applyPlaceholders(l1, proxy);
-        String p2 = applyPlaceholders(l2, proxy);
+        String p1 = applyPlaceholders(l1, proxy, maintenanceEnabled);
+        String p2 = applyPlaceholders(l2, proxy, maintenanceEnabled);
         return LegacyTexts.component(p1).append(Component.newline()).append(LegacyTexts.component(p2));
+    }
+
+    public String buildPingVersionName(ProxyServer proxy) {
+        if (!maintenanceEnabled) return null;
+        String text = "&cManutenção &8| &7" + trim(maintenanceReason, 40);
+        if (MaintenanceScheduler.isScheduled()) {
+            text += " &8(&e" + MaintenanceScheduler.formatDuration(MaintenanceScheduler.remainingMs()) + "&8)";
+        }
+        return applyPlaceholders(text, proxy, true);
     }
 
     public int resolveMaxPlayers(com.velocitypowered.api.proxy.server.ServerPing ping) {
@@ -164,8 +196,54 @@ public final class ProxySettingsManager {
         save();
     }
 
+    public void setMaintenanceMode(MaintenanceMode mode) {
+        this.maintenanceMode = mode == null ? MaintenanceMode.RANK : mode;
+        save();
+    }
+
     public void setMaintenanceMinRank(RankType rank) {
         this.maintenanceMinRank = rank == null ? RankType.HELPER : rank;
+        save();
+    }
+
+    public void setMaintenanceReason(String reason) {
+        this.maintenanceReason = reason == null || reason.isBlank()
+                ? "Atualização da rede" : reason.trim();
+        save();
+    }
+
+    public void setMaintenanceEstimatedEnd(String eta) {
+        this.maintenanceEstimatedEnd = eta == null || eta.isBlank() ? "Em breve" : eta.trim();
+        save();
+    }
+
+    public void setMaintenanceDiscord(String discord) {
+        this.maintenanceDiscord = discord == null || discord.isBlank()
+                ? com.minecraft.proxyhost.ProxySettings.DISCORD_URL : discord.trim();
+        save();
+    }
+
+    public boolean isCountdownActionBarEnabled() {
+        return countdownActionBarEnabled;
+    }
+
+    public void setCountdownActionBarEnabled(boolean enabled) {
+        this.countdownActionBarEnabled = enabled;
+        save();
+    }
+
+    public void setCountdownActionBarColor(String hex) {
+        this.countdownActionBarColor = hex == null || hex.isBlank() ? "#FF8C42" : hex.trim();
+        save();
+    }
+
+    public void setCountdownActionBarUrgentColor(String hex) {
+        this.countdownActionBarUrgentColor = hex == null || hex.isBlank() ? "#FF6B6B" : hex.trim();
+        save();
+    }
+
+    public void setCountdownActionBarUrgentSeconds(int seconds) {
+        this.countdownActionBarUrgentSeconds = Math.max(5, seconds);
         save();
     }
 
@@ -185,16 +263,43 @@ public final class ProxySettingsManager {
         save();
     }
 
+    public List<String> getMaintenanceWhitelistView() {
+        return List.copyOf(maintenanceWhitelist);
+    }
+
+    public boolean addMaintenanceWhitelistEntry(String entry) {
+        if (entry == null || entry.isBlank()) return false;
+        boolean added = maintenanceWhitelist.add(normalizeWhitelistEntry(entry));
+        if (added) save();
+        return added;
+    }
+
+    public boolean removeMaintenanceWhitelistEntry(String entry) {
+        if (entry == null || entry.isBlank()) return false;
+        boolean removed = maintenanceWhitelist.remove(normalizeWhitelistEntry(entry));
+        if (removed) save();
+        return removed;
+    }
+
     public Component maintenanceKickComponent() {
-        return DisconnectMessages.maintenance(maintenanceKickMessage);
+        List<String> lines = new ArrayList<>();
+        ProxyServer proxy = Core.getProxy();
+        for (String line : maintenanceKickMessage) {
+            lines.add(applyPlaceholders(line, proxy, true));
+        }
+        return DisconnectMessages.maintenance(lines);
     }
 
     public boolean canJoin(Account account, CommandSource source) {
         if (!maintenanceEnabled) return true;
         if (!(source instanceof Player player)) return true;
         if (player.hasPermission("proxyhost.maintenance.bypass")) return true;
-        if (account == null) return false;
-        return account.getRankType().isAtLeast(maintenanceMinRank);
+
+        return switch (maintenanceMode) {
+            case FULL -> false;
+            case WHITELIST -> isMaintenanceWhitelisted(player, account);
+            case RANK -> account != null && account.getRankType().isAtLeast(maintenanceMinRank);
+        };
     }
 
     public void kickNonStaff(ProxyServer proxy) {
@@ -203,20 +308,41 @@ public final class ProxySettingsManager {
         for (Player p : proxy.getAllPlayers()) {
             if (p.hasPermission("proxyhost.maintenance.bypass")) continue;
             Account a = Core.getAccountController().of(p.getUniqueId());
-            if (a != null && a.getRankType().isAtLeast(maintenanceMinRank)) continue;
+            if (canJoin(a, p)) continue;
             p.disconnect(msg);
         }
     }
 
-    private String applyPlaceholders(String line, ProxyServer proxy) {
+    private boolean isMaintenanceWhitelisted(Player player, Account account) {
+        if (account != null && account.getRankType().isAtLeast(maintenanceMinRank)) {
+            return true;
+        }
+        String name = player.getUsername().toLowerCase(Locale.ROOT);
+        String uuid = player.getUniqueId().toString().toLowerCase(Locale.ROOT);
+        return maintenanceWhitelist.contains(name) || maintenanceWhitelist.contains(uuid);
+    }
+
+    private String applyPlaceholders(String line, ProxyServer proxy, boolean maintenanceContext) {
         if (line == null) return "";
         String out = line.replace('&', '§');
-        out = out.replace("{online}", String.valueOf(proxy.getPlayerCount()));
+        if (proxy != null) {
+            out = out.replace("{online}", String.valueOf(proxy.getPlayerCount()));
+        }
         int maxDisplay = maxPlayersOverride >= 0 ? maxPlayersOverride
                 : com.minecraft.proxyhost.ProxySettings.MOTD_DEFAULT_MAX_DISPLAY;
         out = out.replace("{max}", String.valueOf(maxDisplay));
         out = out.replace("{name}", com.minecraft.proxyhost.Constant.SERVER_NAME);
-        out = out.replace("{maintenance}", maintenanceEnabled ? "§cSIM" : "§aNAO");
+        out = out.replace("{site}", com.minecraft.proxyhost.ProxySettings.SERVER_ADDRESS);
+        out = out.replace("{store}", com.minecraft.proxyhost.ProxySettings.SERVER_STORE_URL);
+
+        if (maintenanceContext || maintenanceEnabled) {
+            out = out.replace("{maintenance}", maintenanceEnabled ? "§cSIM" : "§aNAO");
+            out = out.replace("{reason}", maintenanceReason);
+            out = out.replace("{eta}", maintenanceEstimatedEnd);
+            out = out.replace("{discord}", maintenanceDiscord);
+            out = out.replace("{rank}", maintenanceMinRank.name());
+            out = out.replace("{mode}", maintenanceMode.name());
+        }
         return out;
     }
 
@@ -233,9 +359,30 @@ public final class ProxySettingsManager {
         Object maintObj = root.get("maintenance");
         if (maintObj instanceof Map<?, ?> maint) {
             maintenanceEnabled = bool(maint.get("enabled"), maintenanceEnabled);
+            maintenanceMode = MaintenanceMode.parse(str(maint.get("mode"), maintenanceMode.name()));
             maintenanceMinRank = parseRank(str(maint.get("min-rank"), maintenanceMinRank.name()));
+            maintenanceReason = str(maint.get("reason"), maintenanceReason);
+            maintenanceEstimatedEnd = str(maint.get("estimated-end"), maintenanceEstimatedEnd);
+            maintenanceDiscord = str(maint.get("discord"), maintenanceDiscord);
             maintenanceMotdLine1 = str(maint.get("motd-line1"), maintenanceMotdLine1);
             maintenanceMotdLine2 = str(maint.get("motd-line2"), maintenanceMotdLine2);
+
+            Object countdownObj = maint.get("countdown");
+            if (countdownObj instanceof Map<?, ?> countdown) {
+                countdownActionBarEnabled = bool(countdown.get("actionbar"), countdownActionBarEnabled);
+                countdownActionBarColor = str(countdown.get("color"), countdownActionBarColor);
+                countdownActionBarUrgentColor = str(countdown.get("urgent-color"), countdownActionBarUrgentColor);
+                countdownActionBarUrgentSeconds = num(countdown.get("urgent-seconds"), countdownActionBarUrgentSeconds);
+            }
+
+            Object wl = maint.get("whitelist");
+            if (wl instanceof List<?> list) {
+                maintenanceWhitelist.clear();
+                for (Object o : list) {
+                    if (o != null) maintenanceWhitelist.add(normalizeWhitelistEntry(o.toString()));
+                }
+            }
+
             Object kick = maint.get("kick-message");
             if (kick instanceof List<?> list) {
                 List<String> lines = new ArrayList<>();
@@ -252,9 +399,13 @@ public final class ProxySettingsManager {
         }
     }
 
+    private static String normalizeWhitelistEntry(String entry) {
+        return entry.trim().toLowerCase(Locale.ROOT);
+    }
+
     private static RankType parseRank(String name) {
         try {
-            return RankType.valueOf(name.toUpperCase());
+            return RankType.valueOf(name.toUpperCase(Locale.ROOT));
         } catch (Exception e) {
             return RankType.HELPER;
         }
@@ -276,17 +427,25 @@ public final class ProxySettingsManager {
         return Boolean.parseBoolean(v.toString());
     }
 
+    private static String trim(String s, int max) {
+        if (s.length() <= max) return s;
+        return s.substring(0, max - 3) + "...";
+    }
+
     private static List<String> defaultKickLines() {
         return new ArrayList<>(List.of(
                 "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-                "&6&lSavageMC",
-                "&7savagemc.net",
+                "&6&lSavageMC &7· &fsavagemc.net",
+                "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
                 "",
-                "&c&lMANUTENÇÃO",
-                "&7O servidor está em manutenção.",
-                "&7Apenas staff autorizado pode entrar.",
+                "&c&l⚠ MANUTENÇÃO EM ANDAMENTO",
+                "&7{reason}",
+                "&7Previsão de retorno: &e{eta}",
                 "",
-                "&7Volte em breve!",
+                "&7Apenas quem tem acesso autorizado pode entrar.",
+                "&7Modo: &f{mode} &8(&7rank &f{rank}&8)",
+                "",
+                "&7Acompanhe em &b{discord}",
                 "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         ));
     }

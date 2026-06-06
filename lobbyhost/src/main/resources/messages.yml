@@ -14,13 +14,33 @@ pt:
     lobby: "<gray>entrou no lobby!"
     quit-lobby: "<gray>saiu do lobby!"
   lobby:
-    friends-online: "<yellow>{count} <gray>amigo(s) online no lobby. <dark_gray>/amigo"
+    friends-online: "<yellow>{count} <gray>amigo(s) online na rede. <dark_gray>/amigo"
     build-blocked: "<red>Voce nao pode construir no lobby."
   death:
     pvp: "<gray>{victim} <red>foi morto por <gray>{killer}"
     generic: "<gray>{player} <red>morreu"
   minecraft:
     advancement: "<yellow>{player} <gray>conquistou <green>{title}"
+  vanilla:
+    plugins:
+      line: "<gray>Plugins (1): <green>{plugin}"
+    help:
+      intro: "<gray>Comandos principais do lobby:"
+      footer: "<dark_gray>Use <yellow>/play <dark_gray>para entrar nos modos"
+    unknown:
+      body: "<red>Comando <yellow>{command} <red>nao existe neste servidor."
+    default:
+      body: "<gray>O comando <yellow>{command} <gray>nao esta disponivel aqui."
+    admin:
+      body: "<gray>O comando <yellow>{command} <gray>e exclusivo da equipe."
+    teleport:
+      body: "<gray>Teleporte vanilla desativado."
+    world:
+      body: "<gray>Comandos de mundo nao estao liberados."
+    social:
+      body: "<gray>Use <yellow>/amigo <gray>e o chat do lobby."
+    info:
+      body: "<gray>Informacao indisponivel via comando vanilla."
   lang:
     menu-title: "<light_purple><bold>Idioma / Language"
     menu-subtitle: "<gray>Escolha o idioma das mensagens do servidor"
@@ -99,7 +119,7 @@ pt:
       tag-line: "<gray>Tag: <white>{tag}"
       medal-line: "<gray>Medalha: <white>{medal}"
       friends-count: "<gray>Amigos: <white>{count}"
-      friends-here: "<green>Amigos no lobby: {count}"
+      friends-here: "<green>Amigos online na rede: {count}"
       account-error: "<red>Conta nao carregada"
       mode-unavailable: "<red>Este modo esta indisponivel no momento."
       maintenance: "<red><bold>MANUTENCAO</bold>"
@@ -115,6 +135,9 @@ pt:
       title: "<gold><bold>Preferencias"
     friends:
       title: "<gold><bold>Amigos"
+      online-here: "<green>Online no lobby"
+      online-network: "<green>Online em <white>{server}"
+      offline: "<gray>Offline"
     report:
       player-title: "<gold><bold>Denuncia — Jogador"
       reason-title: "<gold><bold>Denuncia — Motivo"
@@ -144,7 +167,7 @@ en:
     lobby: "<gray>joined the lobby!"
     quit-lobby: "<gray>left the lobby!"
   lobby:
-    friends-online: "<yellow>{count} <gray>friend(s) online in the lobby. <dark_gray>/friend"
+    friends-online: "<yellow>{count} <gray>friend(s) online on the network. <dark_gray>/friend"
     build-blocked: "<red>You cannot build in the lobby."
   death:
     pvp: "<gray>{victim} <red>was killed by <gray>{killer}"
@@ -229,7 +252,7 @@ en:
       tag-line: "<gray>Tag: <white>{tag}"
       medal-line: "<gray>Medal: <white>{medal}"
       friends-count: "<gray>Friends: <white>{count}"
-      friends-here: "<green>Friends in lobby: {count}"
+      friends-here: "<green>Friends online on network: {count}"
       account-error: "<red>Account not loaded"
       mode-unavailable: "<red>This mode is unavailable right now."
       maintenance: "<red><bold>MAINTENANCE</bold>"
@@ -245,6 +268,9 @@ en:
       title: "<gold><bold>Preferences"
     friends:
       title: "<gold><bold>Friends"
+      online-here: "<green>Online in lobby"
+      online-network: "<green>Online on <white>{server}"
+      offline: "<gray>Offline"
     report:
       player-title: "<gold><bold>Report — Player"
       reason-title: "<gold><bold>Report — Reason"

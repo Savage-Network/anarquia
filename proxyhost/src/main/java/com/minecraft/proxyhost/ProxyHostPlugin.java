@@ -10,6 +10,7 @@ import com.minecraft.proxyhost.backend.database.HikariProvider;
 import com.minecraft.proxyhost.backend.redis.RedisProvider;
 import com.minecraft.proxyhost.config.ConfigSection;
 import com.minecraft.proxyhost.redis.RedisListener;
+import com.minecraft.proxyhost.proxy.MaintenanceScheduler;
 import com.minecraft.proxyhost.proxy.NetworkPublisher;
 import com.minecraft.proxyhost.proxy.PresenceHeartbeat;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
@@ -186,6 +187,7 @@ public final class ProxyHostPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
+        MaintenanceScheduler.cancel(proxy, false);
         proxy.getAllPlayers().forEach(p -> p.disconnect(DisconnectMessages.proxyShutdown()));
         if (ProxySettingsManager.get() != null) {
             ProxySettingsManager.get().save();

@@ -16,7 +16,7 @@ import com.minecraft.lobbyhost.bukkit.skin.SkinService;
 import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
 import com.minecraft.lobbyhost.message.LanguageService;
 import com.minecraft.lobbyhost.message.Messages;
-import com.minecraft.lobbyhost.social.FriendService;
+import com.minecraft.lobbyhost.social.FriendPresence;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -96,11 +96,15 @@ public final class LobbyJoinListener implements Listener {
                 Account otherAcc = Core.getAccountController().of(other.getUniqueId());
                 if (otherAcc != null) TagManager.applyTagForViewer(player, other);
             }
-            int friendsHere = FriendService.countFriendsOnlineInLobby(loaded);
-            if (friendsHere > 0) {
-                player.sendMessage(Messages.component("lobby.friends-online", player,
-                        java.util.Map.of("count", String.valueOf(friendsHere))));
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(), () -> {
+                int count = FriendPresence.countFriendsOnlineOnNetwork(loaded);
+                if (count <= 0) return;
+                Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> {
+                    if (!player.isOnline()) return;
+                    player.sendMessage(Messages.component("lobby.friends-online", player,
+                            java.util.Map.of("count", String.valueOf(count))));
+                });
+            });
         }, 5L);
     }
 

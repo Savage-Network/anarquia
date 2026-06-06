@@ -88,7 +88,8 @@ public final class GamePlugin extends JavaPlugin {
                         Constant.REDIS_NETWORK_ALERT_CHANNEL,
                         Constant.REDIS_NETWORK_REPORT_CHANNEL,
                         Constant.REDIS_ANTICHEAT_ALERT_CHANNEL,
-                        Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
+                        Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL,
+                        Constant.REDIS_ACTIVITY_FEED_CHANNEL);
             }
 
             // 3) Data layers + schema
@@ -106,6 +107,14 @@ public final class GamePlugin extends JavaPlugin {
             PlayerVaultData playerVaultData = new PlayerVaultData(database);
             AccountIdentityData accountIdentityData = new AccountIdentityData(database);
             DiscordLinkData discordLinkData = new DiscordLinkData(database);
+            com.minecraft.game.backend.data.NetworkPresenceData networkPresenceData =
+                    new com.minecraft.game.backend.data.NetworkPresenceData(database);
+            com.minecraft.game.backend.data.ActivityFeedData activityFeedData =
+                    new com.minecraft.game.backend.data.ActivityFeedData(database);
+            com.minecraft.game.backend.data.ClanMarketData clanMarketData =
+                    new com.minecraft.game.backend.data.ClanMarketData(database);
+            com.minecraft.game.backend.data.AccountBackupData accountBackupData =
+                    new com.minecraft.game.backend.data.AccountBackupData(database);
 
             GameDatabaseSchema.createAll(
                     database,
@@ -119,7 +128,10 @@ public final class GamePlugin extends JavaPlugin {
                     vipKeyData,
                     playerVaultData,
                     accountIdentityData,
-                    discordLinkData);
+                    discordLinkData,
+                    activityFeedData,
+                    clanMarketData,
+                    accountBackupData);
 
             Core.setAccountData(accountData);
             Core.setClanData(clanData);
@@ -135,6 +147,10 @@ public final class GamePlugin extends JavaPlugin {
             Core.setPlayerVaultData(playerVaultData);
             Core.setAccountIdentityData(accountIdentityData);
             Core.setDiscordLinkData(discordLinkData);
+            Core.setNetworkPresenceData(networkPresenceData);
+            Core.setActivityFeedData(activityFeedData);
+            Core.setClanMarketData(clanMarketData);
+            Core.setAccountBackupData(accountBackupData);
             AuctionManager.configure(
                     GameSettings.AUCTION_MAX_LISTINGS,
                     GameSettings.AUCTION_DURATION_HOURS,
@@ -189,6 +205,9 @@ public final class GamePlugin extends JavaPlugin {
                     Core.getAccountController().load(p.getUniqueId(), p.getName())));
 
             getLogger().info("Plugin habilitado em " + (System.currentTimeMillis() - start) + "ms.");
+
+            getServer().getScheduler().runTask(this,
+                    () -> com.minecraft.game.bukkit.command.vanilla.AllowedCommandIndex.rebuild(this));
 
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 com.minecraft.game.bukkit.hologram.HologramManager.initialize();

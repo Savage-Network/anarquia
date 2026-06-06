@@ -129,3 +129,39 @@ CREATE TABLE IF NOT EXISTS auction_listings (
 
 CREATE INDEX IF NOT EXISTS idx_auction_seller ON auction_listings(seller_id);
 CREATE INDEX IF NOT EXISTS idx_auction_expires ON auction_listings(expires_at);
+
+-- Feed de atividade da rede
+CREATE TABLE IF NOT EXISTS activity_feed (
+    id           BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    type         VARCHAR(32)  NOT NULL,
+    actor_name   VARCHAR(16)  NOT NULL,
+    message      VARCHAR(255) NOT NULL,
+    server_id    VARCHAR(32)  NOT NULL DEFAULT 'network',
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Mercado interno do cla
+CREATE TABLE IF NOT EXISTS clan_market_listings (
+    id            VARCHAR(36)  NOT NULL PRIMARY KEY,
+    clan_id       VARCHAR(36)  NOT NULL,
+    seller_id     VARCHAR(36)  NOT NULL,
+    seller_name   VARCHAR(16)  NOT NULL,
+    material      VARCHAR(64)  NOT NULL,
+    amount        INT          NOT NULL,
+    price         INT          NOT NULL,
+    created_at    BIGINT       NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_clan_market_clan ON clan_market_listings(clan_id);
+
+-- Backups automaticos de homes/baus
+CREATE TABLE IF NOT EXISTS account_backups (
+    id            BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    player_id     VARCHAR(36)  NOT NULL,
+    player_name   VARCHAR(16)  NOT NULL,
+    backup_type   VARCHAR(32)  NOT NULL,
+    payload       LONGTEXT     NOT NULL,
+    created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_account_backups_player ON account_backups(player_id);

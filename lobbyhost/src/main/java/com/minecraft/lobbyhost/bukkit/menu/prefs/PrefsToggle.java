@@ -36,7 +36,21 @@ public enum PrefsToggle {
     AC_STAFF_VERBOSE(Category.STAFF, "AC modo detalhado", Material.SPYGLASS,
             t -> t.isAcStaffVerbose(), (t, v) -> t.setAcStaffVerbose(v), false, true),
     AUTO_VANISH(Category.STAFF, "Vanish ao entrar", Material.ENDER_EYE,
-            t -> t.isAutoVanish(), (t, v) -> t.setAutoVanish(v), false, true);
+            t -> t.isAutoVanish(), (t, v) -> t.setAutoVanish(v), false, true),
+    NOTIFY_FRIENDS(Category.NOTIFICATIONS, "Amigo online", Material.EMERALD,
+            t -> t.isNotifyFriendOnline(), (t, v) -> t.setNotifyFriendOnline(v)),
+    NOTIFY_CLAN(Category.NOTIFICATIONS, "Atividade do clã", Material.SHIELD,
+            t -> t.isNotifyClanActivity(), (t, v) -> t.setNotifyClanActivity(v)),
+    NOTIFY_BOUNTY(Category.NOTIFICATIONS, "Bounty na cabeça", Material.GOLD_NUGGET,
+            t -> t.isNotifyBountyOnMe(), (t, v) -> t.setNotifyBountyOnMe(v)),
+    NOTIFY_STREAK(Category.NOTIFICATIONS, "Killstreak global", Material.IRON_SWORD,
+            t -> t.isNotifyKillStreakGlobal(), (t, v) -> t.setNotifyKillStreakGlobal(v)),
+    NOTIFY_FEED(Category.NOTIFICATIONS, "Feed da rede", Material.BOOK,
+            t -> t.isNotifyFeed(), (t, v) -> t.setNotifyFeed(v)),
+    COMPACT_CHAT(Category.CHAT, "Chat compacto", Material.WRITABLE_BOOK,
+            t -> t.isCompactChat(), (t, v) -> t.setCompactChat(v)),
+    HIDE_ANNOUNCE(Category.CHAT, "Ocultar anúncios", Material.BELL,
+            t -> t.isHideGlobalAnnouncements(), (t, v) -> t.setHideGlobalAnnouncements(v));
 
     public enum Category {
         SOCIAL(
@@ -58,7 +72,11 @@ public enum PrefsToggle {
         STAFF(
                 "<!italic><gradient:#FF8C42:#FFD166><bold>Staff</bold></gradient>",
                 Material.ORANGE_STAINED_GLASS_PANE,
-                "<!italic><#94A3B8>Ferramentas da equipe");
+                "<!italic><#94A3B8>Ferramentas da equipe"),
+        NOTIFICATIONS(
+                "<!italic><gradient:#34D399:#10B981><bold>Notificações</bold></gradient>",
+                Material.LIME_STAINED_GLASS_PANE,
+                "<!italic><#94A3B8>Amigos · clã · feed · streak");
 
         private final String title;
         private final Material pane;

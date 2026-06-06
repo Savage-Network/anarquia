@@ -51,6 +51,7 @@ public final class Constant {
     public static final String STAFFCHAT_PLUGIN_CHANNEL = "savagemc:staffchat";
     public static final String REDIS_NETWORK_REPORT_CHANNEL = "network-report-channel";
     public static final String REDIS_ANTICHEAT_ALERT_CHANNEL = "anticheat-alert-channel";
+    public static final String REDIS_ACTIVITY_FEED_CHANNEL = "activity-feed-channel";
 
     /** Chave Redis: {@code network:online:<velocityServerId>} (TTL no proxy). */
     public static final String REDIS_NETWORK_ONLINE_KEY_PREFIX = "network:online:";
@@ -65,7 +66,8 @@ public final class Constant {
             REDIS_NETWORK_ALERT_CHANNEL,
             REDIS_PROXY_STAFFCHAT_CHANNEL,
             REDIS_NETWORK_REPORT_CHANNEL,
-            REDIS_ANTICHEAT_ALERT_CHANNEL
+            REDIS_ANTICHEAT_ALERT_CHANNEL,
+            REDIS_ACTIVITY_FEED_CHANNEL
     };
 
     /* ----- Banco ----- */

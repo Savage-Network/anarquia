@@ -2,6 +2,7 @@ package com.minecraft.game.bukkit.semi;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.network.ActivityFeedService;
 import com.minecraft.game.backend.sync.NetworkStatsSync;
 import com.minecraft.game.account.context.objects.stats.GameStats;
 import org.bukkit.Bukkit;
@@ -82,11 +83,30 @@ public final class KillRewardService {
         NetworkStatsSync.syncPlayer(killerAcc);
         NetworkStatsSync.syncPlayer(victimAcc);
 
-        if (kStats.getKillStreak() >= 5) {
-            Bukkit.broadcast(net.kyori.adventure.text.Component.text(
-                    "§c§lKILLSTREAK §f" + killer.getName() + " §7esta com §c"
-                            + kStats.getKillStreak() + " §7kills seguidas!"));
+        if (kStats.getKillStreak() >= 3) {
+            com.minecraft.game.network.NotificationService.broadcastKillStreak(killer.getName(), kStats.getKillStreak());
+            ActivityFeedService.publish("killstreak", killer.getName(),
+                    "esta com " + kStats.getKillStreak() + " kills seguidas",
+                    com.minecraft.game.GameSettings.SERVER_CHAT_ID);
         }
+
+        int streak = kStats.getKillStreak();
+        int bonus = switch (streak) {
+            case 3 -> 25;
+            case 5 -> 75;
+            case 10 -> 200;
+            default -> 0;
+        };
+        if (bonus > 0 && !farmed) {
+            killerAcc.addGolds(bonus);
+            killer.sendMessage("§6§lSTREAK §a+" + SemiAnarchyConfig.currencySymbol() + bonus
+                    + " §7por " + streak + " kills!");
+        }
+
+        com.minecraft.game.progress.AchievementService.onKill(killerAcc, kStats.getKillStreak(),
+                kStats.getKills(), bounty > 0);
+
+        killerAcc.markDirty();
     }
 
     private static boolean isFarmKill(UUID killer, UUID victim) {

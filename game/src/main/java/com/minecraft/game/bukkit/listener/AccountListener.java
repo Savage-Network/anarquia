@@ -15,6 +15,7 @@ import com.minecraft.game.bukkit.rank.RankGrantService;
 import com.minecraft.game.bukkit.vanish.VanishService;
 import com.minecraft.game.bukkit.welcome.WelcomeBookService;
 import com.minecraft.game.punishment.PunishmentService;
+import com.minecraft.game.progress.AchievementService;
 import com.minecraft.game.util.AccountSync;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -103,6 +104,7 @@ public final class AccountListener implements Listener {
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
             WelcomeBookService.handleFirstJoin(loaded, player);
+            AchievementService.onLogin(loaded);
             PlayerDisplayService.applyAll(loaded, player);
             com.minecraft.game.bukkit.skin.SkinService.refreshFromMojangIfStale(loaded, player);
             for (Player other : Bukkit.getOnlinePlayers()) {

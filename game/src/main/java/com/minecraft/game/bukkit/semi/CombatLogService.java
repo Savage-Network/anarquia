@@ -43,6 +43,8 @@ public final class CombatLogService {
             broadcastCombatLog(player, tag, killer);
         }
 
+        CombatLogNpcService.spawnMarker(player, tag);
+
         if (killer != null && killer.isOnline()) {
             killer.sendMessage(Messages.prefixed("combat.combat-log-killer", LanguageService.of(killer),
                     Map.of("player", player.getName())));

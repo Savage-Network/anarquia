@@ -76,6 +76,13 @@ public final class ReportsCommand implements CommandInheritor {
                 }
                 teleportToReporter(ctx, data, args[1]);
             }
+            case "watch", "espectador", "spec" -> {
+                if (args.length < 2) {
+                    ctx.reply(ModernText.parse(ModernText.hint("reports watch <id>")));
+                    return;
+                }
+                watchTarget(ctx, data, args[1]);
+            }
             default -> listOpen(ctx, data, 8);
         }
     }
@@ -169,6 +176,24 @@ public final class ReportsCommand implements CommandInheritor {
         });
     }
 
+    private void watchTarget(BukkitCommandContext ctx, ReportData data, String idRaw) {
+        long id = parseId(idRaw);
+        if (id < 0) {
+            ctx.reply(ModernText.parse("<!italic><" + ModernText.ERROR + ">ID inválido."));
+            return;
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(), () -> {
+            Optional<PlayerReport> opt = data.findById(id);
+            Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> {
+                if (opt.isEmpty()) {
+                    ctx.reply(ModernText.parse(ModernText.mini("Report não encontrado.")));
+                    return;
+                }
+                com.minecraft.game.report.ReportSpectatorService.start(ctx.player(), opt.get().targetName());
+            });
+        });
+    }
+
     private static long parseId(String raw) {
         try {
             return Long.parseLong(raw.trim());
@@ -198,7 +223,7 @@ public final class ReportsCommand implements CommandInheritor {
     @Completer(name = "reports", subCommands = {"denuncias", "reportlist"})
     public List<String> tab(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 1) {
-            return TabCompleteUtil.filter(ctx.getArgs()[0], "list", "info", "close", "tp");
+            return TabCompleteUtil.filter(ctx.getArgs()[0], "list", "info", "close", "tp", "watch");
         }
         if (ctx.getArgs().length == 2) {
             return TabCompleteUtil.filter(ctx.getArgs()[1], "open", "closed", "all");

@@ -36,7 +36,8 @@ public final class ClanCommand implements CommandInheritor {
     private static final List<String> SUBS = List.of(
             "criar", "deletar", "sair", "ver", "convidar", "aceitar", "recusar",
             "transferir", "expulsar", "promover", "rebaixar", "tag", "cor", "menu", "info",
-            "lista", "convites", "motd", "desc", "sethome", "home", "delhome"
+            "lista", "convites", "motd", "desc", "sethome", "home", "delhome",
+            "banco", "depositar", "sacar", "aliado", "inimigo", "mercado"
     );
 
     @Command(name = "clan", aliases = {"cla"}, playerOnly = true,
@@ -78,6 +79,12 @@ public final class ClanCommand implements CommandInheritor {
             case "sethome" -> clanSetHome(subCtx);
             case "home" -> clanHome(subCtx);
             case "delhome" -> clanDelHome(subCtx);
+            case "banco", "bank" -> clanBank(subCtx);
+            case "depositar", "deposit" -> clanDeposit(subCtx);
+            case "sacar", "withdraw" -> clanWithdraw(subCtx);
+            case "aliado", "ally" -> clanAlly(subCtx);
+            case "inimigo", "enemy" -> clanEnemy(subCtx);
+            case "mercado", "market" -> clanMarket(subCtx);
             default -> sendHelp(account, ctx.getLabel());
         }
     }
@@ -192,6 +199,7 @@ public final class ClanCommand implements CommandInheritor {
         Clan clan = new Clan(account, UUID.randomUUID(), name, tag);
         Core.getClanData().save(clan);
         account.joinClan(clan);
+        com.minecraft.game.progress.AchievementService.onClanCreated(account);
 
         account.send("§aCla §f" + name + " §acriado com sucesso!",
                 "§7Tag: " + ClanTagFormatter.formatBracketed(clan),
@@ -443,6 +451,83 @@ public final class ClanCommand implements CommandInheritor {
         account.getClan().clearHome();
         account.getClan().broadcast("§7Base do clã removida.");
         account.send("§eBase removida.");
+    }
+
+    private void clanBank(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null || !account.hasClan()) { if (account != null) account.send(NO_CLAN); return; }
+        long bal = account.getClan().getStorage().getBankBalance();
+        account.send("§7Banco do clã: §a" + bal);
+    }
+
+    private void clanDeposit(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) { account.send("§cUso: /clan depositar <valor>"); return; }
+        try {
+            long amount = Long.parseLong(ctx.getArgs()[0]);
+            ClanService.Result r = ClanBankService.deposit(account, amount);
+            account.send(r.success() ? r.message() : "§c" + r.message());
+        } catch (NumberFormatException e) {
+            account.send("§cValor inválido.");
+        }
+    }
+
+    private void clanWithdraw(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) { account.send("§cUso: /clan sacar <valor>"); return; }
+        try {
+            long amount = Long.parseLong(ctx.getArgs()[0]);
+            ClanService.Result r = ClanBankService.withdraw(account, amount);
+            account.send(r.success() ? r.message() : "§c" + r.message());
+        } catch (NumberFormatException e) {
+            account.send("§cValor inválido.");
+        }
+    }
+
+    private void clanAlly(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) { account.send("§cUso: /clan aliado <clã>"); return; }
+        ClanService.Result r = ClanRelationService.addAlly(account, ctx.getArgs()[0]);
+        account.send(r.success() ? r.message() : "§c" + r.message());
+    }
+
+    private void clanEnemy(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) { account.send("§cUso: /clan inimigo <clã>"); return; }
+        ClanService.Result r = ClanRelationService.addEnemy(account, ctx.getArgs()[0]);
+        account.send(r.success() ? r.message() : "§c" + r.message());
+    }
+
+    private void clanMarket(BukkitCommandContext ctx) {
+        Account account = require(ctx);
+        if (account == null) return;
+        if (ctx.getArgs().length == 0) {
+            account.send("§cUso: /clan mercado vender <preço> | comprar <id>");
+            return;
+        }
+        String sub = ctx.getArgs()[0].toLowerCase();
+        if ("vender".equals(sub) || "sell".equals(sub)) {
+            if (ctx.getArgs().length < 2) { account.send("§cUso: /clan mercado vender <preço>"); return; }
+            try {
+                int price = Integer.parseInt(ctx.getArgs()[1]);
+                ClanService.Result r = ClanMarketService.listItem(account, null, price);
+                account.send(r.success() ? r.message() : "§c" + r.message());
+            } catch (NumberFormatException e) {
+                account.send("§cPreço inválido.");
+            }
+            return;
+        }
+        if ("comprar".equals(sub) || "buy".equals(sub)) {
+            if (ctx.getArgs().length < 2) { account.send("§cUso: /clan mercado comprar <id>"); return; }
+            ClanService.Result r = ClanMarketService.buy(account, ctx.getArgs()[1]);
+            account.send(r.success() ? r.message() : "§c" + r.message());
+            return;
+        }
+        account.send("§cSubcomando: vender | comprar");
     }
 
     private void clanTagColor(BukkitCommandContext ctx) {

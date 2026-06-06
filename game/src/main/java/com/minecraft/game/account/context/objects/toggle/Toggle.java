@@ -33,6 +33,14 @@ public class Toggle {
     private boolean showCosmeticParticles = true;
     private boolean showOtherCapes = true;
 
+    private boolean notifyFriendOnline = true;
+    private boolean notifyClanActivity = true;
+    private boolean notifyBountyOnMe = true;
+    private boolean notifyKillStreakGlobal = true;
+    private boolean notifyFeed = true;
+    private boolean compactChat = false;
+    private boolean hideGlobalAnnouncements = false;
+
     /** Idioma do jogador: {@code pt} ou {@code en}. */
     private String language = "pt";
 }

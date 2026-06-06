@@ -3,8 +3,9 @@ package com.minecraft.lobbyhost.bukkit.menu;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.friend.Friend;
-import com.minecraft.lobbyhost.social.FriendService;
 import com.minecraft.lobbyhost.message.MenuTexts;
+import com.minecraft.lobbyhost.social.FriendPresence;
+import com.minecraft.lobbyhost.social.FriendService;
 import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -16,11 +17,14 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public final class FriendMenu {
 
     private static final int SIZE = 45;
     private static final int CLOSE_SLOT = 40;
+    private static final String LOCAL_SERVER_ID = "lobby";
 
     private FriendMenu() {}
 
@@ -30,16 +34,29 @@ public final class FriendMenu {
             player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.account-error")));
             return;
         }
+
+        List<Friend> friends = FriendService.listFriends(account);
+        Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(), () -> {
+            Map<UUID, FriendPresence.Status> status = FriendPresence.resolveMany(friends);
+            Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> {
+                if (!player.isOnline()) return;
+                render(player, account, friends, status);
+            });
+        });
+    }
+
+    private static void render(Player player, Account account, List<Friend> friends,
+                               Map<UUID, FriendPresence.Status> status) {
         LobbyMenuHolder holder = new LobbyMenuHolder("friends");
         Inventory inv = Bukkit.createInventory(holder, SIZE,
                 MenuTexts.title(player, "menus.friends.title"));
         holder.bind(inv);
 
         int slot = 10;
-        for (Friend f : FriendService.listFriends(account)) {
+        for (Friend f : friends) {
             if (slot > 34) break;
-            boolean online = Bukkit.getPlayer(f.getId()) != null;
-            inv.setItem(slot++, friendHead(f, online));
+            FriendPresence.Status st = status.getOrDefault(f.getId(), new FriendPresence.Status(false, null, null));
+            inv.setItem(slot++, friendHead(player, f, st));
         }
 
         var requests = account.getFriendMetadata().getRequests();
@@ -60,19 +77,26 @@ public final class FriendMenu {
         player.openInventory(inv);
     }
 
-    private static ItemStack friendHead(Friend f, boolean online) {
+    private static ItemStack friendHead(Player viewer, Friend f, FriendPresence.Status status) {
         ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) stack.getItemMeta();
         if (f.getName() != null) {
             meta.setOwningPlayer(Bukkit.getOfflinePlayer(f.getId()));
         }
-        String color = online ? ModernText.SUCCESS : ModernText.MUTED;
+        String color = status.online() ? ModernText.SUCCESS : ModernText.MUTED;
         meta.displayName(ModernText.noItalic(ModernText.parse(
                 "<!italic><" + color + ">" + f.getName())));
         List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
-        lore.add(ModernText.noItalic(ModernText.parse(online
-                ? "<!italic><" + ModernText.SUCCESS + ">Online no lobby"
-                : ModernText.mini("Offline"))));
+        if (status.online()) {
+            boolean sameLobby = LOCAL_SERVER_ID.equalsIgnoreCase(status.serverId());
+            String line = sameLobby
+                    ? MenuTexts.mini(viewer, "menus.friends.online-here")
+                    : MenuTexts.format(viewer, "menus.friends.online-network",
+                    MenuTexts.map("server", status.serverDisplay()));
+            lore.add(ModernText.noItalic(ModernText.parse(line)));
+        } else {
+            lore.add(ModernText.noItalic(ModernText.parse(MenuTexts.mini(viewer, "menus.friends.offline"))));
+        }
         lore.add(ModernText.noItalic(ModernText.parse(ModernText.hint("amigo remover " + f.getName()))));
         meta.lore(lore);
         stack.setItemMeta(meta);

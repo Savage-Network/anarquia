@@ -93,6 +93,12 @@ public final class AnticheatAlertService {
         Core.getLogger().info("[ANTICHEAT] " + playerName + " @ " + server + " » " + check
                 + " VL:" + checkVl + " total:" + totalVl
                 + (detail != null && !detail.isBlank() ? " | " + detail : ""));
+
+        if (totalVl >= 20 || checkVl >= 10) {
+            com.minecraft.game.util.DiscordWebhookUtil.send("anticheat",
+                    playerName + " @ " + server + " » " + check + " VL:" + checkVl + " total:" + totalVl,
+                    "Alerta Anticheat");
+        }
     }
 
     private static void notifySuspect(Player suspect) {

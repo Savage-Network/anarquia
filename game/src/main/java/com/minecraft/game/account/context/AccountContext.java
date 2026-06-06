@@ -58,6 +58,7 @@ public class AccountContext {
     private AuthMetadata auth = new AuthMetadata();
     private ClanMetadata clan = new ClanMetadata();
     private GameStats gameStats = new GameStats();
+    private com.minecraft.game.account.context.objects.stats.PlayerProgress playerProgress = new com.minecraft.game.account.context.objects.stats.PlayerProgress();
     private HomeMetadata homes = new HomeMetadata();
     private JoinMessageMetadata joinMessage = new JoinMessageMetadata();
     private ImageAuraMetadata imageAura = new ImageAuraMetadata();

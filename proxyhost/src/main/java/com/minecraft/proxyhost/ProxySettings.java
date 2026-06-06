@@ -13,4 +13,5 @@ public final class ProxySettings {
     public static final String SERVER_ADDRESS = "savagemc.net";
     public static final String SERVER_STORE_URL = "loja.savagemc.net";
     public static final String SERVER_STORE = "§6" + SERVER_STORE_URL;
+    public static final String DISCORD_URL = "discord.gg/savagemc";
 }

@@ -196,6 +196,9 @@ permissions:
   lobbyhost.admin:
     description: NPC, reload, hologramas
     default: false
+  lobbyhost.commands.vanilla.bypass:
+    description: Permite comandos vanilla do Minecraft
+    default: false
   lobbyhost.staff:
     description: Staff base — vanish, fly, anuncio, sc
     default: false

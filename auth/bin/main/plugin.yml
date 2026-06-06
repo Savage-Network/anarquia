@@ -43,6 +43,9 @@ permissions:
     default: false
   auth.bypass.captcha:
     default: false
+  auth.commands.vanilla.bypass:
+    description: Permite usar comandos vanilla/Minecraft sem interceptacao
+    default: op
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false

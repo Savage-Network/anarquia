@@ -23,6 +23,7 @@ import com.minecraft.lobbyhost.util.ModernText;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Menus da hotbar do hub (bussola, perfil, cosmeticos, missoes).
@@ -40,23 +41,26 @@ public final class LobbyMenus {
     private LobbyMenus() {}
 
     public static void openNavigation(Player player) {
-        List<NavEntry> entries = buildNavigationEntries(player);
-        LobbyMenuHolder holder = new LobbyMenuHolder("navigation");
-        Inventory inv = Bukkit.createInventory(holder, NAV_SIZE,
-                MenuTexts.title(player, "menus.lobby.nav-title"));
-        holder.bind(inv);
-
-        fillGlass(inv, entries);
-
-        for (NavEntry entry : entries) {
-            if (entry.slot() >= 0 && entry.slot() < NAV_SIZE && entry.slot() != CLOSE_SLOT) {
-                inv.setItem(entry.slot(), navIcon(player, entry));
-            }
-        }
-
-        inv.setItem(CLOSE_SLOT, labeledMini(player, Material.BARRIER,
-                MenuTexts.mini(player, "menus.common.close"), List.of()));
-        player.openInventory(inv);
+        Bukkit.getScheduler().runTaskAsynchronously(LobbyHostPlugin.getInstance(), () -> {
+            Map<String, Integer> liveCounts = Core.getNetworkPresenceData() != null
+                    ? Core.getNetworkPresenceData().countByServer() : Map.of();
+            Bukkit.getScheduler().runTask(LobbyHostPlugin.getInstance(), () -> {
+                List<NavEntry> entries = buildNavigationEntries(player, liveCounts);
+                LobbyMenuHolder holder = new LobbyMenuHolder("navigation");
+                Inventory inv = Bukkit.createInventory(holder, NAV_SIZE,
+                        MenuTexts.title(player, "menus.lobby.nav-title"));
+                holder.bind(inv);
+                fillGlass(inv, entries);
+                for (NavEntry entry : entries) {
+                    if (entry.slot() >= 0 && entry.slot() < NAV_SIZE && entry.slot() != CLOSE_SLOT) {
+                        inv.setItem(entry.slot(), navIcon(player, entry));
+                    }
+                }
+                inv.setItem(CLOSE_SLOT, labeledMini(player, Material.BARRIER,
+                        MenuTexts.mini(player, "menus.common.close"), List.of()));
+                player.openInventory(inv);
+            });
+        });
     }
 
     public static void openProfile(Player player) {
@@ -195,14 +199,16 @@ public final class LobbyMenus {
         return raw == null || raw.isBlank();
     }
 
-    private static List<NavEntry> buildNavigationEntries(Player player) {
+    private static List<NavEntry> buildNavigationEntries(Player player, Map<String, Integer> liveCounts) {
         Account account = Core.getAccountController().of(player.getUniqueId());
         boolean blockJoin = NetworkStateCache.isMaintenance()
                 && !NetworkStateCache.canJoinDuringMaintenance(account);
 
         List<NavEntry> list = new ArrayList<>();
         for (LobbySettings.NetworkMode mode : LobbySettings.NETWORK_MODES) {
-            int online = NetworkStateCache.getOnline(mode.heartbeatId());
+            int redisOnline = NetworkStateCache.getOnline(mode.heartbeatId());
+            int liveOnline = liveCounts.getOrDefault(mode.bungeeServer(), 0);
+            int online = Math.max(redisOnline, liveOnline);
             boolean serverOffline = isServerOffline(mode.heartbeatId());
             boolean unavailable = blockJoin || serverOffline;
             List<String> lore = new ArrayList<>();

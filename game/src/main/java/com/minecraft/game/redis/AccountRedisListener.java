@@ -34,6 +34,11 @@ public final class AccountRedisListener extends JedisPubSub {
             Bukkit.getScheduler().runTask(plugin, () -> AnticheatAlertService.deliverFromRedis(message));
             return;
         }
+        if (Constant.REDIS_ACTIVITY_FEED_CHANNEL.equals(channel)) {
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    com.minecraft.game.network.ActivityFeedService.deliverFromRedis(message));
+            return;
+        }
         if (Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL.equals(channel)) {
             onPunishment(message);
             return;

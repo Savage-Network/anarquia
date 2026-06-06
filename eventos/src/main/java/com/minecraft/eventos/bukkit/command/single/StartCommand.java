@@ -5,10 +5,11 @@ import com.minecraft.eventos.bukkit.command.annotation.Command;
 import com.minecraft.eventos.bukkit.command.annotation.Completer;
 import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
-import com.minecraft.eventos.game.Game;
+import com.minecraft.eventos.message.EventMessages;
 import com.minecraft.eventos.util.TabCompleteUtil;
 
 import java.util.List;
+import java.util.Map;
 
 public final class StartCommand implements CommandInheritor {
 
@@ -16,17 +17,22 @@ public final class StartCommand implements CommandInheritor {
             description = "Inicia o countdown do evento",
             usage = "/start [segundos]")
     public void execute(BukkitCommandContext ctx) {
-        Game game = EventosPlugin.getInstance().getGame();
-        if (!game.canStart()) {
-            ctx.reply("§cNao e possivel iniciar agora (state=" + game.getState()
-                    + ", players=" + game.alives().size() + "/" + game.minPlayers() + ").");
+        var engine = EventosPlugin.getInstance().getEventEngine();
+        var session = engine.getSession();
+        if (!session.canStart()) {
+            ctx.reply(EventMessages.format("event.error.cannot-start", Map.of(
+                    "state", session.getState().name(),
+                    "players", String.valueOf(session.alives().size()),
+                    "min", String.valueOf(session.minPlayers()))));
             return;
         }
         int seconds = ctx.getArgs().length > 0
-                ? safeParse(ctx.getArgs()[0], game.startCountdown())
-                : game.startCountdown();
-        game.requestStart(seconds);
-        ctx.reply("§aEvento iniciando em §e" + seconds + "s§a.");
+                ? safeParse(ctx.getArgs()[0], session.startCountdown())
+                : session.startCountdown();
+        engine.startEvent(ctx.player(), seconds, false, null);
+        ctx.reply(EventMessages.format("event.session.starting", Map.of(
+                "seconds", String.valueOf(seconds),
+                "mode", session.getActiveMode() != null ? session.getActiveMode().displayName() : session.getModeId())));
     }
 
     @Completer(name = "start")

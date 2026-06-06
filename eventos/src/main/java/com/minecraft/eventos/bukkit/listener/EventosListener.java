@@ -3,14 +3,16 @@ package com.minecraft.eventos.bukkit.listener;
 import com.minecraft.eventos.Constant;
 import com.minecraft.eventos.Core;
 import com.minecraft.eventos.EventosPlugin;
-import com.minecraft.eventos.EventosSettings;
 import com.minecraft.eventos.account.Account;
 import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
 import com.minecraft.eventos.bukkit.manager.PermissionManager;
 import com.minecraft.eventos.bukkit.manager.TagManager;
-import com.minecraft.eventos.game.Game;
+import com.minecraft.eventos.engine.EventEngine;
+import com.minecraft.eventos.engine.EventModeRules;
+import com.minecraft.eventos.engine.EventSession;
 import com.minecraft.eventos.game.state.GameState;
 import com.minecraft.eventos.game.variable.Variable;
+import com.minecraft.eventos.message.EventMessages;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -20,6 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -29,14 +32,9 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
-/**
- * Listener principal do servidor de eventos.
- *
- * <p>Aplica as flags do {@code config.yml > rules:} (espelha
- * {@code ServerOptions} do Savage), gerencia spectator e eliminacao
- * por queda no modo Sumo.
- */
 public final class EventosListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -61,19 +59,30 @@ public final class EventosListener implements Listener {
         Player player = event.getPlayer();
         Account account = Core.getAccountController().of(player.getUniqueId());
         if (account != null && account.shouldBroadcastJoinMessage()) {
-            event.joinMessage(Component.text("§e+ §a" + player.getName() + " §7entrou no evento."));
+            event.joinMessage(EventMessages.component("event.player.join",
+                    java.util.Map.of("player", player.getName())));
         } else {
             event.joinMessage(null);
         }
 
-        Game game = EventosPlugin.getInstance().getGame();
-        if (game.getState() == GameState.PLAYING) {
+        EventEngine engine = EventosPlugin.getInstance().getEventEngine();
+        EventSession session = engine.getSession();
+
+        if (session.getState() == GameState.PLAYING) {
             player.setGameMode(GameMode.SPECTATOR);
-            player.sendMessage(Component.text("§eVoce entrou como espectador (evento em andamento)."));
+            player.sendMessage(EventMessages.component("event.player.late-join"));
         } else {
             player.setGameMode(GameMode.ADVENTURE);
+            if (session.isAutomated() && session.getState() == GameState.WAITING) {
+                engine.joinQueue(player);
+            }
         }
-        if (game.getSpawn() != null) player.teleport(game.getSpawn());
+
+        if (session.getSpawn() != null) {
+            player.teleport(session.getSpawn());
+        } else if (session.getArena() != null && session.getArena().primarySpawn() != null) {
+            player.teleport(session.getArena().primarySpawn());
+        }
 
         PermissionManager.loadPermissions(player);
 
@@ -90,62 +99,142 @@ public final class EventosListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        event.quitMessage(Component.text("§e- §c" + event.getPlayer().getName() + " §7saiu."));
+        event.quitMessage(EventMessages.component("event.player.quit",
+                java.util.Map.of("player", event.getPlayer().getName())));
         PermissionManager.unloadPermissions(event.getPlayer());
         TagManager.removeTag(event.getPlayer());
         AboveNameDisplay.remove(event.getPlayer());
+        EventEngine engine = EventosPlugin.getInstance().getEventEngine();
+        engine.leaveQueue(event.getPlayer());
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),
                 () -> Core.getAccountController().unload(event.getPlayer().getUniqueId()));
     }
 
-    /* ----- modo Sumo: queda elimina ----- */
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        Game game = EventosPlugin.getInstance().getGame();
-        if (!game.isSumo() || game.getState() != GameState.PLAYING) return;
+        EventSession session = EventosPlugin.getInstance().getEventEngine().getSession();
+        if (session.getState() != GameState.PLAYING || session.getActiveMode() == null) return;
         Player p = event.getPlayer();
         if (p.getGameMode() == GameMode.SPECTATOR) return;
-        int dieY = Variable.getInt(Variable.Key.DIE_Y);
-        if (p.getLocation().getBlockY() < dieY) {
-            p.setGameMode(GameMode.SPECTATOR);
-            p.sendMessage(Component.text("§cVoce foi eliminado!"));
-            game.broadcast("§7" + p.getName() + " §efoi eliminado.");
-            if (game.alives().size() == 1) {
-                Player winner = game.alives().get(0);
-                game.end(winner.getUniqueId());
+        int dieY = session.getArena() != null ? session.getArena().getDieY()
+                : Variable.getInt(Variable.Key.DIE_Y);
+        if (session.getState() == GameState.PLAYING && session.getActiveMode() != null) {
+            session.getActiveMode().onPlayerMove(session, p, dieY);
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        EventSession session = EventosPlugin.getInstance().getEventEngine().getSession();
+        EventModeRules rules = rules(session, event.getPlayer());
+        if (!rules.blockBreak() && !event.getPlayer().hasPermission("eventos.admin")) {
+            event.setCancelled(true);
+            return;
+        }
+        if (session.getState() == GameState.PLAYING && session.getActiveMode() != null) {
+            session.getActiveMode().onBlockBreak(session, event);
+        }
+    }
+
+    @EventHandler
+    public void onPlace(BlockPlaceEvent event) {
+        EventModeRules rules = rules(session(event.getPlayer()), event.getPlayer());
+        if (!rules.blockPlace() && !event.getPlayer().hasPermission("eventos.admin")) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onDrop(PlayerDropItemEvent event) {
+        EventModeRules rules = rules(session(event.getPlayer()), event.getPlayer());
+        if (!rules.dropItems()) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onBucketFill(PlayerBucketFillEvent event) {
+        EventModeRules rules = rules(session(event.getPlayer()), event.getPlayer());
+        if (!rules.buckets()) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        EventModeRules rules = rules(session(event.getPlayer()), event.getPlayer());
+        if (!rules.buckets()) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        EventSession session = session(player);
+        EventModeRules rules = rules(session, player);
+        if (!rules.damage()) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event instanceof EntityDamageByEntityEvent byEntity
+                && session.getState() == GameState.PLAYING
+                && session.getActiveMode() != null) {
+            session.getActiveMode().onDamage(session, byEntity);
+            if (!rules.friendlyFire() && byEntity.getDamager() instanceof Player attacker) {
+                var teamA = session.getContext().getTeams().get(player.getUniqueId());
+                var teamB = session.getContext().getTeams().get(attacker.getUniqueId());
+                if (teamA != null && teamA.equals(teamB)) {
+                    event.setCancelled(true);
+                }
             }
         }
     }
 
-    /* ----- rules: config.yml ----- */
-
-    private boolean ruleBlocksBuild() {
-        return !EventosSettings.RULE_BLOCK_PLACE;
+    @EventHandler
+    public void onFood(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!rules(session(player), player).food()) event.setCancelled(true);
     }
 
-    private boolean ruleBlocksBreak() {
-        return !EventosSettings.RULE_BLOCK_BREAK;
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        EventSession session = session(event.getEntity());
+        if (session.getState() != GameState.PLAYING || session.getActiveMode() == null) return;
+        if (!session.activeRules().respawn()) return;
+        event.setKeepInventory(true);
+        event.getDrops().clear();
+        event.setKeepLevel(true);
+        Player victim = event.getEntity();
+        Player killer = victim.getKiller();
+        if (killer != null) {
+            session.getContext().addKill(killer.getUniqueId());
+        }
     }
 
-    @EventHandler public void onPlace(BlockPlaceEvent e) {
-        if (ruleBlocksBuild() && !e.getPlayer().hasPermission("eventos.admin")) e.setCancelled(true);
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        EventSession session = session(event.getPlayer());
+        if (session.getState() != GameState.PLAYING) return;
+        if (!session.activeRules().respawn()) return;
+        if (session.getSpawn() != null) {
+            event.setRespawnLocation(session.getSpawn());
+        }
     }
-    @EventHandler public void onBreak(BlockBreakEvent e) {
-        if (ruleBlocksBreak() && !e.getPlayer().hasPermission("eventos.admin")) e.setCancelled(true);
+
+    private EventSession session(Player player) {
+        return EventosPlugin.getInstance().getEventEngine().getSession();
     }
-    @EventHandler public void onDrop(PlayerDropItemEvent e) {
-        if (!EventosSettings.RULE_DROP_ITEMS) e.setCancelled(true);
-    }
-    @EventHandler public void onBucketFill(PlayerBucketFillEvent e) {
-        if (!EventosSettings.RULE_BUCKETS) e.setCancelled(true);
-    }
-    @EventHandler public void onBucketEmpty(PlayerBucketEmptyEvent e) {
-        if (!EventosSettings.RULE_BUCKETS) e.setCancelled(true);
-    }
-    @EventHandler public void onDamage(EntityDamageEvent e) {
-        if (!EventosSettings.RULE_DAMAGE) e.setCancelled(true);
-    }
-    @EventHandler public void onFood(FoodLevelChangeEvent e) {
-        if (!EventosSettings.RULE_FOOD) e.setCancelled(true);
+
+    private EventModeRules rules(EventSession session, Player player) {
+        if (player.hasPermission("eventos.admin")) {
+            return new EventModeRules(true, true, true, true, true, true, true, true);
+        }
+        if (session.getState() == GameState.PLAYING && session.getActiveMode() != null) {
+            return session.activeRules();
+        }
+        return new EventModeRules(
+                com.minecraft.eventos.EventosSettings.RULE_DAMAGE,
+                com.minecraft.eventos.EventosSettings.RULE_FOOD,
+                com.minecraft.eventos.EventosSettings.RULE_DROP_ITEMS,
+                com.minecraft.eventos.EventosSettings.RULE_BLOCK_PLACE,
+                com.minecraft.eventos.EventosSettings.RULE_BLOCK_BREAK,
+                com.minecraft.eventos.EventosSettings.RULE_BUCKETS,
+                true,
+                false);
     }
 }

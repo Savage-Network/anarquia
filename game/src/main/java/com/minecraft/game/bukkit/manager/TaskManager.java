@@ -52,6 +52,10 @@ public final class TaskManager {
         rankExpirationTask = new RankExpirationTask(plugin);
         rankExpirationTask.start();
 
+        long backupTicks = 20L * 60L * 60L * 6L;
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
+                com.minecraft.game.backup.BackupService::runScheduled, backupTicks, backupTicks);
+
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             AccountController controller = Core.getAccountController();

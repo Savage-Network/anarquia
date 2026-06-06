@@ -247,6 +247,21 @@ public final class PunishmentService {
     }
 
     private static void publishSync(Punishment punishment) {
+        if (punishment != null && punishment.isActive()
+                && punishment.getCategory() == com.minecraft.game.api.punishment.PunishmentCategory.BAN) {
+            int historySize = 0;
+            Account target = Core.getAccountController() != null
+                    ? Core.getAccountController().of(punishment.getPlayer()) : null;
+            if (target != null && target.getHistory() != null) {
+                historySize = target.getHistory().getPunishmentIds().size();
+            }
+            if (historySize >= 2) {
+                com.minecraft.game.util.DiscordWebhookUtil.send("staff-alerts",
+                        "Ban em conta com historico (" + historySize + " punicoes): "
+                                + punishment.getPlayer() + " | ID " + punishment.getId(),
+                        "Ban — historico");
+            }
+        }
         if (Core.getRedis() == null || !Core.getRedis().isEnabled()) return;
         String payload = punishment.getCategory().name() + "|"
                 + punishment.getPlayer() + "|"

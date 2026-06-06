@@ -19,13 +19,7 @@ public final class FriendService {
     private FriendService() {}
 
     public static int countFriendsOnlineInLobby(Account account) {
-        if (account == null) return 0;
-        int n = 0;
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.getUniqueId().equals(account.getId())) continue;
-            if (isFriend(account, p.getUniqueId())) n++;
-        }
-        return n;
+        return FriendPresence.countFriendsOnlineOnNetwork(account);
     }
 
     public static boolean isFriend(Account account, UUID otherId) {

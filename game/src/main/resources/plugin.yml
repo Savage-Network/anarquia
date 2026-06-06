@@ -166,6 +166,14 @@ commands:
     description: Ranking dos jogadores online
     usage: /top <kills|deaths|kdr|money>
     aliases: [ranking, leaderboard]
+  stats:
+    description: Menu de estatisticas e conquistas
+    usage: /stats [jogador]
+    aliases: [estatisticas, conquistas]
+  perfil:
+    description: Perfil publico de um jogador
+    usage: /perfil <nick>
+    aliases: [profile]
   bounty:
     description: Coloca recompensa na cabeca de um jogador
     usage: /bounty <jogador> [valor]
@@ -250,6 +258,9 @@ permissions:
     default: false
   game.combat.bypass:
     description: Ignora combat tag e combat log
+    default: false
+  game.commands.vanilla.bypass:
+    description: Permite comandos vanilla do Minecraft
     default: false
   game.staff:
     description: Staff base — /go, staff chat

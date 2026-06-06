@@ -101,6 +101,9 @@ public final class AuthPlugin extends JavaPlugin {
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
 
+            getServer().getScheduler().runTask(this,
+                    () -> com.minecraft.auth.bukkit.command.vanilla.AllowedCommandIndex.rebuild(this));
+
             // 8) Servidor HTTP de validacao (opcional)
             int port = AuthSettings.VALIDATION_HTTP_PORT;
             if (port > 0) {

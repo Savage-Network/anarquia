@@ -4,6 +4,7 @@ import com.minecraft.eventos.EventosPlugin;
 import com.minecraft.eventos.bukkit.command.annotation.Command;
 import com.minecraft.eventos.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.eventos.bukkit.command.structure.CommandInheritor;
+import com.minecraft.eventos.message.EventMessages;
 
 public final class EventosReloadCommand implements CommandInheritor {
 
@@ -11,6 +12,6 @@ public final class EventosReloadCommand implements CommandInheritor {
             description = "Recarrega configuracoes do eventos.jar")
     public void execute(BukkitCommandContext ctx) {
         EventosPlugin.getInstance().reloadAll();
-        ctx.reply("§aConfiguracoes do eventos.jar recarregadas.");
+        ctx.reply(EventMessages.format("command.reloaded"));
     }
 }

@@ -22,7 +22,12 @@ public final class ProxyPingListener {
                 .onlinePlayers(settings.displayOnlinePlayers(Core.getProxy()))
                 .maximumPlayers(settings.resolveMaxPlayers(ping));
 
-        if (settings.isHidePlayerSample()) {
+        String version = settings.buildPingVersionName(Core.getProxy());
+        if (version != null) {
+            builder.version(new ServerPing.Version(-1, version.replace('&', '§')));
+        }
+
+        if (settings.isHidePlayerSample() || settings.isMaintenanceEnabled()) {
             builder.clearSamplePlayers();
         }
 

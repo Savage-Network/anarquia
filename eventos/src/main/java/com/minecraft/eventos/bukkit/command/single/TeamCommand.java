@@ -33,7 +33,7 @@ public final class TeamCommand implements CommandInheritor {
             }
             case "off" -> {
                 game.setTeam(false);
-                game.getTeams().clear();
+                game.getContext().getTeams().clear();
                 ctx.reply("§eModo Team desativado.");
             }
             case "select" -> {
@@ -67,7 +67,7 @@ public final class TeamCommand implements CommandInheritor {
         int idx = 0;
         for (Player p : players) {
             TeamPresetType color = colors[idx % colors.length];
-            game.getTeams().put(p.getUniqueId(), color);
+            game.getContext().getTeams().put(p.getUniqueId(), color);
             p.sendMessage(net.kyori.adventure.text.Component.text(
                     "§7Voce esta no time " + color.getColorCode() + "§l" + color.name()));
             idx++;
@@ -75,6 +75,6 @@ public final class TeamCommand implements CommandInheritor {
     }
 
     private int countTeams(Game game) {
-        return (int) game.getTeams().values().stream().distinct().count();
+        return (int) game.getContext().getTeams().values().stream().distinct().count();
     }
 }

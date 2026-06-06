@@ -1,25 +1,40 @@
 # Configuracao dinamica do proxy (editavel in-game via /proxy).
-# Placeholders no MOTD: {online} {max} {name} {maintenance}
+# Placeholders MOTD/kick: {online} {max} {name} {site} {store} {maintenance}
+# Placeholders manutencao: {reason} {eta} {discord} {rank} {mode}
 
 motd:
-  line1: "&6&lSavageMC &7| &fModo principal"
+  line1: "&6&lSavageMC &7| &fSemi-Anarquia"
   line2: "&7savagemc.net &8| &6loja.savagemc.net"
   max-players: -1
   hide-sample: false
 
 maintenance:
   enabled: false
+  # RANK = rank minimo | WHITELIST = lista + staff | FULL = so bypass
+  mode: RANK
   min-rank: HELPER
-  motd-line1: "&c&lMANUTENÇÃO"
-  motd-line2: "&7SavageMC — apenas staff autorizado"
+  reason: "Atualização da rede"
+  estimated-end: "Em breve"
+  discord: "discord.gg/savagemc"
+  countdown:
+    actionbar: true
+    color: "#FF8C42"
+    urgent-color: "#FF6B6B"
+    urgent-seconds: 60
+  whitelist: []
+  motd-line1: "&c&l⚠ MANUTENÇÃO"
+  motd-line2: "&7{reason} &8| &e{eta}"
   kick-message:
     - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    - "&6&lSavageMC"
-    - "&7savagemc.net"
+    - "&6&lSavageMC &7· &fsavagemc.net"
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     - ""
-    - "&c&lMANUTENÇÃO"
-    - "&7O servidor está em manutenção."
-    - "&7Apenas staff autorizado pode entrar."
+    - "&c&l⚠ MANUTENÇÃO EM ANDAMENTO"
+    - "&7{reason}"
+    - "&7Previsão de retorno: &e{eta}"
     - ""
-    - "&7Volte em breve!"
+    - "&7Apenas quem tem acesso autorizado pode entrar."
+    - "&7Modo: &f{mode} &8(&7rank &f{rank}&8)"
+    - ""
+    - "&7Acompanhe em &b{discord}"
     - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

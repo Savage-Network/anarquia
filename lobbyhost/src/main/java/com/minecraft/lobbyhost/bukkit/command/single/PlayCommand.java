@@ -6,6 +6,7 @@ import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
+import com.minecraft.lobbyhost.bukkit.menu.LobbyMenus;
 import com.minecraft.lobbyhost.network.QueueManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -27,7 +28,7 @@ public final class PlayCommand implements CommandInheritor {
             usage = "/play [modo]")
     public void execute(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 0) {
-            sendModeList(ctx);
+            LobbyMenus.openNavigation(ctx.player());
             return;
         }
 
