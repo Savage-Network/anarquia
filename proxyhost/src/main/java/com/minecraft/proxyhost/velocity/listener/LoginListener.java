@@ -22,8 +22,9 @@ public final class LoginListener {
         Core.getAccountController().load(player.getUniqueId(), player.getUsername())
                 .thenAccept(account -> {
                     if (Core.getLogger().isDebugEnabled()) {
-                        Core.getLogger().debug("Account cache: {} rank={} original={}",
-                                account.getName(), account.getRankType(), account.isPremium());
+                        Core.getLogger().debug("Account cache: {} rank={} permNodes={} original={}",
+                                account.getName(), account.getRankType(),
+                                account.collectPermissionNodes().size(), account.isPremium());
                     }
                 })
                 .exceptionally(t -> {

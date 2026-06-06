@@ -3,6 +3,7 @@ package com.minecraft.eventos;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.eventos.account.AccountController;
+import com.minecraft.eventos.backend.data.AccountIdentityData;
 import com.minecraft.eventos.backend.data.AccountData;
 import com.minecraft.eventos.backend.database.HikariProvider;
 import com.minecraft.eventos.backend.redis.RedisProvider;
@@ -35,6 +36,7 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static AccountIdentityData accountIdentityData;
 
     public static void load(EventosPlugin plugin) {
         javaPlugin = plugin;

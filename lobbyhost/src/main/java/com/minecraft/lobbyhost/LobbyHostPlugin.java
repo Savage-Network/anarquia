@@ -2,6 +2,7 @@ package com.minecraft.lobbyhost;
 
 import com.minecraft.lobbyhost.account.AccountController;
 import com.minecraft.lobbyhost.architect.ArchitectLoader;
+import com.minecraft.lobbyhost.backend.data.AccountIdentityData;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
 import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
@@ -85,8 +86,11 @@ public final class LobbyHostPlugin extends JavaPlugin {
             }
 
             // 3) Data layers
+            AccountIdentityData accountIdentityData = new AccountIdentityData(database);
+            accountIdentityData.createTables();
             AccountData accountData = new AccountData(database);
             accountData.createTables();
+            Core.setAccountIdentityData(accountIdentityData);
             Core.setAccountData(accountData);
 
             ClanData clanData = new ClanData(database);
@@ -135,6 +139,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
             // 8) Canal BungeeCord (para redirect entre servidores)
             getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+            getServer().getMessenger().registerOutgoingPluginChannel(this, Constant.STAFFCHAT_PLUGIN_CHANNEL);
 
             // 9) Scan automatico
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");

@@ -26,10 +26,6 @@ public final class AccountRedisListener extends JedisPubSub {
 
     @Override
     public void onMessage(String channel, String message) {
-        if (Constant.REDIS_PROXY_STAFFCHAT_CHANNEL.equals(channel)) {
-            // Entrega centralizada no proxy via Velocity.
-            return;
-        }
         if (Constant.REDIS_NETWORK_REPORT_CHANNEL.equals(channel)) {
             Bukkit.getScheduler().runTask(plugin, () -> ReportService.deliverFromRedis(message));
             return;

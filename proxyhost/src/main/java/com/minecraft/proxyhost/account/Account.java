@@ -159,11 +159,55 @@ public class Account {
                 .build();
     }
 
-    /** Permissao logica: rank ativo + extras na conta; fallback no Velocity/LuckPerms. */
+    /** Permissao logica: rank, ranks extras e permissoes na conta (sem loop no Velocity). */
     public boolean hasPermission(String node) {
-        if (node == null || node.isEmpty()) return false;
-        if (getRankType().grants(node)) return true;
-        return player().map(p -> p.hasPermission(node)).orElse(false);
+        return grantsPermission(node);
+    }
+
+    public boolean grantsPermission(String key) {
+        if (key == null || key.isEmpty()) return false;
+        refreshPermissions();
+        if (getRankType().grants(key)) return true;
+        for (Rank rank : getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() != null && rank.getType().grants(key)) {
+                return true;
+            }
+        }
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
+    }
+
+    public java.util.List<com.minecraft.proxyhost.account.context.objects.permission.Permission> getPermissions() {
+        return context.getPermissions();
+    }
+
+    public java.util.List<Rank> getAvailableRanks() {
+        return context.getRankInfo().getAvailableRanks();
+    }
+
+    public void refreshPermissions() {
+        var it = getPermissions().iterator();
+        while (it.hasNext()) {
+            if (it.next().hasExpired()) {
+                it.remove();
+            }
+        }
+    }
+
+    /** Nos Bukkit/Velocity sincronizados a partir do rank ativo e extras. */
+    public java.util.Set<String> collectPermissionNodes() {
+        java.util.LinkedHashSet<String> nodes = new java.util.LinkedHashSet<>();
+        nodes.addAll(getRankType().getPermissionNodes());
+        for (Rank rank : getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() != null) {
+                nodes.addAll(rank.getType().getPermissionNodes());
+            }
+        }
+        getPermissions().stream()
+                .filter(p -> !p.hasExpired())
+                .map(com.minecraft.proxyhost.account.context.objects.permission.Permission::getKey)
+                .forEach(nodes::add);
+        return nodes;
     }
 
     /* ================================================================

@@ -70,7 +70,7 @@ public final class LobbyJoinListener implements Listener {
 
         if (account != null && !VanishService.willAutoVanishOnJoin(account)
                 && !VanishService.isVanished(player)
-                && account.getToggle().isAllowJoinMessage()) {
+                && account.shouldBroadcastJoinMessage()) {
             event.joinMessage(JoinBroadcast.create(account, player, "entrou no lobby!"));
         } else {
             event.joinMessage(null);

@@ -20,7 +20,10 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import com.minecraft.game.util.PunishmentTimeUtil;
 import org.bukkit.entity.Player;
+
+import java.util.Comparator;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -139,7 +142,24 @@ public class Account {
 
     public RankType getRankType() {
         Rank r = getRank();
-        return r != null && r.getType() != null ? r.getType() : RankType.MEMBER;
+        if (r != null && r.getType() != null && !r.hasExpired()) {
+            return r.getType();
+        }
+        return getAvailableRanks().stream()
+                .filter(rank -> rank != null && !rank.hasExpired() && rank.getType() != null)
+                .max(Comparator.comparingInt(rank -> rank.getType().ordinal()))
+                .map(Rank::getType)
+                .orElse(RankType.MEMBER);
+    }
+
+    public String getRankExpiryLabel() {
+        Rank rank = getRank();
+        if (rank == null || rank.getType() == null) return "";
+        if (rank.getExpiresAt() <= 0) {
+            return rank.getType() == RankType.MEMBER ? "" : "Permanente";
+        }
+        if (rank.hasExpired()) return "Expirado";
+        return PunishmentTimeUtil.formatRemaining(rank.getExpiresAt());
     }
 
     public boolean hasRank(RankType type) {
@@ -148,6 +168,11 @@ public class Account {
 
     public boolean isVIP() {
         return hasRank(RankType.VIP);
+    }
+
+    /** Broadcast de entrada no servidor (VIP+ e preferencia ativa). */
+    public boolean shouldBroadcastJoinMessage() {
+        return isVIP() && getToggle().isAllowJoinMessage();
     }
 
     public boolean isStaffer() {
@@ -530,6 +555,25 @@ public class Account {
     public boolean removeGolds(int amount) {
         if (amount <= 0 || getGolds() < amount) return false;
         setGolds(getGolds() - amount);
+        return true;
+    }
+
+    public int getCash() {
+        return context.getCash();
+    }
+
+    public void setCash(int cash) {
+        context.setCash(Math.max(0, cash));
+        markDirty();
+    }
+
+    public void addCash(int amount) {
+        if (amount > 0) setCash(getCash() + amount);
+    }
+
+    public boolean removeCash(int amount) {
+        if (amount <= 0 || getCash() < amount) return false;
+        setCash(getCash() - amount);
         return true;
     }
 

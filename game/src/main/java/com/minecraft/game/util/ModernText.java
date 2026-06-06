@@ -41,6 +41,12 @@ public final class ModernText {
         return LEGACY_HEX.serialize(component);
     }
 
+    /** Converte legacy § (incluindo hex §x§R§R§G§G§B§B) para Component. */
+    public static Component fromLegacy(String legacy) {
+        if (legacy == null || legacy.isEmpty()) return Component.empty();
+        return LEGACY_HEX.deserialize(legacy.replace('&', '§'));
+    }
+
     public static Component noItalic(Component c) {
         return c.decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false);
     }

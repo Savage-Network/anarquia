@@ -35,7 +35,7 @@ public final class StaffChatCommand implements SimpleCommand {
 
         String message = String.join(" ", args);
         if (!StaffChatService.send(sender, account, message)) {
-            sender.sendMessage(legacy("&cRedis offline — staff chat indisponível."));
+            sender.sendMessage(legacy("&cNão foi possível enviar a mensagem."));
         }
     }
 

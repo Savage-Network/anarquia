@@ -50,8 +50,8 @@ commands:
     permission: lobbyhost.staff
     aliases: [broadcast, alerta]
   account:
-    description: Perfil da conta ou edicao staff (setrank)
-    usage: /account [jogador] | /account setrank <nick> <RANK>
+    description: Perfil da conta ou edicao staff
+    usage: /account [jogador] | /account setrank|remrank|settag|remtag|setpackage|rempackage|packages ...
     aliases: [perfil, conta, a]
   tag:
     description: Lista/escolhe a sua tag

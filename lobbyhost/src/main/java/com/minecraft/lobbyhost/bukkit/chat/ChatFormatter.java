@@ -5,6 +5,7 @@ import com.minecraft.lobbyhost.account.context.objects.medal.Medal;
 import com.minecraft.lobbyhost.account.context.objects.toggle.TagPrefix;
 import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
 import com.minecraft.lobbyhost.LobbySettings;
+import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 
 public final class ChatFormatter {
 
@@ -18,15 +19,16 @@ public final class ChatFormatter {
     }
 
     public static String formatLine(Account sender, Account viewer, String content) {
-        TagPrefix viewerPrefix = viewer != null ? viewer.getTagPrefix() : null;
-        String tag = sender.getTag().getByPrefix(viewerPrefix);
+        TagPrefix viewerPrefix = viewer != null ? viewer.getTagPrefix() : TagPrefix.DEFAULT;
+        String tag = TagManager.getAdjustedPrefix(viewerPrefix, sender.getTag(), sender.getId());
         String medal = sender.getMedal() != Medal.NONE ? sender.getMedal().getColoredSymbol() : "";
         String clan = "";
         if (sender.getToggle().isShowClanTag() && sender.hasClan()) {
             var c = sender.getClan();
             if (c != null) clan = ClanTagFormatter.formatChatTag(c) + " ";
         }
-        return medal + clan + tag + sender.getNickname() + "§7: " + content;
+        String nick = sender.getRankType().formatChatNickname(sender.getNickname());
+        return medal + clan + tag + nick + "§7: " + content;
     }
 
     public static String applyMentions(String content, Iterable<org.bukkit.entity.Player> online) {

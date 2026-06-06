@@ -34,7 +34,7 @@ public final class ServerShopCatalog {
             ConfigurationSection sec = root.getConfigurationSection(id);
             if (sec == null) continue;
 
-            String name = sec.getString("name", id);
+            String name = colorize(sec.getString("name", id));
             Material icon = Material.matchMaterial(sec.getString("icon", "CHEST").toUpperCase(Locale.ROOT));
             if (icon == null) icon = Material.CHEST;
             int slot = sec.getInt("slot", 10);
@@ -67,5 +67,10 @@ public final class ServerShopCatalog {
 
     public static Optional<ShopCategory> category(String id) {
         return Optional.ofNullable(CATEGORIES.get(id.toLowerCase(Locale.ROOT)));
+    }
+
+    static String colorize(String input) {
+        if (input == null) return "";
+        return input.replace('&', '§');
     }
 }

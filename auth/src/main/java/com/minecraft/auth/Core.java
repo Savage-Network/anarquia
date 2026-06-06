@@ -3,6 +3,7 @@ package com.minecraft.auth;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.auth.account.AccountController;
+import com.minecraft.auth.backend.data.AccountIdentityData;
 import com.minecraft.auth.backend.data.AccountData;
 import com.minecraft.auth.backend.data.AuthData;
 import com.minecraft.auth.backend.database.HikariProvider;
@@ -36,6 +37,7 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static AccountIdentityData accountIdentityData;
     @Getter @Setter private static AuthData authData;
 
     public static void load(AuthPlugin plugin) {

@@ -3,7 +3,11 @@ package com.minecraft.game.bukkit.welcome;
 import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.stats.GameStats;
+import com.minecraft.game.bukkit.semi.SemiAnarchyConfig;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -12,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Entrega o livro guia na primeira entrada do jogador no servidor GAME. */
+/** Primeira entrada no semi-anarquia: TP ao spawn + livro guia. */
 public final class WelcomeBookService {
 
     private static final String BOOK_TITLE = "SavageMC — Guia";
@@ -35,6 +39,11 @@ public final class WelcomeBookService {
     private WelcomeBookService() {}
 
     public static void tryGiveOnJoin(Account account, Player player) {
+        handleFirstJoin(account, player);
+    }
+
+    /** Teleporta ao spawn do mapa {@code spawn} e entrega o guia na primeira vez no GAME. */
+    public static void handleFirstJoin(Account account, Player player) {
         if (account == null || player == null) return;
 
         GameStats stats = account.getContext().getGameStats();
@@ -46,10 +55,25 @@ public final class WelcomeBookService {
             return;
         }
 
+        teleportToGameSpawn(player);
         stats.setWelcomeBookGiven(true);
         account.markDirty();
         deliver(player);
         player.sendMessage("§6§lSavageMC §7» §aRecebeste o §fGuia do Jogador§a! Abre o livro no inventário.");
+    }
+
+    private static void teleportToGameSpawn(Player player) {
+        try {
+            Location dest = SemiAnarchyConfig.spawnPoint();
+            dest.getChunk().load(true);
+            if (!player.teleport(dest)) return;
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0),
+                    30, 0.4, 0.5, 0.4, 0.05);
+            player.sendMessage("§aBem-vindo ao §6§lSavageMC§a! Foste teleportado para o spawn seguro.");
+        } catch (IllegalStateException e) {
+            player.sendMessage("§cMapa spawn indisponivel. Usa §e/spawn §cquando estiver pronto.");
+        }
     }
 
     private static boolean isLegacyPlayer(Account account) {

@@ -15,7 +15,7 @@ public final class AccountSync {
 
     public static void saveAndBroadcast(Account account) {
         if (account == null) return;
-        Core.getAccountData().saveAsync(account).thenRun(() -> {
+        Core.getAccountData().saveWithIdentityAsync(account).thenRun(() -> {
             account.clearDirty();
             broadcastUpdate(account);
         });

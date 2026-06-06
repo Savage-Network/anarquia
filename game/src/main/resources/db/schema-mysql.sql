@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS accounts (
 
 CREATE INDEX IF NOT EXISTS idx_accounts_name ON accounts(name);
 
+-- Rank e tag autoritativos (nao sobrescritos por saves de perfil de auth/lobby)
+CREATE TABLE IF NOT EXISTS account_identity (
+    player_id           VARCHAR(36)  NOT NULL PRIMARY KEY,
+    primary_rank        VARCHAR(32)  NOT NULL DEFAULT 'MEMBER',
+    primary_given_at    BIGINT       NOT NULL DEFAULT 0,
+    primary_expires_at  BIGINT       NOT NULL DEFAULT 0,
+    available_ranks     TEXT         NOT NULL,
+    tag                 VARCHAR(64)  NOT NULL DEFAULT 'MEMBER',
+    updated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Clas (JSON com membros, power, aliados, inimigos, etc.)
 CREATE TABLE IF NOT EXISTS clans (
     id          VARCHAR(36)  NOT NULL PRIMARY KEY,

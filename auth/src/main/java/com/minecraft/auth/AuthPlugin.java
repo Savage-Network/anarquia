@@ -1,6 +1,7 @@
 package com.minecraft.auth;
 
 import com.minecraft.auth.account.AccountController;
+import com.minecraft.auth.backend.data.AccountIdentityData;
 import com.minecraft.auth.backend.data.AccountData;
 import com.minecraft.auth.backend.database.HikariProvider;
 import com.minecraft.auth.backend.redis.RedisProvider;
@@ -74,8 +75,11 @@ public final class AuthPlugin extends JavaPlugin {
             }
 
             // 3) Data layers
+            AccountIdentityData accountIdentityData = new AccountIdentityData(database);
+            accountIdentityData.createTables();
             AccountData accountData = new AccountData(database);
             accountData.createTables();
+            Core.setAccountIdentityData(accountIdentityData);
             Core.setAccountData(accountData);
 
             com.minecraft.auth.backend.data.AuthData authData = new com.minecraft.auth.backend.data.AuthData(database);

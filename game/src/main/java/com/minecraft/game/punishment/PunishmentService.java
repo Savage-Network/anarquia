@@ -140,10 +140,29 @@ public final class PunishmentService {
         });
     }
 
+    public static Optional<Punishment> activeBan(UUID playerId) {
+        PunishmentData data = Core.getPunishmentData();
+        if (data == null) return Optional.empty();
+        return data.findActive(playerId, PunishmentCategory.BAN);
+    }
+
     public static Optional<Punishment> activeMute(UUID playerId) {
         PunishmentData data = Core.getPunishmentData();
         if (data == null) return Optional.empty();
         return data.findActive(playerId, PunishmentCategory.MUTE);
+    }
+
+    public static String muteDenyMessage(Punishment mute) {
+        if (mute == null) return "§cVocê está mutado e não pode falar no chat.";
+        StringBuilder msg = new StringBuilder("§cVocê está mutado!");
+        msg.append(" §7Motivo: §f").append(mute.getCause());
+        if (mute.isTemporary()) {
+            msg.append(" §7(Expira em: §f")
+                    .append(PunishmentTimeUtil.formatRemaining(mute.getExpiresAt()))
+                    .append("§7)");
+        }
+        msg.append(" §8").append(mute.getId());
+        return msg.toString();
     }
 
     public static String banKickMessage(Punishment punishment) {

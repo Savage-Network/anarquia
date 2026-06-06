@@ -8,6 +8,9 @@ import com.minecraft.game.backend.data.NetworkStatsData;
 import com.minecraft.game.backend.data.PunishmentData;
 import com.minecraft.game.backend.data.ReportData;
 import com.minecraft.game.backend.data.SignShopData;
+import com.minecraft.game.backend.data.PlayerVaultData;
+import com.minecraft.game.backend.data.AccountIdentityData;
+import com.minecraft.game.backend.data.VipKeyData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,7 +34,10 @@ public final class GameDatabaseSchema {
             ReportData reportData,
             PunishmentData punishmentData,
             SignShopData signShopData,
-            AuctionData auctionData) {
+            AuctionData auctionData,
+            VipKeyData vipKeyData,
+            PlayerVaultData playerVaultData,
+            AccountIdentityData accountIdentityData) {
 
         accountData.createTables();
         clanData.createTables();
@@ -40,12 +46,15 @@ public final class GameDatabaseSchema {
         punishmentData.createTables();
         signShopData.createTables();
         auctionData.createTables();
+        vipKeyData.createTables();
+        playerVaultData.createTables();
+        accountIdentityData.createTables();
 
         createIndexes(database);
 
         Core.getLogger().info(
-                "Schema do game aplicado: accounts, clans, network_stats, player_reports, "
-                        + "punishments, sign_shops, auction_listings");
+                "Schema do game aplicado: accounts, account_identity, clans, network_stats, player_reports, "
+                        + "punishments, sign_shops, auction_listings, vip_keys, player_vaults");
     }
 
     /** Indices extras (idempotente via IF NOT EXISTS). */
@@ -61,6 +70,7 @@ public final class GameDatabaseSchema {
         index(database, "idx_sign_shops_owner", "sign_shops(owner_id)");
         index(database, "idx_auction_seller", "auction_listings(seller_id)");
         index(database, "idx_auction_expires", "auction_listings(expires_at)");
+        index(database, "idx_vip_keys_redeemed", "vip_keys(redeemed_at)");
     }
 
     private static void index(HikariProvider database, String name, String onClause) {

@@ -11,9 +11,9 @@ import com.minecraft.proxyhost.config.ConfigSection;
 import com.minecraft.proxyhost.redis.RedisListener;
 import com.minecraft.proxyhost.proxy.NetworkPublisher;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
-import com.minecraft.proxyhost.velocity.command.AccountCommand;
 import com.minecraft.proxyhost.velocity.command.ProxyCommand;
 import com.minecraft.proxyhost.velocity.command.ReplyCommand;
+import com.minecraft.proxyhost.velocity.listener.StaffChatPluginListener;
 import com.minecraft.proxyhost.velocity.command.StaffChatCommand;
 import com.minecraft.proxyhost.velocity.command.TellCommand;
 import com.minecraft.proxyhost.routing.InitialServerListener;
@@ -52,7 +52,7 @@ import java.util.Map;
         id = "proxyhost",
         name = "ProxyHost",
         version = "1.0.0",
-        description = "Proxy host (Savage anarquia) - MOTD, manutencao, /tell, /staffchat, /account.",
+        description = "Proxy host (Savage anarquia) - MOTD, manutencao, /tell, /staffchat.",
         authors = {"savage-anarquia"}
 )
 public final class ProxyHostPlugin {
@@ -133,6 +133,7 @@ public final class ProxyHostPlugin {
         com.minecraft.proxyhost.routing.EventosAccessGuard.load(config);
 
         // Listeners
+        proxy.getEventManager().register(this, new com.minecraft.proxyhost.velocity.listener.PermissionsSetupListener());
         proxy.getEventManager().register(this, new InitialServerListener());
         proxy.getEventManager().register(this, new PunishmentLoginListener());
         proxy.getEventManager().register(this, new LoginListener());
@@ -142,9 +143,11 @@ public final class ProxyHostPlugin {
         proxy.getEventManager().register(this, new PluginHiderListener(this));
         proxy.getEventManager().register(this, new ServerKickListener());
 
-        // Comandos
+        proxy.getChannelRegistrar().register(StaffChatPluginListener.CHANNEL);
+        proxy.getEventManager().register(this, new StaffChatPluginListener());
+
+        // Comandos (/account fica nos backends game + lobbyhost — registro aqui sobrescrevia subcomandos staff)
         var cm = proxy.getCommandManager();
-        cm.register(cm.metaBuilder("account").aliases("a").plugin(this).build(), new AccountCommand());
         cm.register(cm.metaBuilder("tell").aliases("msg", "w", "pm").plugin(this).build(), new TellCommand());
         cm.register(cm.metaBuilder("reply").aliases("r").plugin(this).build(), new ReplyCommand());
         cm.register(cm.metaBuilder("staffchat").aliases("sc").plugin(this).build(), new StaffChatCommand());

@@ -73,6 +73,7 @@ public class AccountContext {
 
     private int level = 1;
     private int golds = 0;
+    private int vipKeys = 0;
 
     private long lastLogin = System.currentTimeMillis();
 

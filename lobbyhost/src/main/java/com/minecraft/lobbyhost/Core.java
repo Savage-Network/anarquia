@@ -3,6 +3,7 @@ package com.minecraft.lobbyhost;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.lobbyhost.account.AccountController;
+import com.minecraft.lobbyhost.backend.data.AccountIdentityData;
 import com.minecraft.lobbyhost.backend.data.AccountData;
 import com.minecraft.lobbyhost.backend.data.ClanData;
 import com.minecraft.lobbyhost.backend.data.NetworkStatsData;
@@ -39,6 +40,7 @@ public final class Core {
 
     @Getter @Setter private static AccountController accountController;
     @Getter @Setter private static AccountData accountData;
+    @Getter @Setter private static AccountIdentityData accountIdentityData;
     @Getter @Setter private static ClanData clanData;
     @Getter @Setter private static NetworkStatsData networkStatsData;
     @Getter @Setter private static ReportData reportData;

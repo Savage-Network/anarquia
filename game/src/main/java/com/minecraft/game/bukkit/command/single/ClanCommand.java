@@ -11,6 +11,7 @@ import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
 import com.minecraft.game.bukkit.menu.clan.ClanHubMenu;
+import com.minecraft.game.punishment.PunishmentService;
 import com.minecraft.game.util.PlayerLookup;
 import com.minecraft.game.util.TabCompleteUtil;
 import net.kyori.adventure.text.Component;
@@ -94,6 +95,11 @@ public final class ClanCommand implements CommandInheritor {
         if (account == null) return;
         if (!account.hasClan()) {
             account.send(NO_CLAN);
+            return;
+        }
+        var mute = PunishmentService.activeMute(account.getId());
+        if (mute.isPresent()) {
+            account.send(PunishmentService.muteDenyMessage(mute.get()));
             return;
         }
         if (ctx.getArgs().length == 0) {

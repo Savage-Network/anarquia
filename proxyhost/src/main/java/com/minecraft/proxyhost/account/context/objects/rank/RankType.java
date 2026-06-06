@@ -1,5 +1,6 @@
 package com.minecraft.proxyhost.account.context.objects.rank;
 
+import com.minecraft.proxyhost.account.context.objects.tag.LegacyHex;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -7,36 +8,36 @@ import lombok.RequiredArgsConstructor;
  * Hierarquia de ranks (ordinal == nivel). Espelha
  * {@code com.minecraft.core.account.rank.RankType} do Savage.
  *
- * <p>{@link #isAtLeast(RankType)} compara por ordinal. Tags VIP/STAFF
- * referenciam o rank em {@code Tag.source}.
+ * <p>Permissoes sincronizadas no Velocity via
+ * {@link com.minecraft.proxyhost.permission.AccountPermissionProvider}.
  */
 @Getter
 @RequiredArgsConstructor
 public enum RankType {
 
-    MEMBER     ("game.rank.member",      "§7"),
+    MEMBER     ("game.rank.member",      LegacyHex.MEMBER),
 
     /* ---------- VIP ---------- */
-    VIP        ("game.rank.vip",         "§a"),
-    NATIVE     ("game.rank.native",      "§b"),
-    EMBER      ("game.rank.ember",       "§6"),
-    EMBER_PLUS ("game.rank.ember_plus",  "§6"),
-    SAVAGE     ("game.rank.savage",      "§2"),
+    VIP        ("game.rank.vip",         LegacyHex.VIP),
+    NATIVE     ("game.rank.native",      LegacyHex.NATIVE),
+    EMBER      ("game.rank.ember",       LegacyHex.EMBER),
+    EMBER_PLUS ("game.rank.ember_plus",  LegacyHex.EMBER),
+    SAVAGE     ("game.rank.savage",      LegacyHex.SAVAGE),
 
     /* ---------- SPECIAL ---------- */
-    BETA       ("game.rank.beta",        "§e"),
-    PRECIOUS   ("game.rank.precious",    "§5"),
+    BETA       ("game.rank.beta",        LegacyHex.BETA),
+    PRECIOUS   ("game.rank.precious",    LegacyHex.PRECIOUS),
 
     /* ---------- STAFF ---------- */
-    BUILDER    ("game.rank.builder",     "§3"),
-    HELPER     ("game.rank.helper",      "§9"),
-    MOD        ("game.rank.mod",         "§3"),
-    MODPLUS    ("game.rank.modplus",     "§3"),
-    ADMIN      ("game.rank.admin",       "§4"),
-    DIRETOR    ("game.rank.diretor",     "§4"),
-    VERMELHO   ("game.rank.vermelho",    "§c"),
-    OWNER      ("game.rank.owner",       "§4"),
-    ZW         ("game.rank.zw",          "§x§9§D§0§0§0§0");
+    BUILDER    ("game.rank.builder",     LegacyHex.BUILDER),
+    HELPER     ("game.rank.helper",      LegacyHex.HELPER),
+    MOD        ("game.rank.mod",         LegacyHex.MOD),
+    MODPLUS    ("game.rank.modplus",     LegacyHex.MOD),
+    ADMIN      ("game.rank.admin",       LegacyHex.ADMIN),
+    DIRETOR    ("game.rank.diretor",     LegacyHex.ADMIN),
+    VERMELHO   ("game.rank.vermelho",    LegacyHex.VERMELHO),
+    OWNER      ("game.rank.owner",       LegacyHex.OWNER),
+    ZW         ("game.rank.zw",          LegacyHex.ZW);
 
     public static final String ZW_COLOR = ZW.color;
 
@@ -55,7 +56,7 @@ public enum RankType {
         return this == ZW || this == OWNER || this == DIRETOR || this == VERMELHO;
     }
 
-    /** Permissoes no proxy (Velocity) — consultadas em {@link com.minecraft.proxyhost.account.Account#hasPermission}. */
+    /** Permissoes no proxy (Velocity) — espelha game + nos proxyhost.*. */
     public java.util.List<String> getPermissionNodes() {
         if (this == ZW) {
             return zwPermissionNodes();
@@ -93,8 +94,10 @@ public enum RankType {
             nodes.add("proxyhost.whitelist");
             nodes.add("proxyhost.maintenance.bypass");
             nodes.add("proxyhost.whitelist.bypass");
+            nodes.add("proxyhost.*");
             nodes.add("game.admin");
             nodes.add("game.*");
+            nodes.add("lobbyhost.admin");
         }
         if (isSuperAdmin()) {
             nodes.add("*");
@@ -134,7 +137,7 @@ public enum RankType {
         nodes.add("proxyhost.maintenance.bypass");
         nodes.add("proxyhost.whitelist.bypass");
         nodes.add("game.admin");
-        nodes.add("game.*");
+        nodes.add("lobbyhost.admin");
         return nodes;
     }
 
@@ -146,7 +149,7 @@ public enum RankType {
         return false;
     }
 
-    static boolean matchesPermission(String held, String required) {
+    public static boolean matchesPermission(String held, String required) {
         if (held == null || required == null) return false;
         if ("*".equals(held)) return true;
         if (held.equalsIgnoreCase(required)) return true;

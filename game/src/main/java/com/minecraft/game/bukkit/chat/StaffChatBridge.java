@@ -1,6 +1,5 @@
 package com.minecraft.game.bukkit.chat;
 
-import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.GameSettings;
 import com.minecraft.game.account.Account;
@@ -18,17 +17,30 @@ public final class StaffChatBridge {
 
     public static void send(Account sender, String message) {
         if (sender == null || message == null || message.isBlank()) return;
-        String payload = sender.getColoredName() + "|" + GameSettings.SERVER_CHAT_ID + "|"
-                + message.replace('|', ' ');
-        if (Core.getRedis() != null && Core.getRedis().isEnabled()) {
-            Core.getRedis().publish(Constant.REDIS_PROXY_STAFFCHAT_CHANNEL, payload);
+
+        String coloredFrom = sender.getColoredName();
+        String server = GameSettings.SERVER_CHAT_ID;
+        String body = message.replace('|', ' ');
+        String payload = coloredFrom + "|" + server + "|" + body;
+
+        if (useLocalFallback()) {
+            deliverLocal(coloredFrom, server, body);
             return;
         }
-        deliverLocal(sender.getColoredName(), GameSettings.SERVER_CHAT_ID, message);
+
+        Player player = sender.player();
+        if (player != null && player.isOnline()) {
+            StaffChatMessenger.sendToProxy(player, payload);
+            return;
+        }
+
+        deliverLocal(coloredFrom, server, body);
     }
 
-    public static void deliverFromRedis(String coloredFrom, String server, String body) {
-        Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> deliverLocal(coloredFrom, server, body));
+    private static boolean useLocalFallback() {
+        var plugin = Core.getJavaPlugin();
+        if (plugin == null) return true;
+        return plugin.getConfig().getBoolean("staffchat.local-fallback", false);
     }
 
     private static void deliverLocal(String coloredFrom, String server, String body) {

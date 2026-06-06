@@ -13,6 +13,16 @@ CREATE TABLE IF NOT EXISTS accounts (
 
 CREATE INDEX IF NOT EXISTS idx_accounts_name ON accounts(name);
 
+CREATE TABLE IF NOT EXISTS account_identity (
+    player_id           TEXT NOT NULL PRIMARY KEY,
+    primary_rank        TEXT NOT NULL DEFAULT 'MEMBER',
+    primary_given_at    INTEGER NOT NULL DEFAULT 0,
+    primary_expires_at  INTEGER NOT NULL DEFAULT 0,
+    available_ranks     TEXT NOT NULL,
+    tag                 TEXT NOT NULL DEFAULT 'MEMBER',
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS clans (
     id          TEXT NOT NULL PRIMARY KEY,
     name        TEXT NOT NULL,

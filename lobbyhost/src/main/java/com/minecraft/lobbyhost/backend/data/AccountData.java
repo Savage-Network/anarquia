@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
  * Persistencia do {@link Account}. Espelho de {@code AccountData} do Savage.
  *
  * <p>Coluna {@code data} armazena o {@link AccountContext} serializado via Gson.
- * Operacoes sao async por padrao - o controller mantem cache em memoria.
+ * Rank e tag autoritativos ficam em {@link AccountIdentityData}.
  */
 @RequiredArgsConstructor
 public final class AccountData {
@@ -49,7 +49,6 @@ public final class AccountData {
             throw new RuntimeException(e);
         }
 
-        // index lower(name) (best-effort - drivers podem rejeitar a sintaxe)
         try (Connection c = database.getConnection();
              PreparedStatement ps = c.prepareStatement(
                      "CREATE INDEX IF NOT EXISTS idx_accounts_name ON accounts(name)")) {
@@ -75,6 +74,7 @@ public final class AccountData {
 
                 Account account = new Account(id, name);
                 account.replaceContext(ctx != null ? ctx : new AccountContext());
+                applyIdentity(account);
                 return Optional.of(account);
             }
         } catch (SQLException e) {
@@ -83,7 +83,71 @@ public final class AccountData {
         }
     }
 
+    /** Salva apenas o perfil JSON — nao altera rank/tag autoritativos. */
     public void save(Account account) {
+        saveProfile(account);
+    }
+
+    /** Salva perfil + rank/tag autoritativos (staff, keys VIP, expiracao). */
+    public void saveWithIdentity(Account account) {
+        saveProfile(account);
+        AccountIdentityData identity = Core.getAccountIdentityData();
+        if (identity != null) {
+            identity.saveFrom(account);
+        }
+    }
+
+    public CompletableFuture<Void> saveAsync(Account account) {
+        return CompletableFuture.runAsync(() -> save(account));
+    }
+
+    public CompletableFuture<Optional<Account>> loadAsync(UUID id) {
+        return CompletableFuture.supplyAsync(() -> load(id));
+    }
+
+    public CompletableFuture<Void> saveWithIdentityAsync(Account account) {
+        return CompletableFuture.runAsync(() -> saveWithIdentity(account));
+    }
+
+    public CompletableFuture<Void> updateName(UUID id, String name) {
+        return CompletableFuture.runAsync(() -> {
+            try (Connection c = database.getConnection();
+                 PreparedStatement ps = c.prepareStatement(
+                         "UPDATE accounts SET name = ?, updated_at = ? WHERE id = ?")) {
+                ps.setString(1, name);
+                ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+                ps.setString(3, id.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                Core.getLogger().severe("Erro ao atualizar nome da conta: " + e.getMessage());
+            }
+        });
+    }
+
+    /** Carrega conta por nick (online ou offline no banco). */
+    public Optional<Account> loadByName(String name) {
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT id, name, data FROM accounts WHERE LOWER(name) = ? LIMIT 1")) {
+            ps.setString(1, name.toLowerCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                UUID id = UUID.fromString(rs.getString("id"));
+                String n = rs.getString("name");
+                String json = rs.getString("data");
+                AccountContext ctx = Core.GSON.fromJson(json, AccountContext.class);
+                Account account = new Account(id, n);
+                account.replaceContext(ctx != null ? ctx : new AccountContext());
+                applyIdentity(account);
+                return Optional.of(account);
+            }
+        } catch (SQLException e) {
+            Core.getLogger().severe("Erro ao carregar conta por nome " + name + ": " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private void saveProfile(Account account) {
         String json = Core.GSON.toJson(account.getContext());
         String upsert = database.getType() == HikariProvider.DatabaseType.MYSQL
                 ? "INSERT INTO accounts (id, name, data) VALUES (?, ?, ?) " +
@@ -102,47 +166,10 @@ public final class AccountData {
         }
     }
 
-    public CompletableFuture<Optional<Account>> loadAsync(UUID id) {
-        return CompletableFuture.supplyAsync(() -> load(id));
-    }
-
-    public CompletableFuture<Void> saveAsync(Account account) {
-        return CompletableFuture.runAsync(() -> save(account));
-    }
-
-    public CompletableFuture<Void> updateName(UUID id, String name) {
-        return CompletableFuture.runAsync(() -> {
-            try (Connection c = database.getConnection();
-                 PreparedStatement ps = c.prepareStatement(
-                         "UPDATE accounts SET name = ?, updated_at = ? WHERE id = ?")) {
-                ps.setString(1, name);
-                ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-                ps.setString(3, id.toString());
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                Core.getLogger().severe("Erro ao atualizar nome da conta: " + e.getMessage());
-            }
-        });
-    }
-
-    public Optional<Account> loadByName(String name) {
-        try (Connection c = database.getConnection();
-             PreparedStatement ps = c.prepareStatement(
-                     "SELECT id, name, data FROM accounts WHERE LOWER(name) = ? LIMIT 1")) {
-            ps.setString(1, name.toLowerCase());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return Optional.empty();
-                UUID id = UUID.fromString(rs.getString("id"));
-                String n = rs.getString("name");
-                String json = rs.getString("data");
-                AccountContext ctx = Core.GSON.fromJson(json, AccountContext.class);
-                Account account = new Account(id, n);
-                account.replaceContext(ctx != null ? ctx : new AccountContext());
-                return Optional.of(account);
-            }
-        } catch (SQLException e) {
-            Core.getLogger().severe("Erro ao carregar conta por nome " + name + ": " + e.getMessage());
-            return Optional.empty();
+    private static void applyIdentity(Account account) {
+        AccountIdentityData identity = Core.getAccountIdentityData();
+        if (identity != null) {
+            identity.applyTo(account);
         }
     }
 }

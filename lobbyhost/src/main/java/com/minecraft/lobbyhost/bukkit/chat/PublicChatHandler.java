@@ -94,10 +94,10 @@ public final class PublicChatHandler {
             if (viewerAcc != null && !viewerAcc.getToggle().isAllowLobbyChat()) {
                 continue;
             }
-            viewer.sendMessage(Component.text(ChatFormatter.formatLine(account, viewerAcc, content)));
+            viewer.sendMessage(ModernText.fromLegacy(ChatFormatter.formatLine(account, viewerAcc, content)));
         }
 
-        sender.sendMessage(Component.text(ChatFormatter.formatLine(account, account, content)));
+        sender.sendMessage(ModernText.fromLegacy(ChatFormatter.formatLine(account, account, content)));
         Core.getLogger().info("[CHAT] " + account.getNickname() + ": " + plain);
         return true;
     }

@@ -3,15 +3,20 @@ package com.minecraft.game.bukkit.listener;
 import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.api.punishment.Punishment;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.display.JoinBroadcast;
 import com.minecraft.game.bukkit.display.GameTabList;
 import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import com.minecraft.game.bukkit.manager.PermissionManager;
 import com.minecraft.game.bukkit.manager.TagManager;
+import com.minecraft.game.bukkit.rank.RankGrantService;
 import com.minecraft.game.bukkit.vanish.VanishService;
 import com.minecraft.game.bukkit.welcome.WelcomeBookService;
+import com.minecraft.game.punishment.PunishmentService;
+import com.minecraft.game.util.AccountSync;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,6 +32,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public final class AccountListener implements Listener {
 
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
         if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
@@ -36,11 +43,21 @@ public final class AccountListener implements Listener {
                     .load(event.getUniqueId(), event.getName())
                     .get(); // bloquear ate carregar
 
+            var ban = PunishmentService.activeBan(event.getUniqueId());
+            if (ban.isPresent()) {
+                Punishment punishment = ban.get();
+                Core.getAccountController().unload(event.getUniqueId());
+                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED,
+                        LEGACY.deserialize(PunishmentService.banKickMessage(punishment)));
+                return;
+            }
+
             account.setIpAddress(event.getAddress().getHostAddress());
             account.updateLastLogin();
         } catch (Throwable t) {
             Core.getLogger().severe("Erro ao carregar conta de " + event.getName()
                     + ": " + t.getMessage());
+            Core.getAccountController().unload(event.getUniqueId());
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
                     Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE));
         }
@@ -62,9 +79,13 @@ public final class AccountListener implements Listener {
             }
         }
 
+        if (account != null && RankGrantService.refreshRankState(account)) {
+            AccountSync.saveAndBroadcast(account);
+        }
+
         if (account != null && !VanishService.willAutoVanishOnJoin(account)
                 && !VanishService.isVanished(player)
-                && account.getToggle().isAllowJoinMessage()) {
+                && account.shouldBroadcastJoinMessage()) {
             event.joinMessage(JoinBroadcast.create(account, player, "entrou no jogo!"));
         } else {
             event.joinMessage(null);
@@ -76,7 +97,7 @@ public final class AccountListener implements Listener {
         final Account loaded = account;
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
-            WelcomeBookService.tryGiveOnJoin(loaded, player);
+            WelcomeBookService.handleFirstJoin(loaded, player);
             PlayerDisplayService.applyAll(loaded, player);
             com.minecraft.game.bukkit.skin.SkinService.refreshFromMojangIfStale(loaded, player);
             for (Player other : Bukkit.getOnlinePlayers()) {

@@ -133,6 +133,10 @@ public class Account {
         return hasRank(RankType.VIP);
     }
 
+    public boolean shouldBroadcastJoinMessage() {
+        return isVIP() && getToggle().isAllowJoinMessage();
+    }
+
     public boolean isStaffer() {
         return getRankType().isStaff();
     }

@@ -7,6 +7,7 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.vanish.VanishConfig;
 import com.minecraft.game.bukkit.vanish.VanishService;
 import com.minecraft.game.punishment.PunishmentService;
+import com.minecraft.game.api.punishment.Punishment;
 import com.minecraft.game.util.ModernText;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 public final class PublicChatHandler {
@@ -29,8 +31,9 @@ public final class PublicChatHandler {
         Account account = Core.getAccountController().of(sender.getUniqueId());
         if (account == null) return;
 
-        if (PunishmentService.activeMute(sender.getUniqueId()).isPresent()) {
-            account.send("§cVocê está mutado e não pode falar no chat.");
+        Optional<Punishment> mute = PunishmentService.activeMute(sender.getUniqueId());
+        if (mute.isPresent()) {
+            account.send(PunishmentService.muteDenyMessage(mute.get()));
             event.setCancelled(true);
             return;
         }
@@ -79,9 +82,9 @@ public final class PublicChatHandler {
             if (viewer.equals(sender)) continue;
             Account viewerAcc = Core.getAccountController().of(viewer.getUniqueId());
             if (viewerAcc != null && BlockListService.isBlocked(viewerAcc, sender.getUniqueId())) continue;
-            viewer.sendMessage(Component.text(ChatFormatter.formatLine(account, viewerAcc, content)));
+            viewer.sendMessage(ModernText.fromLegacy(ChatFormatter.formatLine(account, viewerAcc, content)));
         }
-        sender.sendMessage(Component.text(ChatFormatter.formatLine(account, account, content)));
+        sender.sendMessage(ModernText.fromLegacy(ChatFormatter.formatLine(account, account, content)));
         Core.getLogger().info("[CHAT] " + account.getNickname() + ": " + plain);
     }
 

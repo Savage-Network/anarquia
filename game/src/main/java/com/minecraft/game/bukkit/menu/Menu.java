@@ -56,6 +56,21 @@ public abstract class Menu {
         contents.put(slot, item);
     }
 
+    protected void fillIfEmpty(int slot, MenuItem item) {
+        if (!contents.containsKey(slot)) {
+            contents.put(slot, item);
+        }
+    }
+
+    /** API publica para helpers de layout (ex.: {@code ShopMenuLayout}). */
+    public final void place(int slot, MenuItem item) {
+        set(slot, item);
+    }
+
+    public final void placeIfEmpty(int slot, MenuItem item) {
+        fillIfEmpty(slot, item);
+    }
+
     protected void fillBorder() {
         MenuItem glass = MenuItem.of(Material.GRAY_STAINED_GLASS_PANE).name(" ");
         int size = rows * 9;

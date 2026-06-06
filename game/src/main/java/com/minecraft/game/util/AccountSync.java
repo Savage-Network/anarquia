@@ -17,7 +17,7 @@ public final class AccountSync {
     /** Persiste no banco e so entao notifica os outros servidores (evita race no reload). */
     public static void saveAndBroadcast(Account account) {
         if (account == null) return;
-        Core.getAccountData().saveAsync(account).thenRun(() -> {
+        Core.getAccountData().saveWithIdentityAsync(account).thenRun(() -> {
             account.clearDirty();
             broadcastUpdate(account);
         });

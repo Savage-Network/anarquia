@@ -7,9 +7,12 @@ import com.minecraft.game.backend.data.AccountData;
 import com.minecraft.game.backend.data.ClanData;
 import com.minecraft.game.backend.data.AuctionData;
 import com.minecraft.game.backend.data.NetworkStatsData;
+import com.minecraft.game.backend.data.AccountIdentityData;
+import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.backend.data.PunishmentData;
 import com.minecraft.game.backend.data.ReportData;
 import com.minecraft.game.backend.data.SignShopData;
+import com.minecraft.game.backend.data.VipKeyData;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.backend.redis.RedisProvider;
 import lombok.Getter;
@@ -47,6 +50,9 @@ public final class Core {
     @Getter @Setter private static NetworkStatsData networkStatsData;
     @Getter @Setter private static ReportData reportData;
     @Getter @Setter private static PunishmentData punishmentData;
+    @Getter @Setter private static VipKeyData vipKeyData;
+    @Getter @Setter private static PlayerVaultData playerVaultData;
+    @Getter @Setter private static AccountIdentityData accountIdentityData;
 
     public static void load(GamePlugin plugin) {
         javaPlugin = plugin;

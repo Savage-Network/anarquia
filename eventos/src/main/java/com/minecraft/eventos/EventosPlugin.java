@@ -1,6 +1,7 @@
 package com.minecraft.eventos;
 
 import com.minecraft.eventos.account.AccountController;
+import com.minecraft.eventos.backend.data.AccountIdentityData;
 import com.minecraft.eventos.backend.data.AccountData;
 import com.minecraft.eventos.backend.database.HikariProvider;
 import com.minecraft.eventos.backend.redis.RedisProvider;
@@ -69,8 +70,11 @@ public final class EventosPlugin extends JavaPlugin {
             }
 
             // 3) Data
+            AccountIdentityData accountIdentityData = new AccountIdentityData(database);
+            accountIdentityData.createTables();
             AccountData accountData = new AccountData(database);
             accountData.createTables();
+            Core.setAccountIdentityData(accountIdentityData);
             Core.setAccountData(accountData);
 
             // 4) Controllers

@@ -5,6 +5,9 @@ import com.minecraft.game.backend.data.AccountData;
 import com.minecraft.game.backend.data.ClanData;
 import com.minecraft.game.backend.data.AuctionData;
 import com.minecraft.game.backend.data.SignShopData;
+import com.minecraft.game.backend.data.VipKeyData;
+import com.minecraft.game.backend.data.AccountIdentityData;
+import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.bukkit.shop.SignShopConfig;
 import com.minecraft.game.bukkit.shop.auction.AuctionManager;
 import com.minecraft.game.bukkit.shop.catalog.SellCatalog;
@@ -78,7 +81,6 @@ public final class GamePlugin extends JavaPlugin {
                 redis.subscribe(new AccountRedisListener(this),
                         Constant.REDIS_ACCOUNT_UPDATE_CHANNEL,
                         Constant.REDIS_NETWORK_ALERT_CHANNEL,
-                        Constant.REDIS_PROXY_STAFFCHAT_CHANNEL,
                         Constant.REDIS_NETWORK_REPORT_CHANNEL,
                         Constant.REDIS_ANTICHEAT_ALERT_CHANNEL,
                         Constant.REDIS_ACCOUNT_PUNISHMENTS_CHANNEL);
@@ -95,6 +97,9 @@ public final class GamePlugin extends JavaPlugin {
                     new com.minecraft.game.backend.data.PunishmentData(database);
             SignShopData signShopData = new SignShopData(database);
             AuctionData auctionData = new AuctionData(database);
+            VipKeyData vipKeyData = new VipKeyData(database);
+            PlayerVaultData playerVaultData = new PlayerVaultData(database);
+            AccountIdentityData accountIdentityData = new AccountIdentityData(database);
 
             GameDatabaseSchema.createAll(
                     database,
@@ -104,7 +109,10 @@ public final class GamePlugin extends JavaPlugin {
                     reportData,
                     punishmentData,
                     signShopData,
-                    auctionData);
+                    auctionData,
+                    vipKeyData,
+                    playerVaultData,
+                    accountIdentityData);
 
             Core.setAccountData(accountData);
             Core.setClanData(clanData);
@@ -116,6 +124,9 @@ public final class GamePlugin extends JavaPlugin {
             SignShopConfig.load(this);
             auctionData.loadAll();
             Core.setAuctionData(auctionData);
+            Core.setVipKeyData(vipKeyData);
+            Core.setPlayerVaultData(playerVaultData);
+            Core.setAccountIdentityData(accountIdentityData);
             AuctionManager.configure(
                     GameSettings.AUCTION_MAX_LISTINGS,
                     GameSettings.AUCTION_DURATION_HOURS,
@@ -154,6 +165,7 @@ public final class GamePlugin extends JavaPlugin {
 
             // 7) Scan automatico (igual Savage)
             getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+            getServer().getMessenger().registerOutgoingPluginChannel(this, Constant.STAFFCHAT_PLUGIN_CHANNEL);
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
             getServer().getPluginManager().registerEvents(new MenuListener(), this);
@@ -181,6 +193,8 @@ public final class GamePlugin extends JavaPlugin {
             getLogger().info("Salvando contas online...");
             Core.getAccountController().saveAllSync();
         }
+
+        com.minecraft.game.bukkit.storage.PlayerVaultService.flushOpen();
 
         Core.unload();
         getLogger().info("Plugin desabilitado.");

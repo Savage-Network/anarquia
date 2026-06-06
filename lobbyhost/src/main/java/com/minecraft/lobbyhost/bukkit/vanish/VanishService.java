@@ -219,6 +219,7 @@ public final class VanishService {
     }
 
     private static void broadcastFakeJoin(Player player, Account account) {
+        if (!account.shouldBroadcastJoinMessage()) return;
         Component msg = JoinBroadcast.create(account, player, "entrou no lobby!");
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.equals(player)) continue;

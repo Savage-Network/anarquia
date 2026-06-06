@@ -16,3 +16,7 @@ redis:
   host: space.rafa.rip
   port: 25569
   password: "SavageMCREDIS67"
+
+# Staff chat: false = envia ao proxy (rede inteira). true = só no servidor atual (dev sem Velocity).
+staffchat:
+  local-fallback: false

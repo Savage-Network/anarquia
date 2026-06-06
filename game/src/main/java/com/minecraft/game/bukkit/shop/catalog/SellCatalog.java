@@ -5,11 +5,15 @@ import com.minecraft.game.GamePlugin;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -39,6 +43,34 @@ public final class SellCatalog {
 
     public static Map<Material, Integer> all() {
         return Collections.unmodifiableMap(PRICES);
+    }
+
+    public static List<Material> materials() {
+        List<Material> list = new ArrayList<>(PRICES.keySet());
+        list.sort(Comparator.comparing(Enum::name));
+        return list;
+    }
+
+    public static int countOwned(Player player, Material material) {
+        if (player == null || material == null) return 0;
+        int total = 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack != null && stack.getType() == material) {
+                total += stack.getAmount();
+            }
+        }
+        return total;
+    }
+
+    public static int sellMaterial(Player player, Material material) {
+        if (player == null || material == null || price(material) <= 0) return 0;
+        int total = 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack == null || stack.getType() != material) continue;
+            total += sellStack(stack);
+            stack.setAmount(0);
+        }
+        return total;
     }
 
     public static int sellStack(ItemStack stack) {

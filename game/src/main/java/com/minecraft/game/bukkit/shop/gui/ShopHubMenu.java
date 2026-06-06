@@ -13,7 +13,11 @@ public final class ShopHubMenu extends Menu {
     private final Account account;
 
     public ShopHubMenu(Player player, Account account) {
-        super(player, "§8§lSavageMC §7| §fMercado", 5, null);
+        this(player, account, null);
+    }
+
+    public ShopHubMenu(Player player, Account account, Menu parent) {
+        super(player, "§8§lSavageMC §7| §fMercado", 5, parent);
         this.account = account;
     }
 
@@ -22,34 +26,70 @@ public final class ShopHubMenu extends Menu {
         clear();
         String sym = ShopEconomy.symbol();
 
-        set(4, MenuItem.of(Material.NETHER_STAR)
-                .name("§6§lSavageMC §7| §fMercado")
-                .lore("§7Saldo: §a" + sym + account.getGolds(), "§7savagemc.net"));
+        ShopMenuLayout.header(
+                this, account, Material.NETHER_STAR,
+                "§6§lSavageMC §7| §fMercado",
+                "§8▪ §7savagemc.net",
+                "",
+                "§7Escolha uma opcao abaixo"
+        );
 
         set(20, MenuItem.of(Material.EMERALD)
                 .name("§a§lLoja do Servidor")
-                .lore("§7Compre blocos, PvP e ferramentas", "§7no spawn protegido", "", "§eClique para abrir")
+                .lore(
+                        "§7Compre blocos, comida, PvP",
+                        "§7e ferramentas no spawn",
+                        "",
+                        "§eClique para abrir"
+                )
+                .glow()
                 .click(p -> new ServerShopMenu(p, account, this).open()));
 
         set(22, MenuItem.of(Material.GOLD_INGOT)
                 .name("§6§lVender Itens")
-                .lore("§7Venda itens ao servidor SavageMC", "", "§eClique para abrir")
+                .lore(
+                        "§7Venda farm, minerios e drops",
+                        "§7direto ao servidor",
+                        "",
+                        "§eClique para abrir"
+                )
+                .glow()
                 .click(p -> new SellMenu(p, account, this).open()));
 
         set(24, MenuItem.of(Material.ENDER_CHEST)
-                .name("§5§lLeilão (/ah)")
-                .lore("§7Compre e venda entre jogadores", "", "§eClique para abrir")
+                .name("§5§lLeilao")
+                .lore(
+                        "§7Compre e venda entre jogadores",
+                        "§7Comando: §f/ah",
+                        "",
+                        "§eClique para abrir"
+                )
                 .click(p -> new AuctionBrowseMenu(p, account, this, 0).open()));
 
         set(30, MenuItem.of(Material.OAK_SIGN)
                 .name("§e§lLojas de Placa")
-                .lore("§7Monte sua loja com placas", "", "§eClique para tutorial")
-                .click(p -> SignShopManager.sendHelp(p)));
+                .lore(
+                        "§7Monte sua loja com placas",
+                        "§7Comando: §f/loja placa",
+                        "",
+                        "§eClique para tutorial"
+                )
+                .click(SignShopManager::sendHelp));
 
         set(32, MenuItem.of(Material.PLAYER_HEAD)
                 .name("§b§lTroca Segura")
-                .lore("§7/trade <jogador>", "", "§eUse o comando")
+                .lore(
+                        "§7Troque itens com seguranca",
+                        "§7Comando: §f/trade <jogador>",
+                        "",
+                        "§eUse o comando no chat"
+                )
                 .click(p -> p.sendMessage("§7Use §f/trade <jogador> §7para convidar.")));
+
+        fillIfEmpty(3, MenuItem.of(Material.LIME_STAINED_GLASS_PANE).name(" "));
+        fillIfEmpty(5, MenuItem.of(Material.LIME_STAINED_GLASS_PANE).name(" "));
+        fillIfEmpty(21, MenuItem.of(Material.YELLOW_STAINED_GLASS_PANE).name(" "));
+        fillIfEmpty(23, MenuItem.of(Material.YELLOW_STAINED_GLASS_PANE).name(" "));
 
         closeButton(40);
     }

@@ -58,7 +58,12 @@ public final class EventosListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        event.joinMessage(Component.text("§e+ §a" + player.getName() + " §7entrou no evento."));
+        Account account = Core.getAccountController().of(player.getUniqueId());
+        if (account != null && account.shouldBroadcastJoinMessage()) {
+            event.joinMessage(Component.text("§e+ §a" + player.getName() + " §7entrou no evento."));
+        } else {
+            event.joinMessage(null);
+        }
 
         Game game = EventosPlugin.getInstance().getGame();
         if (game.getState() == GameState.PLAYING) {
@@ -71,12 +76,12 @@ public final class EventosListener implements Listener {
 
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
-            Account account = Core.getAccountController().of(player.getUniqueId());
-            if (account == null) return;
-            TagManager.updateTag(account);
+            Account loaded = Core.getAccountController().of(player.getUniqueId());
+            if (loaded == null) return;
+            TagManager.updateTag(loaded);
             TagManager.updateAllForViewer(player);
             AboveNameDisplay.refresh(player);
-            com.minecraft.eventos.bukkit.skin.SkinService.refreshFromMojangIfStale(account, player);
+            com.minecraft.eventos.bukkit.skin.SkinService.refreshFromMojangIfStale(loaded, player);
         }, 5L);
     }
 

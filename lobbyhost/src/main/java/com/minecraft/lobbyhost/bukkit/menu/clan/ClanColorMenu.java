@@ -13,11 +13,17 @@ import org.bukkit.entity.Player;
 
 public final class ClanColorMenu extends Menu {
 
+    private static final int[] COLOR_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34
+    };
+
     private final Account account;
     private final Clan clan;
 
     public ClanColorMenu(Player player, Account account, Clan clan, Menu parent) {
-        super(player, com.minecraft.lobbyhost.util.ModernText.menuTitle("Cores da Tag"), 5, parent);
+        super(player, "§8§lClã §7| §fCores da Tag", 5, parent);
         this.account = account;
         this.clan = clan;
     }
@@ -39,23 +45,25 @@ public final class ClanColorMenu extends Menu {
                 .name("§fPreview: " + ClanTagFormatter.formatBracketed(clan))
                 .lore("§7Sua clantag no servidor"));
 
-        int slot = 19;
+        String tagSample = clan.getTagWithoutColors();
+        int slotIndex = 0;
         for (ClanColor color : ClanColor.values()) {
-            if (slot > 25) break;
+            if (slotIndex >= COLOR_SLOTS.length) break;
+
             boolean access = color.isFree()
                     || (color.getPermission() != null && account.hasPermission(color.getPermission()))
                     || account.isStaffer();
 
-            String preview = switch (color) {
-                case BRASIL -> "§e[§eBR§aAS§aIL§e]";
-                case YINGYANG -> "§f[§fYIN§0YANG§f]";
-                default -> color.getCode() + "[" + clan.getTagWithoutColors().toUpperCase() + "]";
-            };
+            String preview = ClanTagFormatter.formatPreview(color, tagSample);
+            String loreGradient = color.getGradientMode() == ClanColor.GradientMode.HEX
+                    ? "§7Gradiente §f" + color.getGradientFrom() + " §7→ §f" + color.getGradientTo()
+                    : null;
 
-            set(slot++, MenuItem.of(color.getGlass())
+            set(COLOR_SLOTS[slotIndex++], MenuItem.of(color.getGlass())
                     .name((access ? "§a" : "§c") + color.getName())
                     .lore(
                             "§7Preview: " + preview,
+                            loreGradient,
                             access ? "§eClique para aplicar" : "§cBloqueado",
                             color.getPermission() != null && !access
                                     ? "§7Requer: §f" + color.getPermission() : null

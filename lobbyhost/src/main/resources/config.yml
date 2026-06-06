@@ -17,3 +17,6 @@ redis:
   host: space.rafa.rip
   port: 25569
   password: "SavageMCREDIS67"
+
+staffchat:
+  local-fallback: false

@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
  * Persistencia do {@link Account}. Espelho de {@code AccountData} do Savage.
  *
  * <p>Coluna {@code data} armazena o {@link AccountContext} serializado via Gson.
- * Operacoes sao async por padrao - o controller mantem cache em memoria.
+ * Rank e tag autoritativos ficam em {@link AccountIdentityData}.
  */
 @RequiredArgsConstructor
 public final class AccountData {
@@ -49,7 +49,6 @@ public final class AccountData {
             throw new RuntimeException(e);
         }
 
-        // index lower(name) (best-effort - drivers podem rejeitar a sintaxe)
         try (Connection c = database.getConnection();
              PreparedStatement ps = c.prepareStatement(
                      "CREATE INDEX IF NOT EXISTS idx_accounts_name ON accounts(name)")) {
@@ -75,6 +74,7 @@ public final class AccountData {
 
                 Account account = new Account(id, name);
                 account.replaceContext(ctx != null ? ctx : new AccountContext());
+                applyIdentity(account);
                 return Optional.of(account);
             }
         } catch (SQLException e) {
@@ -83,31 +83,30 @@ public final class AccountData {
         }
     }
 
+    /** Salva apenas o perfil JSON — nao altera rank/tag autoritativos. */
     public void save(Account account) {
-        String json = Core.GSON.toJson(account.getContext());
-        String upsert = database.getType() == HikariProvider.DatabaseType.MYSQL
-                ? "INSERT INTO accounts (id, name, data) VALUES (?, ?, ?) " +
-                  "ON DUPLICATE KEY UPDATE name = VALUES(name), data = VALUES(data), updated_at = CURRENT_TIMESTAMP"
-                : "INSERT INTO accounts (id, name, data) VALUES (?, ?, ?) " +
-                  "ON CONFLICT(id) DO UPDATE SET name = excluded.name, data = excluded.data, updated_at = CURRENT_TIMESTAMP";
+        saveProfile(account);
+    }
 
-        try (Connection c = database.getConnection();
-             PreparedStatement ps = c.prepareStatement(upsert)) {
-            ps.setString(1, account.getId().toString());
-            ps.setString(2, account.getName());
-            ps.setString(3, json);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            Core.getLogger().severe("Erro ao salvar conta " + account.getId() + ": " + e.getMessage());
+    /** Salva perfil + rank/tag autoritativos (staff, keys VIP, expiracao). */
+    public void saveWithIdentity(Account account) {
+        saveProfile(account);
+        AccountIdentityData identity = Core.getAccountIdentityData();
+        if (identity != null) {
+            identity.saveFrom(account);
         }
+    }
+
+    public CompletableFuture<Void> saveAsync(Account account) {
+        return CompletableFuture.runAsync(() -> save(account));
     }
 
     public CompletableFuture<Optional<Account>> loadAsync(UUID id) {
         return CompletableFuture.supplyAsync(() -> load(id));
     }
 
-    public CompletableFuture<Void> saveAsync(Account account) {
-        return CompletableFuture.runAsync(() -> save(account));
+    public CompletableFuture<Void> saveWithIdentityAsync(Account account) {
+        return CompletableFuture.runAsync(() -> saveWithIdentity(account));
     }
 
     public CompletableFuture<Void> updateName(UUID id, String name) {
@@ -139,11 +138,38 @@ public final class AccountData {
                 AccountContext ctx = Core.GSON.fromJson(json, AccountContext.class);
                 Account account = new Account(id, n);
                 account.replaceContext(ctx != null ? ctx : new AccountContext());
+                applyIdentity(account);
                 return Optional.of(account);
             }
         } catch (SQLException e) {
             Core.getLogger().severe("Erro ao carregar conta por nome " + name + ": " + e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    private void saveProfile(Account account) {
+        String json = Core.GSON.toJson(account.getContext());
+        String upsert = database.getType() == HikariProvider.DatabaseType.MYSQL
+                ? "INSERT INTO accounts (id, name, data) VALUES (?, ?, ?) " +
+                  "ON DUPLICATE KEY UPDATE name = VALUES(name), data = VALUES(data), updated_at = CURRENT_TIMESTAMP"
+                : "INSERT INTO accounts (id, name, data) VALUES (?, ?, ?) " +
+                  "ON CONFLICT(id) DO UPDATE SET name = excluded.name, data = excluded.data, updated_at = CURRENT_TIMESTAMP";
+
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(upsert)) {
+            ps.setString(1, account.getId().toString());
+            ps.setString(2, account.getName());
+            ps.setString(3, json);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            Core.getLogger().severe("Erro ao salvar conta " + account.getId() + ": " + e.getMessage());
+        }
+    }
+
+    private static void applyIdentity(Account account) {
+        AccountIdentityData identity = Core.getAccountIdentityData();
+        if (identity != null) {
+            identity.applyTo(account);
         }
     }
 }

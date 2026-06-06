@@ -9,8 +9,8 @@ load: STARTUP
 
 commands:
   account:
-    description: Perfil da conta ou edicao staff (setrank)
-    usage: /account [jogador] | /account setrank <nick> <RANK>
+    description: Perfil da conta ou edicao staff
+    usage: /account [jogador] | /account setrank|remrank|settag|remtag|setpackage|rempackage|packages ...
     aliases: [perfil, conta, a]
   tag:
     description: Lista/escolhe a sua tag
@@ -170,6 +170,27 @@ commands:
     description: Conecta ao servidor de eventos
     usage: /evento
     aliases: [eventos]
+  adminkey:
+    description: Gera, lista e concede VIP temporario (staff)
+    usage: /adminkey gerar <RANK> <TEMPO> | /adminkey dar <jogador> <RANK> <TEMPO> | /adminkey listar
+    permission: game.admin
+    aliases: [akey, vipkey]
+  resgatar:
+    description: Resgata uma key de VIP
+    usage: /resgatar <codigo>
+    aliases: [redeem, resgate, key]
+  lixeira:
+    description: Lixeira virtual — itens somem ao fechar
+    usage: /lixeira
+    aliases: [lixo, trash]
+  bau:
+    description: Bau virtual persistente
+    usage: /bau
+    aliases: [baú, chest]
+  ec:
+    description: Ender chest virtual persistente
+    usage: /ec
+    aliases: [enderchest, echest]
   livro:
     description: Recebe o guia do jogador
     usage: /livro

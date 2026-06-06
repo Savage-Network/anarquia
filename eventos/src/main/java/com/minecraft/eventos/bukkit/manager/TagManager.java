@@ -8,6 +8,7 @@ import com.minecraft.eventos.account.context.objects.toggle.TagPrefix;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,12 @@ import java.util.UUID;
  * <p>Tags animadas (Owner) recebem um pulse a cada 40 ticks (~2s).
  */
 public final class TagManager {
+
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
+            .character('§')
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     private static final Map<UUID, Integer> animationState = new HashMap<>();
     private static BukkitTask animationTask;
@@ -210,6 +217,11 @@ public final class TagManager {
         return s;
     }
 
+    private static Component legacy(String text) {
+        if (text == null || text.isEmpty()) return Component.empty();
+        return LEGACY.deserialize(text);
+    }
+
     /* ================================================================
      * Listas interativas no chat
      * ============================================================= */
@@ -221,7 +233,7 @@ public final class TagManager {
             return;
         }
 
-        Component msg = Component.text("§aSuas tags: ");
+        Component msg = legacy("§aSuas tags: ");
         for (int i = 0; i < available.size(); i++) {
             Tag tag = available.get(i);
             String hover = "§7Previa:\n§8> "
@@ -229,18 +241,18 @@ public final class TagManager {
                     + account.getNickname()
                     + "\n\n"
                     + (account.isUsingTag(tag) ? "§cJa selecionada." : "§eClique para escolher.");
-            Component entry = Component.text(tag.getColoredName())
-                    .hoverEvent(HoverEvent.showText(Component.text(hover)))
+            Component entry = legacy(tag.getColoredName())
+                    .hoverEvent(HoverEvent.showText(legacy(hover)))
                     .clickEvent(ClickEvent.runCommand("/tag " + tag.name().toLowerCase()));
             msg = msg.append(entry);
-            if (i < available.size() - 1) msg = msg.append(Component.text("§7, "));
-            else msg = msg.append(Component.text("§7."));
+            if (i < available.size() - 1) msg = msg.append(legacy("§7, "));
+            else msg = msg.append(legacy("§7."));
         }
         account.send(msg);
     }
 
     public static void sendPrefixTypes(Account account) {
-        Component msg = Component.text("§aModos de prefixo: ");
+        Component msg = legacy("§aModos de prefixo: ");
         TagPrefix[] all = TagPrefix.values();
         for (int i = 0; i < all.length; i++) {
             TagPrefix p = all[i];
@@ -249,12 +261,12 @@ public final class TagManager {
                     + account.getNickname()
                     + "\n\n"
                     + (account.isUsingTagPrefix(p) ? "§cJa selecionado." : "§eClique para selecionar.");
-            Component entry = Component.text("§e" + p.getDisplayName())
-                    .hoverEvent(HoverEvent.showText(Component.text(preview)))
+            Component entry = legacy("§e" + p.getDisplayName())
+                    .hoverEvent(HoverEvent.showText(legacy(preview)))
                     .clickEvent(ClickEvent.runCommand("/prefixtype " + p.name().toLowerCase()));
             msg = msg.append(entry);
-            if (i < all.length - 1) msg = msg.append(Component.text("§7, "));
-            else msg = msg.append(Component.text("§7."));
+            if (i < all.length - 1) msg = msg.append(legacy("§7, "));
+            else msg = msg.append(legacy("§7."));
         }
         account.send(msg);
     }

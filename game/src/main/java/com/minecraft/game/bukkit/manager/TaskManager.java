@@ -7,6 +7,7 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.account.AccountController;
 import com.minecraft.game.bukkit.display.GameScoreboard;
 import com.minecraft.game.bukkit.display.GameTabList;
+import com.minecraft.game.bukkit.rank.RankExpirationTask;
 import com.minecraft.game.leaderboard.LeaderboardCache;
 import com.minecraft.game.network.NetworkPollTask;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public final class TaskManager {
     private BukkitTask tablistTask;
     private BukkitTask networkPollTask;
     private BukkitTask leaderboardTask;
+    private RankExpirationTask rankExpirationTask;
 
     public void start() {
         LeaderboardCache.refreshAll();
@@ -43,6 +45,9 @@ public final class TaskManager {
                 LeaderboardCache::refreshAll,
                 GameSettings.LEADERBOARD_REFRESH_TICKS,
                 GameSettings.LEADERBOARD_REFRESH_TICKS);
+
+        rankExpirationTask = new RankExpirationTask(plugin);
+        rankExpirationTask.start();
 
         long interval = 20L * 60L * 5L;
         autoSaveTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
@@ -68,5 +73,6 @@ public final class TaskManager {
         if (tablistTask != null && !tablistTask.isCancelled()) tablistTask.cancel();
         if (networkPollTask != null && !networkPollTask.isCancelled()) networkPollTask.cancel();
         if (leaderboardTask != null && !leaderboardTask.isCancelled()) leaderboardTask.cancel();
+        if (rankExpirationTask != null) rankExpirationTask.cancel();
     }
 }
