@@ -129,7 +129,7 @@ public final class AdminKeyCommand implements CommandInheritor {
         if (online != null) {
             Account account = Core.getAccountController().of(online.getUniqueId());
             if (account == null) {
-                ctx.reply("§cConta nao carregada.");
+                ctx.replyKey("errors.account-not-loaded");
                 return;
             }
             action.accept(account);

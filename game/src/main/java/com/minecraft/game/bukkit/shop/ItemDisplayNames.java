@@ -77,6 +77,26 @@ public final class ItemDisplayNames {
 
     private ItemDisplayNames() {}
 
+    /** Linha colorida para placa de loja. */
+    public static String signLine(Material material) {
+        String color = accent(material);
+        String bold = isValuable(material) ? "§l" : "";
+        return color + bold + plain(material);
+    }
+
+    /** Resolve material a partir do texto da placa (enum ou nome traduzido). */
+    public static Material fromDisplayName(String input) {
+        if (input == null || input.isBlank()) return null;
+        String stripped = stripColors(input).trim();
+        Material direct = Material.matchMaterial(stripped.toUpperCase(java.util.Locale.ROOT));
+        if (direct != null && direct.isItem()) return direct;
+        for (Material material : Material.values()) {
+            if (!material.isItem()) continue;
+            if (plain(material).equalsIgnoreCase(stripped)) return material;
+        }
+        return null;
+    }
+
     /** Nome legível sem cores (chat, logs). */
     public static String plain(Material material) {
         if (material == null || material.isAir()) return "Ar";

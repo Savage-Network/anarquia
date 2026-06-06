@@ -87,9 +87,11 @@ export function formatAccountPublic(account) {
       author: rank.author,
     },
     availableRanks,
-    clan: ctx.clan?.identifier && ctx.clan.identifier !== '...'
-      ? { identifier: ctx.clan.identifier, role: ctx.clan.role }
-      : null,
+    clan: ctx.clan?.tag && ctx.clan.tag !== '...'
+      ? { identifier: ctx.clan.tag, tag: ctx.clan.tag, id: ctx.clan.id, role: ctx.clan.role }
+      : ctx.clan?.identifier && ctx.clan.identifier !== '...'
+        ? { identifier: ctx.clan.identifier, tag: ctx.clan.identifier, id: ctx.clan.id, role: ctx.clan.role }
+        : null,
     punishmentHistoryCount: history.length,
     displayName: stripMcColors(account.name),
   };

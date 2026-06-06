@@ -27,7 +27,7 @@ public class Clan {
         this.name = name;
         this.tag = tag;
         this.leader = leader.getId();
-        this.tagColor = ClanColor.DEFAULT.getId();
+        this.tagColor = ClanColor.defaultColor().getId();
         this.storage = new ClanStorage();
         this.storage.getMembers().put(leader.getId(), new ClanMember(leader, ClanRole.LEADER));
     }
@@ -76,6 +76,27 @@ public class Clan {
         if (tag == null) return "";
         return tag.replaceAll("§[0-9a-fA-Fk-oK-Or]", "")
                 .replaceAll("&[0-9a-fA-Fk-oK-Or]", "");
+    }
+
+    public ClanColor getStyle() {
+        return ClanColor.byStored(tagColor);
+    }
+
+    public void applyStyle(ClanColor color) {
+        applyColor(color);
+    }
+
+    public void applyColor(ClanColor color) {
+        if (color == null) return;
+        this.tagColor = color.getId();
+        persist();
+    }
+
+    public void normalizeStyle() {
+        String normalized = ClanColor.normalizeStored(tagColor);
+        if (tagColor == null || !normalized.equals(tagColor)) {
+            tagColor = normalized;
+        }
     }
 
     public boolean isLeader(UUID uuid) {

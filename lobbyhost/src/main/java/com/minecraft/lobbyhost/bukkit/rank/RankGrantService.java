@@ -56,8 +56,12 @@ public final class RankGrantService {
 
     public static Optional<RankType> parseRank(String raw) {
         if (raw == null || raw.isBlank()) return Optional.empty();
+        String normalized = raw.trim().toUpperCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("MOD+", "MODPLUS")
+                .replace("MOD_PLUS", "MODPLUS");
         try {
-            return Optional.of(RankType.valueOf(raw.trim().toUpperCase(Locale.ROOT)));
+            return Optional.of(RankType.valueOf(normalized));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

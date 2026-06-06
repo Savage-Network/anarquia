@@ -26,7 +26,7 @@ public final class TagCommand implements CommandInheritor {
             description = "Lista/escolhe a sua tag", usage = "/tag [nome]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         if (ctx.getArgs().length == 0) {
             TagManager.sendTags(account);

@@ -51,6 +51,7 @@ public final class InitialServerListener {
             account.setIpAddress(player.getRemoteAddress().getAddress().getHostAddress());
             account.updateLastLogin();
             AuthRoutingService.syncOriginFlag(player, account);
+            account.save();
 
             var decision = AuthRoutingService.decide(player, account, cfg);
             AuthRoutingService.resolveServer(Core.getProxy(), decision)

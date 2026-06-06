@@ -22,7 +22,7 @@ public final class WarpCommand implements CommandInheritor {
     @Command(name = "warp", playerOnly = true, usage = "/warp <nome>")
     public void warp(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         Player player = ctx.player();
 
         if (ctx.getArgs().length == 0) {

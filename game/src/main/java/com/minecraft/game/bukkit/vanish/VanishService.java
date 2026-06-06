@@ -4,6 +4,7 @@ import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
 import com.minecraft.game.bukkit.display.JoinBroadcast;
+import com.minecraft.game.message.LanguageService;
 import com.minecraft.game.bukkit.manager.TagManager;
 import com.minecraft.game.util.ModernText;
 import net.kyori.adventure.text.Component;
@@ -216,19 +217,19 @@ public final class VanishService {
     }
 
     private static void broadcastFakeQuit(Player player, Account account) {
-        Component msg = JoinBroadcast.create(account, player, "saiu do jogo.");
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.equals(player)) continue;
-            online.sendMessage(msg);
+            online.sendMessage(JoinBroadcast.create(
+                    account, player, "join.quit-game", LanguageService.of(online)));
         }
     }
 
     private static void broadcastFakeJoin(Player player, Account account) {
         if (!account.shouldBroadcastJoinMessage()) return;
-        Component msg = JoinBroadcast.create(account, player, "entrou no jogo!");
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.equals(player)) continue;
-            online.sendMessage(msg);
+            online.sendMessage(JoinBroadcast.create(
+                    account, player, "join.game", LanguageService.of(online)));
         }
     }
 

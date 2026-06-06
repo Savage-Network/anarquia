@@ -19,7 +19,7 @@ public final class AuctionCommand implements CommandInheritor {
             description = "Leilao entre jogadores", usage = "/ah [vender <preco>|gui]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         Player player = ctx.player();
 
         if (ctx.getArgs().length == 0) {

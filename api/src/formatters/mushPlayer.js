@@ -99,8 +99,9 @@ export function toMushPlayer(profile) {
     level: acc.level,
     golds: acc.golds,
     party: acc.party,
-    stats: {},
+    stats: profile.stats || {},
     tags: buildTagsList(acc),
+    discord: profile.discord || null,
   };
 
   return {

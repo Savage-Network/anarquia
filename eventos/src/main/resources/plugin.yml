@@ -86,3 +86,14 @@ permissions:
     default: op
   eventos.staff:
     default: false
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      eventos.*: true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      tag.*: true
+      medal.*: true

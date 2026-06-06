@@ -121,6 +121,25 @@ public final class PunishmentData {
         return Optional.empty();
     }
 
+    public int countByRuleId(UUID player, String ruleId) {
+        if (player == null || ruleId == null || ruleId.isBlank()) return 0;
+        String sql = "SELECT data FROM punishments WHERE player = ?";
+        int count = 0;
+        try (Connection c = database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, player.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Punishment p = fromJson(rs.getString("data"));
+                    if (ruleId.equalsIgnoreCase(p.getRuleId())) count++;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao contar infrações da regra " + ruleId, e);
+        }
+        return count;
+    }
+
     public List<Punishment> listByPlayer(UUID player, int limit) {
         String sql = "SELECT data FROM punishments WHERE player = ? ORDER BY created_at DESC LIMIT ?";
         List<Punishment> list = new ArrayList<>();

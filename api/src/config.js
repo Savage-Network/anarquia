@@ -24,4 +24,5 @@ export const config = {
     name: 'SavageMC',
     website: 'https://savagemc.net',
   },
+  apiSecret: process.env.API_SECRET || '',
 };

@@ -9,6 +9,7 @@ import com.minecraft.game.api.clan.ClanRole;
 import com.minecraft.game.api.clan.ClanSync;
 import com.minecraft.game.api.clan.ClanTagFormatter;
 import com.minecraft.game.account.context.objects.medal.Medal;
+import com.minecraft.game.account.context.objects.medal.RankMedals;
 import com.minecraft.game.account.context.objects.rank.Rank;
 import com.minecraft.game.account.context.objects.rank.RankType;
 import com.minecraft.game.account.context.objects.tag.Tag;
@@ -53,7 +54,7 @@ public class Account {
     private String name;
 
     private volatile boolean dirty = false;
-    /** Estado de sessão: true enquanto o jogador estiver em modo /go (vanish). Não persistido. */
+    /** Estado de sessão: true enquanto o jogador estiver em vanish. Não persistido. */
     private transient boolean vanished = false;
 
     private AccountContext context;
@@ -102,6 +103,16 @@ public class Account {
         send(Component.text(legacy));
     }
 
+    public void sendKey(String path) {
+        send(com.minecraft.game.message.Messages.component(path,
+                com.minecraft.game.message.LanguageService.of(this)));
+    }
+
+    public void sendKey(String path, java.util.Map<String, String> placeholders) {
+        send(com.minecraft.game.message.Messages.component(path,
+                com.minecraft.game.message.LanguageService.of(this), placeholders));
+    }
+
     public void send(String... lines) {
         for (String line : lines) {
             if (line != null) send(line);
@@ -122,10 +133,33 @@ public class Account {
         return context.getFake() != null && context.getFake().isValid();
     }
 
-    public String getNickname() {
-        Player p = player();
-        if (p != null && p.isOnline()) return p.getName();
+    public String getRealName() {
         return name != null ? name : "";
+    }
+
+    public String getNickname() {
+        if (isFake()) return context.getFake().getNick();
+        return getRealName();
+    }
+
+    public Tag getDisplayTag() {
+        if (isFake() && com.minecraft.game.bukkit.fake.FakeConfig.isHideRank()) {
+            return Tag.MEMBER;
+        }
+        return getTag();
+    }
+
+    public RankType getDisplayRankType() {
+        if (isFake() && com.minecraft.game.bukkit.fake.FakeConfig.isHideRank()) {
+            return RankType.MEMBER;
+        }
+        return getRankType();
+    }
+
+    public void clearFake() {
+        context.getFake().setNick("");
+        context.getFake().setUpdatedAt(System.currentTimeMillis());
+        markDirty();
     }
 
     public String getColoredName() {
@@ -141,15 +175,18 @@ public class Account {
     }
 
     public RankType getRankType() {
-        Rank r = getRank();
-        if (r != null && r.getType() != null && !r.hasExpired()) {
-            return r.getType();
+        RankType best = RankType.MEMBER;
+        Rank primary = getRank();
+        if (primary != null && primary.getType() != null && !primary.hasExpired()) {
+            best = primary.getType();
         }
-        return getAvailableRanks().stream()
-                .filter(rank -> rank != null && !rank.hasExpired() && rank.getType() != null)
-                .max(Comparator.comparingInt(rank -> rank.getType().ordinal()))
-                .map(Rank::getType)
-                .orElse(RankType.MEMBER);
+        for (Rank rank : getAvailableRanks()) {
+            if (rank == null || rank.hasExpired() || rank.getType() == null) continue;
+            if (rank.getType().ordinal() > best.ordinal()) {
+                best = rank.getType();
+            }
+        }
+        return best;
     }
 
     public String getRankExpiryLabel() {
@@ -177,6 +214,21 @@ public class Account {
 
     public boolean isStaffer() {
         return getRankType().isStaff();
+    }
+
+    /** Possui alguma tag da equipe (Builder, Mod, Admin, etc.). */
+    public boolean hasStaffTag() {
+        for (Tag tag : Tag.values()) {
+            if (tag.isStaffTag() && hasTag(tag)) return true;
+        }
+        return false;
+    }
+
+    public boolean canUseStaffChat() {
+        if (isStaffer() || hasStaffTag()) return true;
+        return hasPermission("game.staffchat")
+                || hasPermission("lobbyhost.staffchat")
+                || hasPermission("proxyhost.staffchat");
     }
 
     public com.minecraft.game.account.context.objects.punishment.PunishmentHistory getHistory() {
@@ -222,6 +274,14 @@ public class Account {
                 return true;
             }
         }
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
+    }
+
+    /** Permissao explicita na conta, sem grants de rank (evita loop com {@link #hasTag}). */
+    private boolean hasExplicitPermission(String key) {
+        if (key == null || key.isEmpty()) return false;
+        refreshPermissions();
         return getPermissions().stream()
                 .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
@@ -343,7 +403,8 @@ public class Account {
                 return rank.isAtLeast(RankType.ADMIN);
 
             case STAFF:
-                if (rank == tag.getSource()) return true;
+                if (hasExplicitPermission(tag.getPermission())) return true;
+                if (rank.isAtLeast(tag.getSource())) return true;
                 if (rank.isAtLeast(RankType.ADMIN)) return true;
                 if (tag == Tag.VERMELHO) return rank == RankType.VERMELHO;
                 return false;
@@ -455,6 +516,8 @@ public class Account {
                 break;
         }
 
+        if (RankMedals.isGrantedByRank(rank, medal)) return true;
+
         // 2) Staff
         if (isStaffer()) return true;
 
@@ -473,14 +536,7 @@ public class Account {
     }
 
     private int vipPoolSize(RankType rank) {
-        int pool = poolSize();
-        return switch (rank) {
-            case SAVAGE     -> (int) Math.round(pool * 0.70);
-            case EMBER_PLUS, EMBER -> (int) Math.round(pool * 0.40);
-            case NATIVE     -> (int) Math.round(pool * 0.20);
-            case VIP        -> (int) Math.round(pool * 0.10);
-            default         -> 0;
-        };
+        return RankMedals.vipPoolAllowed(rank, poolSize());
     }
 
     private int poolSize() {
@@ -529,11 +585,20 @@ public class Account {
 
     public String getEmberPlusColor() {
         String c = context.getEmberPlusColor();
-        return (c == null || c.isEmpty()) ? "§5" : c;
+        return (c == null || c.isEmpty()) ? "purple" : c;
     }
 
     public void setEmberPlusColor(String color) {
         context.setEmberPlusColor(color);
+        markDirty();
+    }
+
+    public int getEmberPlusMonths() {
+        return Math.max(0, context.getEmberPlusMonths());
+    }
+
+    public void setEmberPlusMonths(int months) {
+        context.setEmberPlusMonths(Math.max(0, months));
         markDirty();
     }
 
@@ -617,6 +682,106 @@ public class Account {
 
     public List<String> getActiveCollectibles() { return context.getActiveCollectibles(); }
     public List<String> getFavoriteCollectibles() { return context.getFavoriteCollectibles(); }
+    public List<com.minecraft.game.account.context.objects.cosmetic.CosmeticEntry> getCollectibles() {
+        return context.getCollectibles();
+    }
+
+    public com.minecraft.game.account.context.objects.cosmetic.Cape getActiveCape() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("cape:"))
+                .map(c -> com.minecraft.game.account.context.objects.cosmetic.Cape.fromId(c.substring(5)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveCape(com.minecraft.game.account.context.objects.cosmetic.Cape cape) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("cape:"));
+        if (cape != null) getActiveCollectibles().add("cape:" + cape.getId());
+        com.minecraft.game.bukkit.cosmetic.CapeParticleRegistry.refresh(id, cape);
+        markDirty();
+    }
+
+    public com.minecraft.game.account.context.objects.cosmetic.ParticleEffect getActiveParticle() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("particle:"))
+                .map(c -> com.minecraft.game.account.context.objects.cosmetic.ParticleEffect.fromId(c.substring(9)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveParticle(com.minecraft.game.account.context.objects.cosmetic.ParticleEffect particle) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("particle:"));
+        if (particle != null) getActiveCollectibles().add("particle:" + particle.getId());
+        com.minecraft.game.bukkit.cosmetic.CosmeticParticleRegistry.refresh(id, particle);
+        markDirty();
+    }
+
+    public com.minecraft.game.account.context.objects.cosmetic.CosmeticTitle getActiveCosmeticTitle() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("title:"))
+                .map(c -> com.minecraft.game.account.context.objects.cosmetic.CosmeticTitle.fromId(c.substring(6)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveCosmeticTitle(com.minecraft.game.account.context.objects.cosmetic.CosmeticTitle title) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("title:"));
+        if (title != null) getActiveCollectibles().add("title:" + title.getId());
+        markDirty();
+    }
+
+    public com.minecraft.game.account.context.objects.cosmetic.Gadget getActiveGadget() {
+        return getActiveCollectibles().stream()
+                .filter(c -> c.startsWith("gadget:"))
+                .map(c -> com.minecraft.game.account.context.objects.cosmetic.Gadget.fromId(c.substring(7)))
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public void setActiveGadget(com.minecraft.game.account.context.objects.cosmetic.Gadget gadget) {
+        getActiveCollectibles().removeIf(c -> c.startsWith("gadget:"));
+        if (gadget != null) getActiveCollectibles().add("gadget:" + gadget.getId());
+        markDirty();
+    }
+
+    public boolean hasCape(com.minecraft.game.account.context.objects.cosmetic.Cape cape) {
+        if (cape == null) return true;
+        if (hasRank(cape.getRequiredRank())) return true;
+        if (hasPermission(cape.getPermission())) return true;
+        return isUnlocked("cape:" + cape.getId());
+    }
+
+    public boolean hasParticle(com.minecraft.game.account.context.objects.cosmetic.ParticleEffect particle) {
+        if (particle == null) return true;
+        if (hasRank(particle.getRequiredRank())) return true;
+        if (hasPermission(particle.getPermission())) return true;
+        return isUnlocked("particle:" + particle.getId());
+    }
+
+    public boolean hasCosmeticTitle(com.minecraft.game.account.context.objects.cosmetic.CosmeticTitle title) {
+        if (title == null) return true;
+        if (hasRank(title.getRequiredRank())) return true;
+        if (hasPermission(title.getPermission())) return true;
+        return isUnlocked("title:" + title.getId());
+    }
+
+    public boolean hasGadget(com.minecraft.game.account.context.objects.cosmetic.Gadget gadget) {
+        if (gadget == null) return true;
+        if (hasRank(gadget.getRequiredRank())) return true;
+        if (hasPermission(gadget.getPermission())) return true;
+        return isUnlocked("gadget:" + gadget.getId());
+    }
+
+    public boolean isUnlocked(String identifier) {
+        return getCollectibles().stream().anyMatch(e -> e.getIdentifier().equalsIgnoreCase(identifier));
+    }
+
+    public void unlockCosmetic(String identifier) {
+        if (!isUnlocked(identifier)) {
+            getCollectibles().add(new com.minecraft.game.account.context.objects.cosmetic.CosmeticEntry(identifier));
+            markDirty();
+        }
+    }
 
     public boolean isPremium() { return context.isPremium(); }
     public void setPremium(boolean premium) { context.setPremium(premium); markDirty(); }
@@ -640,10 +805,19 @@ public class Account {
     public Clan getClan() {
         if (Core.getClanData() == null) return null;
         ClanMetadata meta = context.getClan();
-        if (meta == null || meta.getId() == null || meta.getId().equals(Constant.DEFAULT_ID)) {
-            return null;
+        if (meta != null && meta.getId() != null && !meta.getId().equals(Constant.DEFAULT_ID)) {
+            Clan byMeta = Core.getClanData().of(meta.getId());
+            if (byMeta != null && byMeta.isMember(id)) return byMeta;
         }
-        return Core.getClanData().of(meta.getId());
+        Clan byMember = Core.getClanData().findByMember(id);
+        if (byMember != null) {
+            meta.setId(byMember.getId());
+            meta.setTag(byMember.getTagWithoutColors());
+            meta.setLastUpdate(System.currentTimeMillis());
+            markDirty();
+            return byMember;
+        }
+        return null;
     }
 
     public boolean hasClan() {

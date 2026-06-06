@@ -19,11 +19,11 @@ public final class PlayerDisplayService {
         if (account == null || player == null || !player.isOnline()) return;
 
         Architect architect = LobbyHostPlugin.getInstance().getArchitectLoader().getArchitect();
+        ClanSync.refresh(account);
         LobbyScoreboard.applyMain(player, architect.getServer());
         LobbyTabList.apply(player);
         PermissionManager.loadPermissions(player);
         SkinService.refresh(account, player);
-        ClanSync.refresh(account);
         TagManager.updateTag(account);
         TagManager.updateAllForViewer(player);
         AboveNameDisplay.refresh(player);

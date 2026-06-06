@@ -35,6 +35,14 @@ public final class GameSettings {
     /** Raio da zona da loja (spawn protegido — sem build/PvP). */
     public static final int SPAWN_PROTECTION_RADIUS = 45;
     public static final int COMBAT_TAG_SECONDS = 15;
+    public static final boolean COMBAT_LOG_DROP_ITEMS = true;
+    public static final boolean COMBAT_LOG_KILL_CREDIT = true;
+    public static final boolean COMBAT_LOG_BROADCAST = true;
+    public static final boolean COMBAT_BLOCK_TELEPORTS = true;
+    public static final boolean COMBAT_BLOCK_PEARLS = true;
+    public static final boolean COMBAT_BLOCK_CHORUS = true;
+    /** Tempo maximo desde o inicio do tag para creditar kill por combat log ao oponente. */
+    public static final long COMBAT_OPPONENT_CREDIT_MS = 60_000L;
     public static final int STARTING_BALANCE = 1000;
     public static final String CURRENCY_SYMBOL = "$";
 

@@ -1,7 +1,8 @@
 package com.minecraft.game.bukkit.listener;
 
-import com.minecraft.game.Constant;
 import com.minecraft.game.Core;
+import com.minecraft.game.message.LanguageService;
+import com.minecraft.game.message.Messages;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.api.punishment.Punishment;
 import com.minecraft.game.bukkit.display.AboveNameDisplay;
@@ -59,7 +60,7 @@ public final class AccountListener implements Listener {
                     + ": " + t.getMessage());
             Core.getAccountController().unload(event.getUniqueId());
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-                    Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE));
+                    Messages.component("account.load-failed"));
         }
     }
 
@@ -74,7 +75,7 @@ public final class AccountListener implements Listener {
             try {
                 account = Core.getAccountController().load(player.getUniqueId(), player.getName()).get();
             } catch (Throwable t) {
-                player.kick(Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE));
+                player.kick(Messages.component("account.load-failed"));
                 return;
             }
         }
@@ -86,12 +87,16 @@ public final class AccountListener implements Listener {
         if (account != null && !VanishService.willAutoVanishOnJoin(account)
                 && !VanishService.isVanished(player)
                 && account.shouldBroadcastJoinMessage()) {
-            event.joinMessage(JoinBroadcast.create(account, player, "entrou no jogo!"));
+            event.joinMessage(null);
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                viewer.sendMessage(JoinBroadcast.create(
+                        account, player, "join.game", LanguageService.of(viewer)));
+            }
         } else {
             event.joinMessage(null);
         }
 
-        player.sendMessage("§6§lSavageMC §7| §f/loja §7| §f/kits §7| §f/leaderboard §7| §f/spawn");
+        player.sendMessage(Messages.component("join.hint", LanguageService.of(player)));
 
         // Tab + nametag para todos os viewers (com TagPrefix individual)
         final Account loaded = account;

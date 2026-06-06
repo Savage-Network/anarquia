@@ -3,6 +3,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { config } from './config.js';
+import { ensureDiscordSchema } from './db/discordSchema.js';
 import { healthCheck } from './db/pool.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import apiRoutes from './routes/index.js';
@@ -16,7 +17,7 @@ app.use(express.json({ limit: '64kb' }));
 app.use(
   cors({
     origin: config.corsOrigin === '*' ? true : config.corsOrigin,
-    methods: ['GET', 'HEAD', 'OPTIONS'],
+    methods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'DELETE'],
   }),
 );
 
@@ -59,7 +60,13 @@ app.use('/api/v1', apiRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.listen(config.port, config.host, () => {
+app.listen(config.port, config.host, async () => {
+  try {
+    await ensureDiscordSchema();
+    console.log('[SavageMC API] Schema discord_links verificado.');
+  } catch (e) {
+    console.error('[SavageMC API] Falha ao aplicar schema discord:', e.message);
+  }
   console.log(`[SavageMC API] http://${config.host}:${config.port}`);
   console.log(`[SavageMC API] ${config.branding.website}`);
 });

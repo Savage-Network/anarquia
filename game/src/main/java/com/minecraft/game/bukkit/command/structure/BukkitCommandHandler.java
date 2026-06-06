@@ -5,6 +5,8 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.rank.RankType;
 import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.command.annotation.Completer;
+import com.minecraft.game.message.LanguageService;
+import com.minecraft.game.message.Messages;
 import com.minecraft.game.util.ClassScanner;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -179,7 +181,7 @@ public final class BukkitCommandHandler {
             BukkitCommandContext ctx = new BukkitCommandContext(sender, label, args);
 
             if (annotation.playerOnly() && !ctx.isPlayer()) {
-                sender.sendMessage("§cApenas jogadores podem usar este comando.");
+                sender.sendMessage(Messages.component("command.player-only", ctx.lang()));
                 return true;
             }
 
@@ -191,14 +193,15 @@ public final class BukkitCommandHandler {
                     allowed = sender.hasPermission(annotation.permission());
                 }
                 if (!allowed) {
-                    sender.sendMessage("§cVoce nao tem permissao para usar este comando.");
+                    sender.sendMessage(Messages.component("command.no-permission", ctx.lang()));
                     return true;
                 }
             }
 
             if (ctx.isPlayer() && annotation.rank() != RankType.MEMBER) {
                 if (account == null || !account.hasRank(annotation.rank())) {
-                    sender.sendMessage("§cRank necessario: §e" + annotation.rank().name());
+                    sender.sendMessage(Messages.component("command.rank-required", ctx.lang(),
+                            Map.of("rank", annotation.rank().name())));
                     return true;
                 }
             }
@@ -208,7 +211,7 @@ public final class BukkitCommandHandler {
             } catch (Throwable t) {
                 Throwable root = t.getCause() != null ? t.getCause() : t;
                 Core.getLogger().log(Level.WARNING, "Erro ao executar /" + label, root);
-                sender.sendMessage("§cErro interno ao executar o comando.");
+                sender.sendMessage(Messages.component("errors.internal", ctx.lang()));
             }
             return true;
         }

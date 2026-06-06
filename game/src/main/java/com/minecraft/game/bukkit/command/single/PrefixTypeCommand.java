@@ -27,7 +27,7 @@ public final class PrefixTypeCommand implements CommandInheritor {
             usage = "/prefixtype [default|color|brackets|brackets_normal_case|default_white|default_gray]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         if (ctx.getArgs().length == 0) {
             TagManager.sendPrefixTypes(account);

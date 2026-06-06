@@ -17,7 +17,7 @@ public final class SpawnCommand implements CommandInheritor {
     @Command(name = "spawn", playerOnly = true, usage = "/spawn")
     public void spawn(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         Player player = ctx.player();
 
         if (CombatTagManager.isTagged(player)) {

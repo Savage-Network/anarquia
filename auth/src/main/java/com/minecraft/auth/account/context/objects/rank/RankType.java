@@ -57,10 +57,6 @@ public enum RankType {
     }
 
     public java.util.List<String> getPermissionNodes() {
-        if (this == ZW) {
-            return zwPermissionNodes();
-        }
-
         java.util.List<String> nodes = new java.util.ArrayList<>();
         nodes.add(permission);
 
@@ -79,30 +75,19 @@ public enum RankType {
         }
         if (isSuperAdmin()) {
             nodes.add("*");
+            nodes.add("auth.*");
+            nodes.add("game.*");
+            nodes.add("lobbyhost.*");
+            nodes.add("proxyhost.*");
+            nodes.add("eventos.*");
+            nodes.add("tag.*");
+            nodes.add("medal.*");
         }
         return nodes;
     }
 
-    private static java.util.List<String> zwPermissionNodes() {
-        java.util.List<String> nodes = new java.util.ArrayList<>();
-        nodes.add("game.rank.zw");
-        nodes.add("*");
-        nodes.add("auth.*");
-        nodes.add("game.*");
-        nodes.add("lobbyhost.*");
-        nodes.add("proxyhost.*");
-        nodes.add("eventos.*");
-        nodes.add("tag.*");
-        nodes.add("medal.*");
-        nodes.add("auth.staff");
-        nodes.add("auth.admin");
-        nodes.add("game.staff");
-        nodes.add("game.admin");
-        nodes.add("game.*");
-        return nodes;
-    }
-
     public boolean grants(String key) {
+        if (this == ZW) return key != null && !key.isEmpty();
         if (key == null || key.isEmpty()) return false;
         for (String node : getPermissionNodes()) {
             if (matchesPermission(node, key)) return true;
@@ -110,7 +95,7 @@ public enum RankType {
         return false;
     }
 
-    static boolean matchesPermission(String held, String required) {
+    public static boolean matchesPermission(String held, String required) {
         if (held == null || required == null) return false;
         if ("*".equals(held)) return true;
         if (held.equalsIgnoreCase(required)) return true;

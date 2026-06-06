@@ -33,7 +33,11 @@ import java.util.UUID;
 public final class AboveNameDisplay {
 
     private static final LegacyComponentSerializer LEGACY =
-            LegacyComponentSerializer.legacySection();
+            LegacyComponentSerializer.builder()
+                    .character('§')
+                    .hexColors()
+                    .useUnusualXRepeatedCharacterHexFormat()
+                    .build();
 
     private static final NamespacedKey OWNER_KEY =
             NamespacedKey.minecraft("lobbyhost_nametag");

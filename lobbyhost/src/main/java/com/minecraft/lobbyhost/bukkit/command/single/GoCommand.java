@@ -14,7 +14,7 @@ public final class GoCommand implements CommandInheritor {
             description = "Atalho de vanish (staff)")
     public void go(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta não carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         if (!VanishService.canVanish(account)) { ctx.reply("§cSem permissão."); return; }
         VanishService.toggle(ctx.player());
     }

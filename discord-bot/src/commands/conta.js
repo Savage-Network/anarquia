@@ -1,5 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
-import { fetchPlayer } from '../api/client.js';
+import { loadMenuProfile } from '../services/profileService.js';
 import { config } from '../config.js';
 import { formatDate } from '../utils/dates.js';
 
@@ -21,34 +21,38 @@ export async function execute(interaction) {
   await interaction.deferReply();
 
   try {
-    const p = await fetchPlayer(name);
-    const acc = p.account;
+    const profile = await loadMenuProfile(name);
+    if (!profile) {
+      await interaction.editReply({ content: '❌ Jogador nao encontrado.' });
+      return;
+    }
 
-    const ban = p.punishments?.active?.some((x) => x.category === 'BAN');
-    const mute = p.punishments?.active?.some((x) => x.category === 'MUTE');
+    const acc = profile.account;
+    const ban = profile.punishments?.active?.some((x) => x.category === 'BAN');
+    const mute = profile.punishments?.active?.some((x) => x.category === 'MUTE');
 
     const embed = new EmbedBuilder()
       .setTitle('Conta — SavageMC')
-      .setThumbnail(config.minotar(acc.username || name))
+      .setThumbnail(config.minotar(acc.displayName || acc.name))
       .setColor(0x1a7a1a)
       .setDescription(
-        `**${acc.username}**\n\n` +
-          `Rank: ${p.rank_tag?.name ?? acc.rank?.name ?? '—'}\n` +
-          `Tag: ${p.profile_tag?.name ?? acc.tag?.name ?? '—'}\n` +
-          `Medalha: ${acc.medal?.name ?? p.medal ?? 'Nenhuma'}\n` +
-          `Conta: ${acc.type === 'premium' ? 'Original' : 'Pirata'}\n` +
-          `Online: ${p.connected ? 'Sim' : 'Não'}\n` +
-          `Clã: ${p.clan?.name ?? 'Nenhum'}\n\n` +
-          `Primeiro login: ${formatDate(p.first_login)}\n` +
-          `Último login: ${formatDate(p.last_login)}\n\n` +
-          `Banido: ${ban ? 'Sim' : 'Não'}\n` +
-          `Silenciado: ${mute ? 'Sim' : 'Não'}`,
+        `**${acc.displayName || acc.name}**\n\n` +
+          `Rank: ${acc.rank?.name ?? '—'}\n` +
+          `Tag: ${acc.tag?.name ?? '—'}\n` +
+          `Medalha: ${acc.medal?.name ?? 'Nenhuma'}\n` +
+          `Conta: ${acc.premium ? 'Original' : 'Pirata'}\n` +
+          `Online: ${acc.online ? 'Sim' : 'Nao'}\n` +
+          `Cla: ${acc.clan?.name ?? acc.clan?.tag ?? 'Nenhum'}\n\n` +
+          `Primeiro login: ${formatDate(acc.createdAt)}\n` +
+          `Ultimo login: ${formatDate(acc.lastLogin)}\n\n` +
+          `Banido: ${ban ? 'Sim' : 'Nao'}\n` +
+          `Silenciado: ${mute ? 'Sim' : 'Nao'}`,
       );
 
     await interaction.editReply({ embeds: [embed] });
   } catch (e) {
     await interaction.editReply({
-      content: `❌ ${e.message || 'Não foi possível encontrar a conta.'}`,
+      content: `❌ ${e.message || 'Nao foi possivel encontrar a conta.'}`,
     });
   }
 }

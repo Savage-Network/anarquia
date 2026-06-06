@@ -4,6 +4,7 @@ import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.friend.Friend;
 import com.minecraft.lobbyhost.social.FriendService;
+import com.minecraft.lobbyhost.message.MenuTexts;
 import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -26,12 +27,12 @@ public final class FriendMenu {
     public static void open(Player player) {
         Account account = Core.getAccountController().of(player.getUniqueId());
         if (account == null) {
-            player.sendMessage(ModernText.parse("<!italic><" + ModernText.ERROR + ">Conta não carregada"));
+            player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.account-error")));
             return;
         }
         LobbyMenuHolder holder = new LobbyMenuHolder("friends");
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ModernText.noItalic(ModernText.parse(ModernText.brandGradient("Amigos"))));
+                MenuTexts.title(player, "menus.friends.title"));
         holder.bind(inv);
 
         int slot = 10;

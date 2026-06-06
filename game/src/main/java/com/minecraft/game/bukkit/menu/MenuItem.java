@@ -16,6 +16,11 @@ public final class MenuItem {
 
     private final ItemStack stack;
     private Consumer<Player> click;
+    private Consumer<Player> rightClick;
+
+    private MenuItem(ItemStack stack) {
+        this.stack = stack.clone();
+    }
 
     private MenuItem(Material material, int amount) {
         this.stack = new ItemStack(material, amount);
@@ -27,6 +32,10 @@ public final class MenuItem {
 
     public static MenuItem of(Material material, int amount) {
         return new MenuItem(material, amount);
+    }
+
+    public static MenuItem fromStack(ItemStack stack) {
+        return new MenuItem(stack);
     }
 
     public MenuItem name(String name) {
@@ -42,7 +51,9 @@ public final class MenuItem {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-            for (String line : lines) lore.add(line);
+            for (String line : lines) {
+                if (line != null) lore.add(line);
+            }
             meta.setLore(lore);
             stack.setItemMeta(meta);
         }
@@ -72,11 +83,20 @@ public final class MenuItem {
         return this;
     }
 
+    public MenuItem rightClick(Consumer<Player> action) {
+        this.rightClick = action;
+        return this;
+    }
+
     public ItemStack stack() {
         return stack;
     }
 
     public Consumer<Player> click() {
         return click;
+    }
+
+    public Consumer<Player> rightClick() {
+        return rightClick;
     }
 }

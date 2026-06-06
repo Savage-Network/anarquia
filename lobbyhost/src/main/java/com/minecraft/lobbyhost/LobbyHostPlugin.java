@@ -12,6 +12,7 @@ import com.minecraft.lobbyhost.bukkit.menu.listener.MenuListener;
 import com.minecraft.lobbyhost.backend.database.HikariProvider;
 import com.minecraft.lobbyhost.config.DiscordConfig;
 import com.minecraft.lobbyhost.Constant;
+import com.minecraft.lobbyhost.message.Messages;
 import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.backend.redis.RedisProvider;
 import com.minecraft.lobbyhost.redis.LobbyRedisSubscriber;
@@ -58,6 +59,8 @@ public final class LobbyHostPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Messages.load(this);
+        com.minecraft.lobbyhost.punishment.PunishmentRules.load(this);
         if (!getDataFolder().toPath().resolve("architect.json").toFile().exists()) {
             saveResource("architect.json", false);
         }
@@ -133,6 +136,7 @@ public final class LobbyHostPlugin extends JavaPlugin {
             AboveNameDisplay.init(this);
             com.minecraft.lobbyhost.bukkit.vanish.VanishService.start(this);
             com.minecraft.lobbyhost.bukkit.manager.CosmeticManager.init();
+            com.minecraft.lobbyhost.bukkit.fake.FakeConfig.load(this);
 
             // 8) Discord hologram (TextDisplay 1.21)
             DiscordHologramManager.initialize();
@@ -145,6 +149,8 @@ public final class LobbyHostPlugin extends JavaPlugin {
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
             getServer().getPluginManager().registerEvents(new MenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.lobbyhost.bukkit.listener.FakeMenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.lobbyhost.bukkit.menu.lang.LangMenuListener(), this);
 
             // 10) Reload de contas dos online
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->
@@ -186,7 +192,9 @@ public final class LobbyHostPlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
+        Messages.reload(this);
         DiscordConfig.load(this);
+        com.minecraft.lobbyhost.bukkit.fake.FakeConfig.load(this);
         com.minecraft.lobbyhost.bukkit.vanish.VanishService.reload(this);
         getLogger().info("Configuracoes, discord e vanish recarregados.");
     }

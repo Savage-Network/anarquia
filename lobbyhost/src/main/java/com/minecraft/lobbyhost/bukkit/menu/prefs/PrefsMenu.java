@@ -3,6 +3,7 @@ package com.minecraft.lobbyhost.bukkit.menu.prefs;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.menu.Menu;
 import com.minecraft.lobbyhost.bukkit.menu.MenuItem;
+import com.minecraft.lobbyhost.message.MenuTexts;
 import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public final class PrefsMenu extends Menu {
     private final Account account;
 
     public PrefsMenu(Player player, Account account) {
-        super(player, ModernText.menuTitle("Preferências"), 6, null);
+        super(player, MenuTexts.title(player, "menus.prefs.title"), 6, null);
         this.account = account;
     }
 

@@ -1,5 +1,6 @@
 package com.minecraft.lobbyhost.bukkit.menu;
 
+import com.minecraft.lobbyhost.message.MenuTexts;
 import com.minecraft.lobbyhost.util.ModernText;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -77,14 +78,14 @@ public abstract class Menu {
     protected void back(int slot) {
         if (parent == null) return;
         set(slot, MenuItem.of(Material.ARROW)
-                .miniName(ModernText.gradient("Voltar", ModernText.ACCENT_A, ModernText.ACCENT_B))
-                .miniLore(ModernText.mini("Retornar ao menu anterior"))
+                .miniName(MenuTexts.mini(player, "menus.common.back"))
+                .miniLore(MenuTexts.mini(player, "menus.common.back-lore"))
                 .click(p -> parent.open()));
     }
 
     protected void closeButton(int slot) {
         set(slot, MenuItem.of(Material.BARRIER)
-                .miniName("<!italic><" + ModernText.ERROR + "><bold>Fechar</bold>")
+                .miniName(MenuTexts.mini(player, "menus.common.close"))
                 .click(p -> p.closeInventory()));
     }
 
@@ -106,5 +107,9 @@ public abstract class Menu {
 
     public int getRows() {
         return rows;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 }

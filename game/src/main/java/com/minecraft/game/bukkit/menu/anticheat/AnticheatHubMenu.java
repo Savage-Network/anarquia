@@ -25,6 +25,8 @@ public final class AnticheatHubMenu extends Menu {
                 .lore(
                         "§7Estado: " + (global ? "§aAtivo" : "§cDesativado"),
                         "§7Alertas staff: " + (AnticheatConfig.isAlertStaff() ? "§aSim" : "§cNão"),
+                        "§7Lag comp: " + (AnticheatConfig.isLagCompensation() ? "§aSim" : "§cNão"),
+                        "§7Setback: " + (AnticheatConfig.isSetbackEnabled() ? "§aSim" : "§cNão"),
                         "§7Punições: " + (AnticheatConfig.isPunishEnabled() ? "§aSim" : "§cNão"),
                         "",
                         "§8Owner only"));
@@ -61,6 +63,14 @@ public final class AnticheatHubMenu extends Menu {
                     clickSound();
                     new AnticheatPlayersMenu(p, this).open();
                 }));
+
+        set(28, globalToggle(Material.ENDER_PEARL, Material.ENDER_EYE,
+                "§bSetback (movimento)", AnticheatConfig.isSetbackEnabled(), () ->
+                        AnticheatConfig.setSetbackEnabled(!AnticheatConfig.isSetbackEnabled())));
+
+        set(29, globalToggle(Material.CLOCK, Material.CLOCK,
+                "§bCompensação de lag", AnticheatConfig.isLagCompensation(), () ->
+                        AnticheatConfig.setLagCompensation(!AnticheatConfig.isLagCompensation())));
 
         set(30, MenuItem.of(Material.BOOK)
                 .name("§bEstatísticas")

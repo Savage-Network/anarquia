@@ -1,6 +1,10 @@
 package com.minecraft.game.leaderboard;
 
+import com.minecraft.game.message.MenuTexts;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+
+import java.util.Locale;
 
 public enum LeaderboardType {
 
@@ -10,16 +14,25 @@ public enum LeaderboardType {
     KDR("§e§lK/D", Material.NETHER_STAR),
     CLANS("§3§lClãs", Material.SHIELD);
 
-    private final String title;
+    private final String legacyTitle;
     private final Material icon;
 
-    LeaderboardType(String title, Material icon) {
-        this.title = title;
+    LeaderboardType(String legacyTitle, Material icon) {
+        this.legacyTitle = legacyTitle;
         this.icon = icon;
     }
 
-    public String title() { return title; }
-    public Material icon() { return icon; }
+    public String title() {
+        return legacyTitle;
+    }
+
+    public String title(Player player) {
+        return MenuTexts.legacy(player, "menus.leaderboard.type." + name().toLowerCase());
+    }
+
+    public Material icon() {
+        return icon;
+    }
 
     public static LeaderboardType fromArg(String raw) {
         if (raw == null) return null;
@@ -31,5 +44,10 @@ public enum LeaderboardType {
             case "kills", "kill" -> KILLS;
             default -> null;
         };
+    }
+
+    /** Id usado em {@code /holo set} e {@code leaderboard-holograms.yml}. */
+    public String holoId() {
+        return name().toLowerCase(Locale.ROOT);
     }
 }

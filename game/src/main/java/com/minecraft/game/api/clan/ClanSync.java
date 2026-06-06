@@ -17,17 +17,23 @@ public final class ClanSync {
         if (!account.hasClan()) {
             meta.setId(Constant.DEFAULT_ID);
             meta.setTag("");
+            meta.setTagColorId("padrao");
         } else {
             Clan clan = account.getClan();
             if (clan != null) {
+                clan.normalizeStyle();
                 meta.setId(clan.getId());
                 meta.setTag(clan.getTagWithoutColors());
+                meta.setTagColorId(clan.getStyle().getId());
             }
         }
         meta.setLastUpdate(System.currentTimeMillis());
         account.markDirty();
         if (account.isOnline()) {
             TagManager.updateTag(account);
+            if (account.player() != null) {
+                com.minecraft.game.bukkit.display.GameScoreboard.apply(account.player());
+            }
         }
     }
 

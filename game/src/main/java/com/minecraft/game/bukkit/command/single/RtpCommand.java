@@ -25,7 +25,7 @@ public final class RtpCommand implements CommandInheritor {
             description = "Teleporta você para um local aleatório e seguro no mundo", usage = "/rtp")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         Player player = ctx.player();
 

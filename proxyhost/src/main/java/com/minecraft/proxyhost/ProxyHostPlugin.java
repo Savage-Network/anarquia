@@ -3,6 +3,7 @@ package com.minecraft.proxyhost;
 import com.google.inject.Inject;
 import com.minecraft.proxyhost.account.AccountController;
 import com.minecraft.proxyhost.backend.data.AccountData;
+import com.minecraft.proxyhost.backend.data.NetworkPresenceData;
 import com.minecraft.proxyhost.backend.data.PlayerAuthData;
 import com.minecraft.proxyhost.backend.data.PunishmentData;
 import com.minecraft.proxyhost.backend.database.HikariProvider;
@@ -10,6 +11,7 @@ import com.minecraft.proxyhost.backend.redis.RedisProvider;
 import com.minecraft.proxyhost.config.ConfigSection;
 import com.minecraft.proxyhost.redis.RedisListener;
 import com.minecraft.proxyhost.proxy.NetworkPublisher;
+import com.minecraft.proxyhost.proxy.PresenceHeartbeat;
 import com.minecraft.proxyhost.proxy.ProxySettingsManager;
 import com.minecraft.proxyhost.velocity.command.ProxyCommand;
 import com.minecraft.proxyhost.velocity.command.ReplyCommand;
@@ -119,6 +121,10 @@ public final class ProxyHostPlugin {
         playerAuthData.createTables();
         Core.setPlayerAuthData(playerAuthData);
 
+        NetworkPresenceData networkPresenceData = new NetworkPresenceData(database);
+        networkPresenceData.createTables();
+        Core.setNetworkPresenceData(networkPresenceData);
+
         AccountController controller = new AccountController();
         Core.setAccountController(controller);
 
@@ -159,6 +165,8 @@ public final class ProxyHostPlugin {
         cm.register(cm.metaBuilder("ban").plugin(this).build(), punish);
         cm.register(cm.metaBuilder("kick").plugin(this).build(), punish);
         cm.register(cm.metaBuilder("wl").aliases("whitelist").plugin(this).build(), new WhitelistCommand());
+
+        PresenceHeartbeat.start(proxy);
 
         // Redis subscriber - tell e staffchat cross-proxy/cross-server
         if (redis.isEnabled()) {

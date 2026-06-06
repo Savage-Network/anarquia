@@ -3,6 +3,7 @@ package com.minecraft.proxyhost.account;
 import com.minecraft.proxyhost.Core;
 import com.minecraft.proxyhost.account.context.AccountContext;
 import com.minecraft.proxyhost.account.context.objects.medal.Medal;
+import com.minecraft.proxyhost.account.context.objects.medal.RankMedals;
 import com.minecraft.proxyhost.account.context.objects.rank.Rank;
 import com.minecraft.proxyhost.account.context.objects.rank.RankType;
 import com.minecraft.proxyhost.account.context.objects.tag.Tag;
@@ -121,8 +122,18 @@ public class Account {
     }
 
     public RankType getRankType() {
-        Rank r = getRank();
-        return r != null && r.getType() != null ? r.getType() : RankType.MEMBER;
+        RankType best = RankType.MEMBER;
+        Rank primary = getRank();
+        if (primary != null && primary.getType() != null && !primary.hasExpired()) {
+            best = primary.getType();
+        }
+        for (Rank rank : getAvailableRanks()) {
+            if (rank == null || rank.hasExpired() || rank.getType() == null) continue;
+            if (rank.getType().ordinal() > best.ordinal()) {
+                best = rank.getType();
+            }
+        }
+        return best;
     }
 
     public boolean hasRank(RankType type) {
@@ -131,6 +142,20 @@ public class Account {
 
     public boolean isVIP() { return hasRank(RankType.VIP); }
     public boolean isStaffer() { return getRankType().isStaff(); }
+
+    public boolean hasStaffTag() {
+        for (Tag tag : Tag.values()) {
+            if (tag.isStaffTag() && hasTag(tag)) return true;
+        }
+        return false;
+    }
+
+    public boolean canUseStaffChat() {
+        if (isStaffer() || hasStaffTag()) return true;
+        return grantsPermission("game.staffchat")
+                || grantsPermission("lobbyhost.staffchat")
+                || grantsPermission("proxyhost.staffchat");
+    }
 
     public PunishmentHistory getHistory() {
         return context.getHistory();
@@ -177,6 +202,14 @@ public class Account {
                 .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
 
+    /** Permissao explicita na conta, sem grants de rank (evita loop com {@link #hasTag}). */
+    private boolean hasExplicitPermission(String key) {
+        if (key == null || key.isEmpty()) return false;
+        refreshPermissions();
+        return getPermissions().stream()
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
+    }
+
     public java.util.List<com.minecraft.proxyhost.account.context.objects.permission.Permission> getPermissions() {
         return context.getPermissions();
     }
@@ -207,7 +240,34 @@ public class Account {
                 .filter(p -> !p.hasExpired())
                 .map(com.minecraft.proxyhost.account.context.objects.permission.Permission::getKey)
                 .forEach(nodes::add);
+        for (Tag tag : Tag.values()) {
+            if (!hasTag(tag)) continue;
+            nodes.add(tag.getPermission());
+            if (tag.isStaffTag()) {
+                nodes.addAll(Tag.STAFF_CHAT_NODES);
+            }
+        }
+        if (hasZwRank()) {
+            nodes.add("*");
+            nodes.add("game.*");
+            nodes.add("lobbyhost.*");
+            nodes.add("proxyhost.*");
+            nodes.add("auth.*");
+            nodes.add("eventos.*");
+            nodes.add("tag.*");
+            nodes.add("medal.*");
+        }
         return nodes;
+    }
+
+    private boolean hasZwRank() {
+        if (getRankType() == RankType.ZW) return true;
+        for (Rank rank : getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() == RankType.ZW) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /* ================================================================
@@ -248,7 +308,8 @@ public class Account {
                 if (tag.getSource() != RankType.MEMBER && rank.isAtLeast(tag.getSource())) return true;
                 return rank.isAtLeast(RankType.ADMIN);
             case STAFF:
-                if (rank == tag.getSource()) return true;
+                if (hasExplicitPermission(tag.getPermission())) return true;
+                if (rank.isAtLeast(tag.getSource())) return true;
                 if (rank.isAtLeast(RankType.ADMIN)) return true;
                 if (tag == Tag.VERMELHO) return rank == RankType.VERMELHO;
                 return false;
@@ -326,6 +387,8 @@ public class Account {
             default: break;
         }
 
+        if (RankMedals.isGrantedByRank(rank, medal)) return true;
+
         if (isStaffer()) return true;
         if (context.getMedals().contains(medal)) return true;
         if (hasPermission(medal.getPermission())) return true;
@@ -338,14 +401,7 @@ public class Account {
     }
 
     private int vipPoolSize(RankType rank) {
-        int pool = poolSize();
-        return switch (rank) {
-            case SAVAGE     -> (int) Math.round(pool * 0.70);
-            case EMBER_PLUS, EMBER -> (int) Math.round(pool * 0.40);
-            case NATIVE     -> (int) Math.round(pool * 0.20);
-            case VIP        -> (int) Math.round(pool * 0.10);
-            default         -> 0;
-        };
+        return RankMedals.vipPoolAllowed(rank, poolSize());
     }
 
     private int poolSize() {

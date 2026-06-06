@@ -1,0 +1,123 @@
+# Sistema de punições (estilo LeafPunish)
+# steps = escalonamento por infração da mesma regra (1ª, 2ª, 3ª...)
+
+settings:
+  silent-default: false
+
+custom-times:
+  - "30m"
+  - "1h"
+  - "2h"
+  - "6h"
+  - "12h"
+  - "1d"
+  - "3d"
+  - "7d"
+  - "14d"
+  - "30d"
+  - "-1"
+
+kick-reasons:
+  - "Comportamento inadequado"
+  - "Spam / Flood"
+  - "Provocação / Toxicidade"
+  - "Skin ou nick inapropriado"
+  - "AFK em evento"
+  - "Outro motivo"
+
+rules:
+  cheats:
+    category: BAN
+    reason: CHEATING
+    label: "Uso de Trapaças"
+    icon: NETHERITE_SWORD
+    color: "&4"
+    steps: ["-1"]
+
+  cheats_temp:
+    category: BAN
+    reason: CHEATING
+    label: "Cheating (temporário)"
+    icon: DIAMOND_SWORD
+    color: "&c"
+    steps: ["7d", "14d", "30d", "-1"]
+
+  ban_permanent:
+    category: BAN
+    reason: COMMUNITY
+    label: "Ban permanente"
+    icon: RED_BANNER
+    color: "&4"
+    steps: ["-1"]
+
+  harassment:
+    category: BAN
+    reason: COMMUNITY
+    label: "Assédio / Discriminação"
+    icon: BARRIER
+    color: "&6"
+    steps: ["3d", "7d", "14d", "-1"]
+
+  inappropriate_skin:
+    category: BAN
+    reason: COMMUNITY
+    label: "Skin / Nick inapropriado"
+    icon: LEATHER_CHESTPLATE
+    color: "&6"
+    steps: ["1d", "3d", "7d"]
+
+  flood:
+    category: MUTE
+    reason: COMMUNITY
+    label: "Spam / Flood"
+    icon: PAPER
+    color: "&e"
+    steps: ["30m", "1h", "6h", "24h", "-1"]
+
+  toxic:
+    category: MUTE
+    reason: COMMUNITY
+    label: "Toxicidade"
+    icon: POISONOUS_POTATO
+    color: "&e"
+    steps: ["1h", "6h", "24h", "-1"]
+
+  language:
+    category: MUTE
+    reason: COMMUNITY
+    label: "Linguagem inadequada"
+    icon: WRITABLE_BOOK
+    color: "&e"
+    steps: ["30m", "1h", "6h", "12h"]
+
+  mute_permanent:
+    category: MUTE
+    reason: COMMUNITY
+    label: "Mute permanente"
+    icon: BELL
+    color: "&4"
+    steps: ["-1"]
+
+  warn_rules:
+    category: WARN
+    reason: COMMUNITY
+    label: "Quebra de regras"
+    icon: OAK_SIGN
+    color: "&6"
+    steps: ["-1"]
+
+  warn_spam:
+    category: WARN
+    reason: COMMUNITY
+    label: "Spam leve"
+    icon: BOOK
+    color: "&e"
+    steps: ["-1"]
+
+  warn_toxic:
+    category: WARN
+    reason: COMMUNITY
+    label: "Comportamento tóxico"
+    icon: IRON_AXE
+    color: "&c"
+    steps: ["-1"]

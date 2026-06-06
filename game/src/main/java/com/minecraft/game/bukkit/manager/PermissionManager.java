@@ -2,7 +2,10 @@ package com.minecraft.game.bukkit.manager;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.account.context.objects.tag.Tag;
 import com.minecraft.game.account.context.objects.rank.Rank;
+import com.minecraft.game.account.context.objects.rank.RankType;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
@@ -42,6 +45,16 @@ public final class PermissionManager {
                 .map(com.minecraft.game.account.context.objects.permission.Permission::getKey)
                 .forEach(nodes::add);
 
+        for (Tag tag : Tag.values()) {
+            if (!account.hasTag(tag)) continue;
+            nodes.add(tag.getPermission());
+            if (tag.isStaffTag()) {
+                nodes.addAll(Tag.STAFF_CHAT_NODES);
+            }
+        }
+
+        expandZwNodes(account, nodes);
+
         for (String node : nodes) {
             if (node != null && !node.isEmpty()) {
                 attachment.setPermission(node, true);
@@ -49,10 +62,33 @@ public final class PermissionManager {
         }
     }
 
-    private static void collectRankNodes(
-            com.minecraft.game.account.context.objects.rank.RankType type,
-            Set<String> nodes) {
+    private static void collectRankNodes(RankType type, Set<String> nodes) {
         nodes.addAll(type.getPermissionNodes());
+    }
+
+    private static void expandZwNodes(Account account, Set<String> nodes) {
+        if (!hasZwRank(account)) return;
+        nodes.add("*");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.*");
+        nodes.add("proxyhost.*");
+        nodes.add("auth.*");
+        nodes.add("eventos.*");
+        nodes.add("tag.*");
+        nodes.add("medal.*");
+        for (org.bukkit.permissions.Permission perm : Bukkit.getPluginManager().getPermissions()) {
+            nodes.add(perm.getName());
+        }
+    }
+
+    private static boolean hasZwRank(Account account) {
+        if (account.getRankType() == RankType.ZW) return true;
+        for (Rank rank : account.getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() == RankType.ZW) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void unloadPermissions(Player player) {

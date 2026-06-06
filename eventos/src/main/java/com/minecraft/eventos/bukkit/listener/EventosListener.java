@@ -6,6 +6,7 @@ import com.minecraft.eventos.EventosPlugin;
 import com.minecraft.eventos.EventosSettings;
 import com.minecraft.eventos.account.Account;
 import com.minecraft.eventos.bukkit.display.AboveNameDisplay;
+import com.minecraft.eventos.bukkit.manager.PermissionManager;
 import com.minecraft.eventos.bukkit.manager.TagManager;
 import com.minecraft.eventos.game.Game;
 import com.minecraft.eventos.game.state.GameState;
@@ -74,6 +75,8 @@ public final class EventosListener implements Listener {
         }
         if (game.getSpawn() != null) player.teleport(game.getSpawn());
 
+        PermissionManager.loadPermissions(player);
+
         Bukkit.getScheduler().runTaskLater(Core.getJavaPlugin(), () -> {
             if (!player.isOnline()) return;
             Account loaded = Core.getAccountController().of(player.getUniqueId());
@@ -88,6 +91,7 @@ public final class EventosListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         event.quitMessage(Component.text("§e- §c" + event.getPlayer().getName() + " §7saiu."));
+        PermissionManager.unloadPermissions(event.getPlayer());
         TagManager.removeTag(event.getPlayer());
         AboveNameDisplay.remove(event.getPlayer());
         Bukkit.getScheduler().runTaskAsynchronously(Core.getJavaPlugin(),

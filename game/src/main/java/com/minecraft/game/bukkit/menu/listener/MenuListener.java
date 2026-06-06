@@ -25,7 +25,16 @@ public final class MenuListener implements Listener {
         }
 
         MenuItem item = menu.itemAt(event.getSlot());
-        if (item != null && item.click() != null) {
+        if (item == null) return;
+
+        if (event.getClick().isRightClick()) {
+            if (item.rightClick() != null) {
+                item.rightClick().accept(player);
+            }
+            return;
+        }
+
+        if (item.click() != null) {
             item.click().accept(player);
         }
     }

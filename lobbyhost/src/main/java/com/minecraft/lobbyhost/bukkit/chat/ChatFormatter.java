@@ -5,6 +5,8 @@ import com.minecraft.lobbyhost.account.context.objects.medal.Medal;
 import com.minecraft.lobbyhost.account.context.objects.toggle.TagPrefix;
 import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
 import com.minecraft.lobbyhost.LobbySettings;
+import com.minecraft.lobbyhost.account.context.objects.tag.Tag;
+import com.minecraft.lobbyhost.bukkit.fake.FakeConfig;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 
 public final class ChatFormatter {
@@ -20,15 +22,20 @@ public final class ChatFormatter {
 
     public static String formatLine(Account sender, Account viewer, String content) {
         TagPrefix viewerPrefix = viewer != null ? viewer.getTagPrefix() : TagPrefix.DEFAULT;
-        String tag = TagManager.getAdjustedPrefix(viewerPrefix, sender.getTag(), sender.getId());
-        String medal = sender.getMedal() != Medal.NONE ? sender.getMedal().getColoredSymbol() : "";
+        Tag tag = sender.getDisplayTag();
+        String tagPrefix = TagManager.getAdjustedPrefix(viewerPrefix, tag, sender.getId(), sender);
+        String medal = "";
+        if (!(sender.isFake() && FakeConfig.isHideMedal()) && sender.getMedal() != Medal.NONE) {
+            medal = sender.getMedal().getColoredSymbol();
+        }
         String clan = "";
-        if (sender.getToggle().isShowClanTag() && sender.hasClan()) {
+        if (!(sender.isFake() && FakeConfig.isHideClanTag())
+                && sender.getToggle().isShowClanTag() && sender.hasClan()) {
             var c = sender.getClan();
             if (c != null) clan = ClanTagFormatter.formatChatTag(c) + " ";
         }
-        String nick = sender.getRankType().formatChatNickname(sender.getNickname());
-        return medal + clan + tag + nick + "§7: " + content;
+        String nick = sender.getDisplayRankType().formatChatNickname(sender.getNickname());
+        return medal + clan + tagPrefix + nick + "§7: " + content;
     }
 
     public static String applyMentions(String content, Iterable<org.bukkit.entity.Player> online) {

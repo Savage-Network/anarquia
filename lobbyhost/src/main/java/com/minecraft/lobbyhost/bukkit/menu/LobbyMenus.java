@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import com.minecraft.lobbyhost.message.MenuTexts;
 import com.minecraft.lobbyhost.util.BungeeCordUtil;
 import com.minecraft.lobbyhost.util.ModernText;
 
@@ -42,19 +43,19 @@ public final class LobbyMenus {
         List<NavEntry> entries = buildNavigationEntries(player);
         LobbyMenuHolder holder = new LobbyMenuHolder("navigation");
         Inventory inv = Bukkit.createInventory(holder, NAV_SIZE,
-                ModernText.noItalic(ModernText.parse(LobbySettings.NAVIGATION_TITLE_MINI)));
+                MenuTexts.title(player, "menus.lobby.nav-title"));
         holder.bind(inv);
 
         fillGlass(inv, entries);
 
         for (NavEntry entry : entries) {
             if (entry.slot() >= 0 && entry.slot() < NAV_SIZE && entry.slot() != CLOSE_SLOT) {
-                inv.setItem(entry.slot(), navIcon(entry));
+                inv.setItem(entry.slot(), navIcon(player, entry));
             }
         }
 
-        inv.setItem(CLOSE_SLOT, labeledMini(Material.BARRIER,
-                "<!italic><" + ModernText.ERROR + "><bold>Fechar</bold>", List.of()));
+        inv.setItem(CLOSE_SLOT, labeledMini(player, Material.BARRIER,
+                MenuTexts.mini(player, "menus.common.close"), List.of()));
         player.openInventory(inv);
     }
 
@@ -62,42 +63,46 @@ public final class LobbyMenus {
         var account = Core.getAccountController().of(player.getUniqueId());
         LobbyMenuHolder holder = new LobbyMenuHolder("profile");
         Inventory inv = Bukkit.createInventory(holder, 27,
-                ModernText.noItalic(ModernText.parse(
-                        ModernText.gradient("Seu perfil", ModernText.ACCENT_A, ModernText.ACCENT_B))));
+                MenuTexts.title(player, "menus.lobby.profile-title"));
         holder.bind(inv);
 
         List<String> lore = new ArrayList<>();
         if (account != null) {
-            lore.add(ModernText.mini("Rank: " + (account.getRank() != null ? account.getRank().getType().name() : "-")));
-            lore.add(ModernText.mini("Tag: " + (account.getTag() != null ? account.getTag().name() : "-")));
-            lore.add(ModernText.mini("Medalha: " + (account.getMedal() != null ? account.getMedal().name() : "-")));
-            lore.add(ModernText.mini("Amigos: " + (account.getFriendMetadata() != null
-                    ? account.getFriendMetadata().getFriends().size() : 0)));
+            lore.add(MenuTexts.mini(player, "menus.lobby.rank-line",
+                    MenuTexts.map("rank", account.getRank() != null ? account.getRank().getType().name() : "-")));
+            lore.add(MenuTexts.mini(player, "menus.lobby.tag-line",
+                    MenuTexts.map("tag", account.getTag() != null ? account.getTag().name() : "-")));
+            lore.add(MenuTexts.mini(player, "menus.lobby.medal-line",
+                    MenuTexts.map("medal", account.getMedal() != null ? account.getMedal().name() : "-")));
+            lore.add(MenuTexts.mini(player, "menus.lobby.friends-count",
+                    MenuTexts.map("count", String.valueOf(account.getFriendMetadata() != null
+                            ? account.getFriendMetadata().getFriends().size() : 0))));
             int friendsHere = com.minecraft.lobbyhost.social.FriendService.countFriendsOnlineInLobby(account);
             if (friendsHere > 0) {
-                lore.add("<!italic><" + ModernText.SUCCESS + ">Amigos no lobby: " + friendsHere);
+                lore.add(MenuTexts.mini(player, "menus.lobby.friends-here",
+                        MenuTexts.map("count", String.valueOf(friendsHere))));
             }
         } else {
-            lore.add("<!italic><" + ModernText.ERROR + ">Conta não carregada");
+            lore.add(MenuTexts.mini(player, "menus.lobby.account-error"));
         }
         lore.add(ModernText.hint("amigo") + " <#64748B>· " + ModernText.hint("prefs"));
 
-        inv.setItem(10, labeledMini(Material.PLAYER_HEAD,
+        inv.setItem(10, labeledMini(player, Material.PLAYER_HEAD,
                 ModernText.gradient(player.getName(), ModernText.ACCENT_A, ModernText.ACCENT_B), lore));
-        inv.setItem(12, labeledMini(Material.SUNFLOWER,
-                ModernText.brandGradient("Amigos"),
+        inv.setItem(12, labeledMini(player, Material.SUNFLOWER,
+                MenuTexts.mini(player, "menus.lobby.friends"),
                 List.of(ModernText.action("Clique para abrir"), ModernText.hint("amigo add <nick>"))));
-        inv.setItem(14, labeledMini(Material.GOLD_BLOCK,
-                ModernText.brandGradient("Rankings"),
-                List.of(ModernText.mini("Kills, money, clãs…"), ModernText.hint("leaderboard"))));
-        inv.setItem(13, labeledMini(Material.COMPARATOR,
-                ModernText.gradient("Preferências", ModernText.WARN, ModernText.BRAND_B),
-                List.of(ModernText.mini("Social · anticheat · staff"), ModernText.hint("prefs"))));
-        inv.setItem(15, labeledMini(Material.REDSTONE,
-                ModernText.gradient("Denunciar", ModernText.ERROR, "#FCA5A5"),
-                List.of(ModernText.mini("Reportar jogador"), ModernText.hint("report"))));
-        inv.setItem(22, labeledMini(Material.BARRIER,
-                "<!italic><" + ModernText.ERROR + "><bold>Fechar</bold>", List.of()));
+        inv.setItem(14, labeledMini(player, Material.GOLD_BLOCK,
+                MenuTexts.mini(player, "menus.lobby.rankings"),
+                List.of(MenuTexts.mini(player, "menus.lobby.rankings-lore"), ModernText.hint("leaderboard"))));
+        inv.setItem(13, labeledMini(player, Material.COMPARATOR,
+                MenuTexts.mini(player, "menus.lobby.prefs"),
+                List.of(MenuTexts.mini(player, "menus.lobby.prefs-lore"), ModernText.hint("prefs"))));
+        inv.setItem(15, labeledMini(player, Material.REDSTONE,
+                MenuTexts.mini(player, "menus.lobby.report"),
+                List.of(MenuTexts.mini(player, "menus.lobby.report-lore"), ModernText.hint("report"))));
+        inv.setItem(22, labeledMini(player, Material.BARRIER,
+                MenuTexts.mini(player, "menus.common.close"), List.of()));
         player.openInventory(inv);
     }
 
@@ -108,13 +113,13 @@ public final class LobbyMenus {
     public static void openMissions(Player player) {
         LobbyMenuHolder holder = new LobbyMenuHolder("missions");
         Inventory inv = Bukkit.createInventory(holder, 27,
-                ModernText.noItalic(ModernText.parse(ModernText.brandGradient("Missões"))));
+                MenuTexts.title(player, "menus.lobby.missions-title"));
         holder.bind(inv);
-        inv.setItem(13, labeledMini(Material.CHEST,
-                ModernText.brandGradient("Em breve"),
-                List.of(ModernText.mini("Missões diárias em desenvolvimento"))));
-        inv.setItem(22, labeledMini(Material.BARRIER,
-                "<!italic><" + ModernText.ERROR + "><bold>Fechar</bold>", List.of()));
+        inv.setItem(13, labeledMini(player, Material.CHEST,
+                MenuTexts.mini(player, "menus.lobby.missions-soon"),
+                List.of(MenuTexts.mini(player, "menus.lobby.missions-soon-lore"))));
+        inv.setItem(22, labeledMini(player, Material.BARRIER,
+                MenuTexts.mini(player, "menus.common.close"), List.of()));
         player.openInventory(inv);
     }
 
@@ -125,8 +130,7 @@ public final class LobbyMenus {
         if (meta.getPersistentDataContainer().has(
                 new NamespacedKey(LobbyHostPlugin.getInstance(), "nav_blocked"),
                 PersistentDataType.BYTE)) {
-            player.sendMessage(ModernText.parse("<!italic><" + ModernText.ERROR
-                    + ">Este modo está indisponível no momento."));
+            player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.mode-unavailable")));
             return;
         }
         String modeId = meta.getPersistentDataContainer().get(MENU_MODE_KEY, PersistentDataType.STRING);
@@ -145,8 +149,7 @@ public final class LobbyMenus {
         Account account = Core.getAccountController().of(player.getUniqueId());
         if (NetworkStateCache.isMaintenance()
                 && !NetworkStateCache.canJoinDuringMaintenance(account)) {
-            player.sendMessage(ModernText.parse("<!italic><" + ModernText.ERROR
-                    + ">Rede em manutenção. Apenas staff autorizado pode entrar."));
+            player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.maintenance-join")));
             return;
         }
 
@@ -176,14 +179,13 @@ public final class LobbyMenus {
         Account account = Core.getAccountController().of(player.getUniqueId());
         if (NetworkStateCache.isMaintenance()
                 && !NetworkStateCache.canJoinDuringMaintenance(account)) {
-            player.sendMessage(ModernText.parse("<!italic><" + ModernText.ERROR
-                    + ">Rede em manutenção. Apenas staff autorizado pode entrar."));
+            player.sendMessage(ModernText.parse(MenuTexts.mini(player, "menus.lobby.maintenance-join")));
             return;
         }
         player.closeInventory();
         BungeeCordUtil.connect(player, plugin, server);
-        player.sendMessage(ModernText.parse("<!italic><" + ModernText.SUCCESS + ">Conectando em <#F8FAFC>"
-                + server + "<" + ModernText.SUCCESS + ">…"));
+        player.sendMessage(ModernText.parse(MenuTexts.format(player, "menus.lobby.connecting",
+                MenuTexts.map("server", server))));
     }
 
     /** Sem heartbeat no Redis = proxy/game nao publicou online (TTL 30s). Zero jogadores nao bloqueia. */
@@ -205,16 +207,17 @@ public final class LobbyMenus {
             boolean unavailable = blockJoin || serverOffline;
             List<String> lore = new ArrayList<>();
             if (blockJoin) {
-                lore.add("<!italic><" + ModernText.ERROR + "><bold>MANUTENÇÃO</bold>");
-                lore.add(ModernText.mini("A rede está em manutenção"));
-                lore.add(ModernText.mini("Staff autorizado pode entrar"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.maintenance"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.maintenance-lore"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.maintenance-staff"));
             } else if (serverOffline) {
-                lore.add("<!italic><" + ModernText.ERROR + "><bold>INDISPONÍVEL</bold>");
-                lore.add(ModernText.mini("Servidor offline ou reiniciando"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.offline"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.offline-lore"));
             } else {
-                lore.add("<!italic><#94A3B8>Jogadores: <" + ModernText.SUCCESS + ">" + Math.max(online, 0));
+                lore.add(MenuTexts.mini(player, "menus.lobby.players-online",
+                        MenuTexts.map("count", String.valueOf(Math.max(online, 0)))));
                 lore.add("");
-                lore.add(ModernText.action("▶ Clique para entrar na fila"));
+                lore.add(MenuTexts.mini(player, "menus.lobby.click-queue"));
             }
             list.add(new NavEntry(mode.id(), mode.bungeeServer(), mode.displayName(),
                     unavailable ? Material.GRAY_STAINED_GLASS_PANE : mode.material(),
@@ -246,8 +249,8 @@ public final class LobbyMenus {
         return stack;
     }
 
-    private static ItemStack navIcon(NavEntry entry) {
-        ItemStack stack = labeledMini(entry.material(), entry.displayName(), entry.lore());
+    private static ItemStack navIcon(Player player, NavEntry entry) {
+        ItemStack stack = labeledMini(player, entry.material(), entry.displayName(), entry.lore());
         ItemMeta meta = stack.getItemMeta();
         if (entry.blocked()) {
             meta.getPersistentDataContainer().set(
@@ -261,7 +264,7 @@ public final class LobbyMenus {
         return stack;
     }
 
-    private static ItemStack labeledMini(Material material, String miniName, List<String> miniLore) {
+    private static ItemStack labeledMini(Player player, Material material, String miniName, List<String> miniLore) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.displayName(ModernText.noItalic(ModernText.parse(miniName)));

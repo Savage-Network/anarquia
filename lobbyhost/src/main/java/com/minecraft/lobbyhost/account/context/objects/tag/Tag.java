@@ -145,6 +145,27 @@ public enum Tag {
         return this.role == r;
     }
 
+    public boolean isStaffTag() {
+        return role == TagRole.STAFF;
+    }
+
+    public static final java.util.List<String> STAFF_CHAT_NODES = java.util.List.of(
+            "game.staffchat",
+            "lobbyhost.staffchat",
+            "proxyhost.staffchat",
+            "game.staff"
+    );
+
+    public static boolean isStaffChatNode(String key) {
+        if (key == null || key.isBlank()) return false;
+        for (String node : STAFF_CHAT_NODES) {
+            if (com.minecraft.lobbyhost.account.context.objects.rank.RankType.matchesPermission(node, key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String getPermission() {
         return "tag." + name().toLowerCase();
     }

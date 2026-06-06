@@ -23,7 +23,7 @@ public final class StaffChatCommand implements SimpleCommand {
         }
 
         Account account = Core.getAccountController().of(sender.getUniqueId());
-        if (account == null || (!account.isStaffer() && !sender.hasPermission("proxyhost.staffchat"))) {
+        if (account == null || !account.canUseStaffChat()) {
             sender.sendMessage(legacy("&cVocê não tem permissão para usar o staff chat."));
             return;
         }

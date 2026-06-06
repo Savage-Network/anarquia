@@ -15,4 +15,7 @@ public class ClanMetadata {
 
     /** Tag textual do cla (ex.: {@code "SVG"}). Vazio = sem cla. */
     private String tag = "";
+
+    /** Id do estilo de cor ({@code padrao}, {@code brasil}, ...). */
+    private String tagColorId = "padrao";
 }

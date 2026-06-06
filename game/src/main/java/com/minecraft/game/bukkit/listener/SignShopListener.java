@@ -1,7 +1,8 @@
 package com.minecraft.game.bukkit.listener;
 
-import com.minecraft.game.bukkit.shop.SignShopManager;
 import com.minecraft.game.bukkit.shop.SignShopConfig;
+import com.minecraft.game.bukkit.shop.SignShopFormatter;
+import com.minecraft.game.bukkit.shop.SignShopManager;
 import com.minecraft.game.bukkit.shop.SignShopParser;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.block.Block;
@@ -40,12 +41,16 @@ public final class SignShopListener implements Listener {
                     event.line(i) == null ? "" : legacy.serialize(event.line(i)));
         }
 
-        if (SignShopParser.parseLines(lines, event.getBlock().getLocation(), player).isEmpty()) {
+        var parsed = SignShopParser.parseLines(lines, event.getBlock().getLocation(), player);
+        if (parsed.isEmpty()) {
             return;
         }
 
-        Sign sign = (Sign) event.getBlock().getState();
-        player.sendMessage(SignShopManager.tryCreate(sign, player));
+        String result = SignShopManager.tryCreate(parsed.get(), event.getBlock(), player);
+        player.sendMessage(result);
+        if (result.startsWith(SignShopManager.CREATE_SUCCESS_PREFIX)) {
+            SignShopFormatter.apply(event, parsed.get());
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

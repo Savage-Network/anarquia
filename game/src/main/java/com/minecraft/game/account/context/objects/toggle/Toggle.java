@@ -29,4 +29,10 @@ public class Toggle {
     private boolean acStaffVerbose = false;
 
     private TagPrefix tagPrefix = TagPrefix.DEFAULT;
+
+    private boolean showCosmeticParticles = true;
+    private boolean showOtherCapes = true;
+
+    /** Idioma do jogador: {@code pt} ou {@code en}. */
+    private String language = "pt";
 }

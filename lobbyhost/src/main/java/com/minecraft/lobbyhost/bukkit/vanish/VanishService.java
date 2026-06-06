@@ -211,19 +211,21 @@ public final class VanishService {
     }
 
     private static void broadcastFakeQuit(Player player, Account account) {
-        Component msg = JoinBroadcast.create(account, player, "saiu do lobby.");
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.equals(player)) continue;
-            online.sendMessage(msg);
+            online.sendMessage(JoinBroadcast.create(
+                    account, player, "join.quit-lobby",
+                    com.minecraft.lobbyhost.message.LanguageService.of(online)));
         }
     }
 
     private static void broadcastFakeJoin(Player player, Account account) {
         if (!account.shouldBroadcastJoinMessage()) return;
-        Component msg = JoinBroadcast.create(account, player, "entrou no lobby!");
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.equals(player)) continue;
-            online.sendMessage(msg);
+            online.sendMessage(JoinBroadcast.create(
+                    account, player, "join.lobby",
+                    com.minecraft.lobbyhost.message.LanguageService.of(online)));
         }
     }
 

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.minecraft.proxyhost.account.AccountController;
 import com.minecraft.proxyhost.backend.data.AccountData;
+import com.minecraft.proxyhost.backend.data.NetworkPresenceData;
 import com.minecraft.proxyhost.backend.data.PlayerAuthData;
 import com.minecraft.proxyhost.backend.data.PunishmentData;
 import com.minecraft.proxyhost.backend.database.HikariProvider;
@@ -37,6 +38,7 @@ public final class Core {
     @Getter @Setter private static AccountData accountData;
     @Getter @Setter private static PunishmentData punishmentData;
     @Getter @Setter private static PlayerAuthData playerAuthData;
+    @Getter @Setter private static NetworkPresenceData networkPresenceData;
 
     public static void load(ProxyHostPlugin pluginInstance, ProxyServer proxyServer, Logger log) {
         plugin = pluginInstance;

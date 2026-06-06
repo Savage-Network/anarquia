@@ -1,26 +1,24 @@
 package com.minecraft.lobbyhost.bukkit.display;
 
 import com.minecraft.lobbyhost.account.Account;
+import com.minecraft.lobbyhost.message.Messages;
+import com.minecraft.lobbyhost.message.PlayerLanguage;
+import com.minecraft.lobbyhost.util.ModernText;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
-/** Mensagem broadcast de entrada no lobby. */
 public final class JoinBroadcast {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
-            .character('§')
-            .hexColors()
-            .useUnusualXRepeatedCharacterHexFormat()
-            .build();
-
-    private static final String SEPARATOR = "§8§m===========================";
 
     private JoinBroadcast() {}
 
-    public static Component create(Account account, Player player, String action) {
+    public static Component create(Account account, Player player, String actionPath, PlayerLanguage lang) {
         String tag = account.getTag().getByPrefix(account.getTagPrefix());
-        String body = tag + player.getName() + " §7" + action;
-        return LEGACY.deserialize(SEPARATOR + "\n" + body + "\n" + SEPARATOR);
+        String separator = Messages.raw("join.separator", lang);
+        String action = Messages.raw(actionPath, lang);
+        Component line = ModernText.fromLegacy(tag + player.getName() + " ")
+                .append(ModernText.parse(action));
+        return ModernText.parse(separator + "\n")
+                .append(line)
+                .append(ModernText.parse("\n" + separator));
     }
 }

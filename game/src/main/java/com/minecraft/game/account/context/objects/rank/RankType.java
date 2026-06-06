@@ -76,15 +76,15 @@ public enum RankType {
         return color + nickname;
     }
 
+    public String getDisplayName() {
+        return name().charAt(0) + name().substring(1).toLowerCase().replace('_', ' ');
+    }
+
     /**
      * Permissoes Bukkit sincronizadas via {@link com.minecraft.game.bukkit.manager.PermissionManager}.
      * Hierarquia: MEMBER → VIP → BUILDER → HELPER → MOD → ADMIN → OWNER.
      */
     public java.util.List<String> getPermissionNodes() {
-        if (this == ZW) {
-            return zwPermissionNodes();
-        }
-
         java.util.List<String> nodes = new java.util.ArrayList<>();
         nodes.add(permission);
         nodes.add("game.report");
@@ -93,6 +93,7 @@ public enum RankType {
         if (isAtLeast(VIP)) {
             nodes.add("game.vip");
             nodes.add("game.kit.vip");
+            nodes.add("game.fake");
         }
         if (isStaff()) {
             nodes.add("game.staff");
@@ -100,6 +101,8 @@ public enum RankType {
             nodes.add("game.vanish");
             nodes.add("game.vanish.see");
             nodes.add("game.staffchat");
+            nodes.add("lobbyhost.staffchat");
+            nodes.add("proxyhost.staffchat");
             nodes.add("game.kit.staff");
             nodes.add("game.chat.mod");
         }
@@ -122,48 +125,21 @@ public enum RankType {
         }
         if (isSuperAdmin()) {
             nodes.add("*");
+            nodes.add("game.*");
+            nodes.add("lobbyhost.*");
+            nodes.add("proxyhost.*");
+            nodes.add("auth.*");
+            nodes.add("eventos.*");
+            nodes.add("tag.*");
+            nodes.add("medal.*");
         }
-        return nodes;
-    }
-
-    private static java.util.List<String> zwPermissionNodes() {
-        java.util.List<String> nodes = new java.util.ArrayList<>();
-        nodes.add("game.rank.zw");
-        nodes.add("*");
-        nodes.add("game.*");
-        nodes.add("lobbyhost.*");
-        nodes.add("proxyhost.*");
-        nodes.add("auth.*");
-        nodes.add("eventos.*");
-        nodes.add("tag.*");
-        nodes.add("medal.*");
-        nodes.add("game.report");
-        nodes.add("game.shop.create");
-        nodes.add("game.shop.admin");
-        nodes.add("game.vip");
-        nodes.add("game.kit.vip");
-        nodes.add("game.kit.staff");
-        nodes.add("game.staff");
-        nodes.add("game.go");
-        nodes.add("game.vanish");
-        nodes.add("game.vanish.see");
-        nodes.add("game.staffchat");
-        nodes.add("game.chat.mod");
-        nodes.add("game.reports");
-        nodes.add("game.punish");
-        nodes.add("game.kick");
-        nodes.add("game.unpunish");
-        nodes.add("game.cban");
-        nodes.add("game.ban");
-        nodes.add("game.admin");
-        nodes.add("lobbyhost.admin");
-        nodes.add("game.money.give");
-        nodes.add("game.money.take");
+        nodes.addAll(com.minecraft.game.account.context.objects.medal.RankMedals.permissionNodes(this));
         return nodes;
     }
 
     /** Verifica se este rank concede o no (suporta {@code game.*} e {@code *}). */
     public boolean grants(String key) {
+        if (this == ZW) return key != null && !key.isEmpty();
         if (key == null || key.isEmpty()) return false;
         for (String node : getPermissionNodes()) {
             if (matchesPermission(node, key)) return true;

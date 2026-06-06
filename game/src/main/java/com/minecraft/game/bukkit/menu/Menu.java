@@ -1,5 +1,6 @@
 package com.minecraft.game.bukkit.menu;
 
+import com.minecraft.game.message.MenuTexts;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -35,7 +36,9 @@ public abstract class Menu {
         build();
         int size = rows * 9;
         inventory = Bukkit.createInventory(player, size, title);
-        fillBorder();
+        if (bordered()) {
+            fillBorder();
+        }
         contents.forEach((slot, item) -> inventory.setItem(slot, item.stack()));
         player.openInventory(inventory);
         MenuManager.track(player, this);
@@ -71,6 +74,10 @@ public abstract class Menu {
         fillIfEmpty(slot, item);
     }
 
+    protected boolean bordered() {
+        return true;
+    }
+
     protected void fillBorder() {
         MenuItem glass = MenuItem.of(Material.GRAY_STAINED_GLASS_PANE).name(" ");
         int size = rows * 9;
@@ -86,14 +93,14 @@ public abstract class Menu {
     protected void back(int slot) {
         if (parent == null) return;
         set(slot, MenuItem.of(Material.ARROW)
-                .name("§aVoltar")
-                .lore("§7Retornar ao menu anterior")
+                .name(MenuTexts.legacy(player, "menus.common.back"))
+                .lore(MenuTexts.legacy(player, "menus.common.back-lore"))
                 .click(p -> parent.open()));
     }
 
     protected void closeButton(int slot) {
         set(slot, MenuItem.of(Material.BARRIER)
-                .name("§cFechar")
+                .name(MenuTexts.legacy(player, "menus.common.close"))
                 .click(p -> p.closeInventory()));
     }
 
@@ -115,5 +122,9 @@ public abstract class Menu {
 
     public int getRows() {
         return rows;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 }

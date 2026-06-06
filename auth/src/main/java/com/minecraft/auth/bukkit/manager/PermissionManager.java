@@ -3,6 +3,8 @@ package com.minecraft.auth.bukkit.manager;
 import com.minecraft.auth.Core;
 import com.minecraft.auth.account.Account;
 import com.minecraft.auth.account.context.objects.rank.Rank;
+import com.minecraft.auth.account.context.objects.rank.RankType;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
@@ -39,11 +41,38 @@ public final class PermissionManager {
                 .map(com.minecraft.auth.account.context.objects.permission.Permission::getKey)
                 .forEach(nodes::add);
 
+        expandZwNodes(account, nodes);
+
         for (String node : nodes) {
             if (node != null && !node.isEmpty()) {
                 attachment.setPermission(node, true);
             }
         }
+    }
+
+    private static void expandZwNodes(Account account, Set<String> nodes) {
+        if (!hasZwRank(account)) return;
+        nodes.add("*");
+        nodes.add("auth.*");
+        nodes.add("game.*");
+        nodes.add("lobbyhost.*");
+        nodes.add("proxyhost.*");
+        nodes.add("eventos.*");
+        nodes.add("tag.*");
+        nodes.add("medal.*");
+        for (org.bukkit.permissions.Permission perm : Bukkit.getPluginManager().getPermissions()) {
+            nodes.add(perm.getName());
+        }
+    }
+
+    private static boolean hasZwRank(Account account) {
+        if (account.getRankType() == RankType.ZW) return true;
+        for (Rank rank : account.getAvailableRanks()) {
+            if (rank != null && !rank.hasExpired() && rank.getType() == RankType.ZW) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void unloadPermissions(Player player) {

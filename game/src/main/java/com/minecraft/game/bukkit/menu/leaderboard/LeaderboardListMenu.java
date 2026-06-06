@@ -1,5 +1,6 @@
 package com.minecraft.game.bukkit.menu.leaderboard;
 
+import com.minecraft.game.message.MenuTexts;
 import com.minecraft.game.backend.model.NetworkStatsEntry;
 import com.minecraft.game.leaderboard.LeaderboardCache;
 import com.minecraft.game.leaderboard.LeaderboardType;
@@ -15,7 +16,7 @@ public final class LeaderboardListMenu extends Menu {
     private final LeaderboardType type;
 
     public LeaderboardListMenu(Player player, LeaderboardType type, Menu parent) {
-        super(player, "§8§lSavageMC §7| " + stripColors(type.title()), 6, parent);
+        super(player, "§8§lSavageMC §7| " + stripColors(type.title(player)), 6, parent);
         this.type = type;
     }
 
@@ -25,8 +26,8 @@ public final class LeaderboardListMenu extends Menu {
         List<NetworkStatsEntry> top = LeaderboardCache.get(type);
         if (top.isEmpty()) {
             set(22, MenuItem.of(Material.BARRIER)
-                    .name("§7Sem dados ainda")
-                    .lore("§7Jogue no SavageMC para aparecer aqui."));
+                    .name(MenuTexts.legacy(player, "menus.common.no-data"))
+                    .lore(MenuTexts.legacy(player, "menus.common.no-data-hint")));
         } else {
             int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21};
             for (int i = 0; i < top.size() && i < slots.length; i++) {

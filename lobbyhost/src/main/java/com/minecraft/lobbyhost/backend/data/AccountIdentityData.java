@@ -146,8 +146,12 @@ public final class AccountIdentityData {
 
     private static RankType parseRankType(String raw) {
         if (raw == null || raw.isBlank()) return RankType.MEMBER;
+        String normalized = raw.trim().toUpperCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("MOD+", "MODPLUS")
+                .replace("MOD_PLUS", "MODPLUS");
         try {
-            return RankType.valueOf(raw.trim().toUpperCase(Locale.ROOT));
+            return RankType.valueOf(normalized);
         } catch (IllegalArgumentException e) {
             return RankType.MEMBER;
         }

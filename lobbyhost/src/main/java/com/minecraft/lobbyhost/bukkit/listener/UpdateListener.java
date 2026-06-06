@@ -4,6 +4,7 @@ import com.minecraft.lobbyhost.bukkit.event.AccountMedalEvent;
 import com.minecraft.lobbyhost.bukkit.event.AccountPrefixTypeEvent;
 import com.minecraft.lobbyhost.bukkit.event.AccountTagEvent;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
+import com.minecraft.lobbyhost.bukkit.manager.PermissionManager;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +19,9 @@ public final class UpdateListener implements Listener {
     @EventHandler
     public void onTag(AccountTagEvent event) {
         TagManager.updateTag(event.getAccount());
+        if (event.getAccount().player() != null) {
+            PermissionManager.loadPermissions(event.getAccount().player());
+        }
     }
 
     @EventHandler

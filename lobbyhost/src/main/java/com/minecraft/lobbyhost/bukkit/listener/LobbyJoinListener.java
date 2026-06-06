@@ -1,24 +1,22 @@
 package com.minecraft.lobbyhost.bukkit.listener;
 
-import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
 import com.minecraft.lobbyhost.LobbyHostPlugin;
 import com.minecraft.lobbyhost.account.Account;
-import com.minecraft.lobbyhost.bukkit.menu.MenuManager;
-import com.minecraft.lobbyhost.bukkit.display.JoinBroadcast;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
+import com.minecraft.lobbyhost.bukkit.display.JoinBroadcast;
 import com.minecraft.lobbyhost.bukkit.display.PlayerDisplayService;
-import com.minecraft.lobbyhost.bukkit.lobby.LobbyPlayerSetup;
 import com.minecraft.lobbyhost.bukkit.lobby.LobbyTabList;
 import com.minecraft.lobbyhost.bukkit.lobby.PlayerVisibilityService;
-import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
-import com.minecraft.lobbyhost.util.ModernText;
-import com.minecraft.lobbyhost.social.FriendService;
 import com.minecraft.lobbyhost.bukkit.manager.PermissionManager;
 import com.minecraft.lobbyhost.bukkit.manager.TagManager;
-import com.minecraft.lobbyhost.bukkit.skin.SkinService;
 import com.minecraft.lobbyhost.bukkit.menu.LobbyMenuHolder;
-import net.kyori.adventure.text.Component;
+import com.minecraft.lobbyhost.bukkit.menu.MenuManager;
+import com.minecraft.lobbyhost.bukkit.skin.SkinService;
+import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
+import com.minecraft.lobbyhost.message.LanguageService;
+import com.minecraft.lobbyhost.message.Messages;
+import com.minecraft.lobbyhost.social.FriendService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,7 +56,7 @@ public final class LobbyJoinListener implements Listener {
             Core.getLogger().severe("Falha ao carregar conta de " + event.getName()
                     + ": " + t.getMessage());
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-                    Component.text(Constant.ACCOUNT_LOAD_FAILED_MESSAGE));
+                    Messages.component("account.load-failed"));
         }
     }
 
@@ -71,7 +69,11 @@ public final class LobbyJoinListener implements Listener {
         if (account != null && !VanishService.willAutoVanishOnJoin(account)
                 && !VanishService.isVanished(player)
                 && account.shouldBroadcastJoinMessage()) {
-            event.joinMessage(JoinBroadcast.create(account, player, "entrou no lobby!"));
+            event.joinMessage(null);
+            for (Player viewer : Bukkit.getOnlinePlayers()) {
+                viewer.sendMessage(JoinBroadcast.create(
+                        account, player, "join.lobby", LanguageService.of(viewer)));
+            }
         } else {
             event.joinMessage(null);
         }
@@ -96,8 +98,8 @@ public final class LobbyJoinListener implements Listener {
             }
             int friendsHere = FriendService.countFriendsOnlineInLobby(loaded);
             if (friendsHere > 0) {
-                player.sendMessage(Component.text(
-                        "§e" + friendsHere + " amigo(s) §7online no lobby. §8/amigo"));
+                player.sendMessage(Messages.component("lobby.friends-online", player,
+                        java.util.Map.of("count", String.valueOf(friendsHere))));
             }
         }, 5L);
     }

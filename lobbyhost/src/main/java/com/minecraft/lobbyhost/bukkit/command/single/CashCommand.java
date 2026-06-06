@@ -29,7 +29,7 @@ public final class CashCommand implements CommandInheritor {
     public void cash(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 0) {
             Account account = ctx.account().orElse(null);
-            if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+            if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
             ctx.reply("§7Cash: §a" + sym() + account.getCash());
             return;
         }
@@ -41,7 +41,7 @@ public final class CashCommand implements CommandInheritor {
         }
         Account account = Core.getAccountController().of(target.getUniqueId());
         if (account == null) {
-            ctx.reply("§cConta nao carregada.");
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
         ctx.reply("§7Cash de §f" + target.getName() + "§7: §a" + sym() + account.getCash());
@@ -59,7 +59,7 @@ public final class CashCommand implements CommandInheritor {
         if (target == null) { ctx.reply("§cJogador offline."); return; }
 
         Account targetAcc = Core.getAccountController().of(target.getUniqueId());
-        if (targetAcc == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (targetAcc == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         int amount = parseAmount(ctx, 1);
         if (amount <= 0) return;
@@ -84,7 +84,7 @@ public final class CashCommand implements CommandInheritor {
         if (target == null) { ctx.reply("§cJogador offline."); return; }
 
         Account targetAcc = Core.getAccountController().of(target.getUniqueId());
-        if (targetAcc == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (targetAcc == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         int amount = parseAmount(ctx, 1);
         if (amount <= 0) return;
@@ -105,7 +105,7 @@ public final class CashCommand implements CommandInheritor {
             usage = "/cashpay <jogador> <valor>")
     public void pay(BukkitCommandContext ctx) {
         Account sender = ctx.account().orElse(null);
-        if (sender == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (sender == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         if (ctx.getArgs().length < 2) {
             ctx.reply("§cUso: /cashpay <jogador> <valor>");
             return;

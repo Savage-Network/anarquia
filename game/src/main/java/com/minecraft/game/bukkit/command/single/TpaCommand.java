@@ -26,7 +26,7 @@ public final class TpaCommand implements CommandInheritor {
     @Command(name = "tpa", playerOnly = true, description = "Envia uma solicitação de teleporte para outro jogador", usage = "/tpa <jogador>")
     public void tpa(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         if (ctx.getArgs().length == 0) {
             ctx.reply("§cUtilize: /tpa <jogador>");
@@ -77,7 +77,7 @@ public final class TpaCommand implements CommandInheritor {
     @Command(name = "tpahere", playerOnly = true, description = "Envia uma solicitação para outro jogador se teleportar até você", usage = "/tpahere <jogador>")
     public void tpahere(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         if (ctx.getArgs().length == 0) {
             ctx.reply("§cUtilize: /tpahere <jogador>");

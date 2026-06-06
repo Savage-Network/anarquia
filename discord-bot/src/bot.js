@@ -6,12 +6,14 @@ import {
   Routes,
 } from 'discord.js';
 import { config } from './config.js';
-import { fetchServerStatus } from './api/client.js';
+import { fetchServerStatusFromDb } from './services/presenceService.js';
 import { commands } from './commands/index.js';
 import { handleInteraction } from './handlers/interactions.js';
 
 export function createBot() {
   const client = new Client({
+    // GuildMembers e privilegiado no portal Discord; nao e necessario aqui
+    // (sync de cargos usa guild.members.fetch via REST nos comandos).
     intents: [GatewayIntentBits.Guilds],
   });
 
@@ -28,7 +30,7 @@ export function createBot() {
 }
 
 async function updateActivity(client) {
-  const status = await fetchServerStatus();
+  const status = await fetchServerStatusFromDb();
   const online = status.onlinePlayers;
   const text =
     online != null

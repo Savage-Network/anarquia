@@ -69,6 +69,10 @@ commands:
     description: Preferencias da conta (menu)
     usage: /prefs
     aliases: [preferencias]
+  lang:
+    description: Escolhe o idioma das mensagens
+    usage: /lang
+    aliases: [language, idioma]
   cash:
     description: Consulta cash de rede
     usage: /cash [jogador]
@@ -153,6 +157,11 @@ commands:
     usage: /history <nick>
     permission: lobbyhost.punish
     aliases: [punishments, punicoes]
+  check:
+    description: Consulta punicao por ID ou jogador
+    usage: /check <ID|nick>
+    permission: lobbyhost.punish
+    aliases: [punishcheck, verpunicao]
   skin:
     description: Atualiza ou copia skin da Mojang
     usage: /skin [nick]
@@ -190,11 +199,15 @@ permissions:
   lobbyhost.staff:
     description: Staff base — vanish, fly, anuncio, sc
     default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
   lobbyhost.vip:
     description: VIP — fly no lobby
     default: false
   lobbyhost.vanish:
-    description: /vanish e /go
+    description: /vanish (modo invisivel)
     default: false
   lobbyhost.vanish.see:
     description: Ver staff invisivel
@@ -245,5 +258,28 @@ permissions:
     default: false
   game.rank.mod:
     default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      lobbyhost.staff: true
+  game.rank.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      lobbyhost.staff: true
   game.rank.admin:
     default: false
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true

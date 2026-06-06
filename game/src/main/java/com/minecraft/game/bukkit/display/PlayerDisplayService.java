@@ -14,11 +14,11 @@ public final class PlayerDisplayService {
 
     public static void applyAll(Account account, Player player) {
         if (account == null || player == null || !player.isOnline()) return;
+        ClanSync.refresh(account);
         GameScoreboard.apply(player);
         GameTabList.apply(player);
         PermissionManager.loadPermissions(player);
         SkinService.refresh(account, player);
-        ClanSync.refresh(account);
         TagManager.updateTag(account);
         TagManager.updateAllForViewer(player);
         AboveNameDisplay.remove(player);

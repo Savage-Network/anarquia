@@ -43,3 +43,14 @@ permissions:
     default: false
   auth.bypass.captcha:
     default: false
+  game.rank.zw:
+    description: Rank exclusivo ZW (acesso total)
+    default: false
+    children:
+      auth.*: true
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true

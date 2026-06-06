@@ -20,7 +20,7 @@ public final class MoneyCommand implements CommandInheritor {
     public void money(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 0) {
             Account account = ctx.account().orElse(null);
-            if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+            if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
             ctx.reply("§7Saldo: §a" + SemiAnarchyConfig.currencySymbol() + account.getGolds());
             return;
         }
@@ -32,7 +32,7 @@ public final class MoneyCommand implements CommandInheritor {
         }
         Account account = Core.getAccountController().of(target.getUniqueId());
         if (account == null) {
-            ctx.reply("§cConta nao carregada.");
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
         ctx.reply("§7Saldo de §f" + target.getName() + "§7: §a"
@@ -51,7 +51,7 @@ public final class MoneyCommand implements CommandInheritor {
         if (target == null) { ctx.reply("§cJogador offline."); return; }
 
         Account targetAcc = Core.getAccountController().of(target.getUniqueId());
-        if (targetAcc == null) { ctx.reply("§cConta não carregada."); return; }
+        if (targetAcc == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         int amount;
         try {
@@ -82,7 +82,7 @@ public final class MoneyCommand implements CommandInheritor {
         if (target == null) { ctx.reply("§cJogador offline."); return; }
 
         Account targetAcc = Core.getAccountController().of(target.getUniqueId());
-        if (targetAcc == null) { ctx.reply("§cConta não carregada."); return; }
+        if (targetAcc == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         int amount;
         try {

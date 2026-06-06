@@ -2,10 +2,12 @@ package com.minecraft.game.bukkit.shop;
 
 import com.minecraft.game.api.shop.SignShop;
 import com.minecraft.game.api.shop.SignShopType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Location;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 
 import java.util.Locale;
@@ -14,15 +16,25 @@ import java.util.UUID;
 
 public final class SignShopParser {
 
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+
     private SignShopParser() {}
 
     public static Optional<SignShop> parse(Sign sign, Player creator) {
         if (sign == null) return Optional.empty();
+        return parseLines(readLines(sign), sign.getLocation(), creator);
+    }
+
+    public static String[] readLines(Sign sign) {
         String[] lines = new String[4];
+        if (sign == null) return lines;
+        var side = sign.getSide(Side.FRONT);
         for (int i = 0; i < 4; i++) {
-            lines[i] = SignShopConfig.stripColor(sign.getLine(i));
+            Component line = side.line(i);
+            lines[i] = SignShopConfig.stripColor(line == null || line.equals(Component.empty())
+                    ? "" : LEGACY.serialize(line));
         }
-        return parseLines(lines, sign.getLocation(), creator);
+        return lines;
     }
 
     public static Optional<SignShop> parseLines(String[] lines, Location loc, Player creator) {
@@ -40,8 +52,8 @@ public final class SignShopParser {
         if (SignShopConfig.isSellWord(lines[1])) type = SignShopType.SELL;
         if (type == null) return Optional.empty();
 
-        Material material = Material.matchMaterial(lines[2].toUpperCase(Locale.ROOT));
-        if (material == null || !material.isItem()) return Optional.empty();
+        Material material = ItemDisplayNames.fromDisplayName(lines[2]);
+        if (material == null) return Optional.empty();
 
         int price;
         try {

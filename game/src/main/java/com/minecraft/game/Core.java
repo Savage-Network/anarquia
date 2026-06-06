@@ -8,6 +8,7 @@ import com.minecraft.game.backend.data.ClanData;
 import com.minecraft.game.backend.data.AuctionData;
 import com.minecraft.game.backend.data.NetworkStatsData;
 import com.minecraft.game.backend.data.AccountIdentityData;
+import com.minecraft.game.backend.data.DiscordLinkData;
 import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.backend.data.PunishmentData;
 import com.minecraft.game.backend.data.ReportData;
@@ -53,6 +54,7 @@ public final class Core {
     @Getter @Setter private static VipKeyData vipKeyData;
     @Getter @Setter private static PlayerVaultData playerVaultData;
     @Getter @Setter private static AccountIdentityData accountIdentityData;
+    @Getter @Setter private static DiscordLinkData discordLinkData;
 
     public static void load(GamePlugin plugin) {
         javaPlugin = plugin;

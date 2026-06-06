@@ -5,6 +5,9 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.display.AboveNameDisplay;
 import com.minecraft.lobbyhost.account.context.objects.tag.Tag;
 import com.minecraft.lobbyhost.account.context.objects.toggle.TagPrefix;
+import com.minecraft.lobbyhost.api.clan.ClanTagFormatter;
+import com.minecraft.lobbyhost.bukkit.fake.FakeConfig;
+import com.minecraft.lobbyhost.bukkit.fake.FakeService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -87,9 +90,9 @@ public final class TagManager {
     public static void updateTag(Account account) {
         if (account == null || !account.isOnline()) return;
         Player target = account.player();
-        Tag targetTag = account.getTag();
+        Tag targetTag = account.getDisplayTag();
 
-        String prefix = getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId());
+        String prefix = getAdjustedPrefix(account.getTagPrefix(), targetTag, target.getUniqueId(), account);
         String nick   = account.getNickname();
         String suffix = truncateSuffix(suffixOf(account));
 
@@ -103,6 +106,12 @@ public final class TagManager {
         AboveNameDisplay.refresh(target);
     }
 
+    public static void refresh(Player player) {
+        if (player == null) return;
+        Account account = Core.getAccountController().of(player.getUniqueId());
+        if (account != null) updateTag(account);
+    }
+
     /** Linha exibida acima da cabeca: tag + nick (+ cla). */
     public static String formatNametagLine(Account account) {
         if (account == null) return "";
@@ -114,9 +123,9 @@ public final class TagManager {
 
     public static String formatNametagPrefixLine(Account account) {
         if (account == null) return "";
-        Tag tag = account.getTag();
+        Tag tag = account.getDisplayTag();
         if (tag == null) return "";
-        return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId());
+        return getAdjustedPrefix(account.getTagPrefix(), tag, account.getId(), account);
     }
 
     /** Nick puro para nametag empilhado (sem cla — cla vai em linha propria). */
@@ -172,12 +181,12 @@ public final class TagManager {
 
         Scoreboard board = com.minecraft.lobbyhost.bukkit.lobby.LobbyScoreboard.ensure(viewer);
 
-        Tag tag = targetAcc.getTag();
+        Tag tag = FakeService.displayTag(targetAcc, viewerAcc);
         String teamName = sanitize("tag_" + tag.getOrder() + "_" + target.getEntityId());
         Team team = board.getTeam(teamName);
         if (team == null) team = board.registerNewTeam(teamName);
 
-        String prefix = getAdjustedPrefix(viewerAcc.getTagPrefix(), tag, target.getUniqueId());
+        String prefix = getAdjustedPrefix(viewerAcc.getTagPrefix(), tag, target.getUniqueId(), targetAcc);
         String suffix = truncateSuffix(suffixOf(targetAcc));
 
         team.prefix(legacy(prefix));
@@ -209,13 +218,14 @@ public final class TagManager {
      * Prefixo ajustado (animacao / fallback)
      * ============================================================= */
 
-    public static String getAdjustedPrefix(TagPrefix viewerStyle, Tag tag, UUID targetId) {
-        String titlePrefix = "";
-        com.minecraft.lobbyhost.account.Account targetAcc = com.minecraft.lobbyhost.Core.getAccountController().of(targetId);
-        if (targetAcc != null) {
-            com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle title = targetAcc.getActiveCosmeticTitle();
-            if (title != null) {
-                titlePrefix = title.getDisplayName() + " §r";
+    public static String getAdjustedPrefix(TagPrefix viewerStyle, Tag tag, UUID targetId, Account targetAcc) {
+        if (targetAcc == null) {
+            targetAcc = Core.getAccountController().of(targetId);
+        }
+        if (targetAcc != null && !(targetAcc.isFake() && FakeConfig.isHideRank())) {
+            String emberPrefix = com.minecraft.lobbyhost.bukkit.cosmetic.EmberPlusService.formatEmberPlusPrefix(targetAcc, tag);
+            if (emberPrefix != null) {
+                return emberPrefix;
             }
         }
 
@@ -223,14 +233,19 @@ public final class TagManager {
         if (tag.isAnimated() && !tag.getAnimationFrames().isEmpty()) {
             int state = animationState.getOrDefault(targetId, 0);
             int idx = Math.floorMod(state, tag.getAnimationFrames().size());
-            return titlePrefix + tag.getAnimationFrames().get(idx);
+            return tag.getAnimationFrames().get(idx);
         }
         // Always use the default tag prefix for consistency in tab list
-        return titlePrefix + tag.getByPrefix(TagPrefix.DEFAULT);
+        return tag.getByPrefix(TagPrefix.DEFAULT);
     }
 
     private static String suffixOf(Account account) {
+        if (account.isFake() && FakeConfig.isHideClanTag()) return "";
         return account.getFormattedClanTagSuffix();
+    }
+
+    public static String getAdjustedPrefix(TagPrefix viewerStyle, Tag tag, UUID targetId) {
+        return getAdjustedPrefix(viewerStyle, tag, targetId, Core.getAccountController().of(targetId));
     }
 
     private static Component legacy(String raw) {
@@ -238,8 +253,7 @@ public final class TagManager {
     }
 
     private static String truncateSuffix(String s) {
-        if (s == null) return "";
-        return s.length() > 16 ? s.substring(0, 16) : s;
+        return ClanTagFormatter.fitTeamText(s);
     }
 
     /** Nome valido de team: ≤ 16 chars, sem espacos. */

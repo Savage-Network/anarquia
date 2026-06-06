@@ -19,7 +19,7 @@ public final class AmigoCommand implements CommandInheritor {
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) {
-            ctx.reply("§cConta nao carregada.");
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
         String[] args = ctx.getArgs();

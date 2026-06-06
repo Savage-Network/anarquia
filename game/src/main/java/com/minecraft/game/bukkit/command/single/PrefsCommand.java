@@ -23,7 +23,7 @@ public final class PrefsCommand implements CommandInheritor {
             usage = "/prefs [list|toggle <chave>]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
 
         if (ctx.getArgs().length == 0 || ctx.getArgs()[0].equalsIgnoreCase("list")) {
             list(account);

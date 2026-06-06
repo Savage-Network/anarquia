@@ -2,7 +2,6 @@ package com.minecraft.lobbyhost.punishment;
 
 import com.minecraft.lobbyhost.Constant;
 import com.minecraft.lobbyhost.Core;
-import com.minecraft.lobbyhost.LobbySettings;
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.api.punishment.Punishment;
 import com.minecraft.lobbyhost.api.punishment.PunishmentCategory;
@@ -59,6 +58,15 @@ public final class PunishmentService {
                                                               PunishmentCategory category,
                                                               PunishmentReason reason,
                                                               String timeArg, String cause) {
+        return apply(authorId, authorName, targetName, category, reason, timeArg, cause, null, false);
+    }
+
+    public static CompletableFuture<PunishmentResult> apply(UUID authorId, String authorName,
+                                                              String targetName,
+                                                              PunishmentCategory category,
+                                                              PunishmentReason reason,
+                                                              String timeArg, String cause,
+                                                              String ruleId, boolean silent) {
         return resolveTarget(targetName).thenApply(optTarget -> {
             if (optTarget.isEmpty()) {
                 return PunishmentResult.fail("Jogador não encontrado.");
@@ -72,7 +80,8 @@ public final class PunishmentService {
             PunishmentData data = Core.getPunishmentData();
             if (data == null) return PunishmentResult.fail("Sistema de punições indisponível.");
 
-            if (data.findActive(target.getId(), category).isPresent()) {
+            if (category != PunishmentCategory.WARN
+                    && data.findActive(target.getId(), category).isPresent()) {
                 return PunishmentResult.fail("O jogador já possui uma punição ativa deste tipo.");
             }
 
@@ -95,11 +104,12 @@ public final class PunishmentService {
                     target.getId(),
                     authorId != null ? authorId : Constant.DEFAULT_ID,
                     ip,
-                    LobbySettings.SERVER_MODE.toLowerCase(),
+                    "lobby".toLowerCase(),
                     category,
                     reason,
                     cause,
-                    expiresAt
+                    expiresAt,
+                    ruleId
             );
 
             data.save(punishment);
@@ -110,9 +120,13 @@ public final class PunishmentService {
 
             Core.getLogger().info("[punish] " + (authorName != null ? authorName : "CONSOLE")
                     + " puniu " + target.getName() + " (" + category.name() + "/"
-                    + reason.name() + ") id=" + punishment.getId());
+                    + reason.name() + ") id=" + punishment.getId()
+                    + (silent ? " [silent]" : ""));
 
-            PunishmentBroadcast.staff(punishment, target.getName(), authorName != null ? authorName : "CONSOLE");
+            if (!silent) {
+                PunishmentBroadcast.staff(punishment, target.getName(),
+                        authorName != null ? authorName : "CONSOLE");
+            }
 
             return PunishmentResult.ok(punishment, target.getName());
         });
@@ -140,10 +154,29 @@ public final class PunishmentService {
         });
     }
 
+    public static Optional<Punishment> activeBan(UUID playerId) {
+        PunishmentData data = Core.getPunishmentData();
+        if (data == null) return Optional.empty();
+        return data.findActive(playerId, PunishmentCategory.BAN);
+    }
+
     public static Optional<Punishment> activeMute(UUID playerId) {
         PunishmentData data = Core.getPunishmentData();
         if (data == null) return Optional.empty();
         return data.findActive(playerId, PunishmentCategory.MUTE);
+    }
+
+    public static String muteDenyMessage(Punishment mute) {
+        if (mute == null) return "§cVocê está mutado e não pode falar no chat.";
+        StringBuilder msg = new StringBuilder("§cVocê está mutado!");
+        msg.append(" §7Motivo: §f").append(mute.getCause());
+        if (mute.isTemporary()) {
+            msg.append(" §7(Expira em: §f")
+                    .append(PunishmentTimeUtil.formatRemaining(mute.getExpiresAt()))
+                    .append("§7)");
+        }
+        msg.append(" §8").append(mute.getId());
+        return msg.toString();
     }
 
     public static String banKickMessage(Punishment punishment) {
@@ -156,7 +189,9 @@ public final class PunishmentService {
     public static String staffKickMessage(String staffName, String reason) {
         if (reason == null || reason.isBlank()) reason = "Não informado";
         if (staffName == null || staffName.isBlank()) staffName = "CONSOLE";
-        return String.format(Constant.STAFF_KICK_TEMPLATE, reason, staffName);
+        return String.format(Constant.STAFF_KICK_TEMPLATE,
+                reason,
+                staffName);
     }
 
     public static CompletableFuture<KickResult> kick(UUID authorId, String authorName,
@@ -193,6 +228,9 @@ public final class PunishmentService {
         } else if (punishment.getCategory() == PunishmentCategory.MUTE) {
             target.send(ModernText.parse("<!italic><" + ModernText.ERROR + ">Você foi mutado. ID: <#F1F5F9>"
                     + punishment.getId()));
+        } else if (punishment.getCategory() == PunishmentCategory.WARN) {
+            target.send(ModernText.parse("<!italic><" + ModernText.WARN + ">Você recebeu uma advertência: <#F1F5F9>"
+                    + punishment.getCause() + " <#64748B>ID <#F1F5F9>" + punishment.getId()));
         }
     }
 

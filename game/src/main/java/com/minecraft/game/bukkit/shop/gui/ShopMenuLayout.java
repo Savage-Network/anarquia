@@ -4,6 +4,7 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
 import com.minecraft.game.bukkit.shop.ShopEconomy;
+import com.minecraft.game.message.MenuTexts;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -33,10 +34,12 @@ public final class ShopMenuLayout {
     }
 
     public static void header(Menu menu, Account account, Material icon, String title, String... extraLore) {
+        Player player = menu.getPlayer();
         String sym = ShopEconomy.symbol();
         MenuItem item = MenuItem.of(icon)
                 .name(title)
-                .lore("§8▪ §7Saldo: §a" + sym + account.getGolds());
+                .lore(MenuTexts.format(player, "menus.common.balance",
+                        MenuTexts.map("symbol", sym, "amount", String.valueOf(account.getGolds()))));
         for (String line : extraLore) {
             item = item.lore(line);
         }
@@ -53,54 +56,61 @@ public final class ShopMenuLayout {
 
     public static void pageArrows(Menu menu, Account account, Menu parent, int page, int itemCount,
                                   PageOpener prev, PageOpener next) {
+        Player player = menu.getPlayer();
         int pages = totalPages(itemCount);
         int start = page * PER_PAGE;
 
         if (page > 0) {
             menu.place(45, MenuItem.of(Material.ARROW)
-                    .name("§a◀ Pagina anterior")
-                    .lore("§7Pag " + page + " / " + pages)
+                    .name(MenuTexts.legacy(player, "menus.common.previous"))
+                    .lore(MenuTexts.format(player, "menus.common.page",
+                            MenuTexts.map("page", String.valueOf(page) + " / " + pages)))
                     .click(p -> prev.open(p, account, parent, page - 1)));
         }
 
         if (start + PER_PAGE < itemCount) {
             menu.place(53, MenuItem.of(Material.ARROW)
-                    .name("§aProxima pagina ▶")
-                    .lore("§7Pag " + (page + 2) + " / " + pages)
+                    .name(MenuTexts.legacy(player, "menus.common.next"))
+                    .lore(MenuTexts.format(player, "menus.common.page",
+                            MenuTexts.map("page", String.valueOf(page + 2) + " / " + pages)))
                     .click(p -> next.open(p, account, parent, page + 1)));
         }
     }
 
     public static void bottomBar(Menu menu, Account account, Menu parent, BottomBarOptions options) {
+        Player player = menu.getPlayer();
         if (parent != null) {
             menu.place(48, MenuItem.of(Material.ARROW)
-                    .name("§a◀ Voltar")
-                    .lore("§7Menu anterior")
+                    .name(MenuTexts.legacy(player, "menus.common.back"))
+                    .lore(MenuTexts.legacy(player, "menus.common.back-lore"))
                     .click(p -> parent.open()));
         }
 
         Menu hubParent = options.hubParent() != null ? options.hubParent() : parent;
         menu.place(49, MenuItem.of(Material.NETHER_STAR)
-                .name("§6§lMercado")
-                .lore("§7Menu central SavageMC", "", "§eClique")
+                .name(MenuTexts.legacy(player, "menus.shop.hub-header"))
+                .lore(MenuTexts.legacy(player, "menus.shop.hub-desc"), "",
+                        MenuTexts.legacy(player, "menus.common.click-open"))
                 .click(p -> new ShopHubMenu(p, account, hubParent).open()));
 
         if (options.showShop()) {
             menu.place(50, MenuItem.of(Material.EMERALD)
-                    .name("§a§lLoja")
-                    .lore("§7Comprar itens do servidor", "", "§eClique")
+                    .name(MenuTexts.legacy(player, "menus.shop.server-shop"))
+                    .lore(MenuTexts.legacy(player, "menus.shop.server-shop-lore-1"), "",
+                            MenuTexts.legacy(player, "menus.common.click-open"))
                     .click(p -> new ServerShopMenu(p, account, hubParent).open()));
         }
 
         if (options.showSell()) {
             menu.place(46, MenuItem.of(Material.GOLD_INGOT)
-                    .name("§6§lVender")
-                    .lore("§7Vender itens ao servidor", "", "§eClique")
+                    .name(MenuTexts.legacy(player, "menus.shop.sell"))
+                    .lore(MenuTexts.legacy(player, "menus.shop.sell-lore-1"), "",
+                            MenuTexts.legacy(player, "menus.common.click-open"))
                     .click(p -> new SellMenu(p, account, hubParent).open()));
         }
 
         menu.place(52, MenuItem.of(Material.BARRIER)
-                .name("§cFechar")
+                .name(MenuTexts.legacy(player, "menus.common.close"))
                 .click(Player::closeInventory));
     }
 

@@ -50,7 +50,7 @@ public final class GameScoreboard {
         String clanDisplay = "§7Nenhum";
         if (account != null && account.hasClan()) {
             var clan = account.getClan();
-            if (clan != null) clanDisplay = ClanTagFormatter.formatBracketed(clan);
+            if (clan != null) clanDisplay = ClanTagFormatter.formatCompact(clan);
         }
 
         String sym = SemiAnarchyConfig.currencySymbol();

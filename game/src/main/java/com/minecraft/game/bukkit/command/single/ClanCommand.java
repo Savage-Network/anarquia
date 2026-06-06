@@ -472,11 +472,10 @@ public final class ClanCommand implements CommandInheritor {
             return;
         }
 
-        clan.setTagColor(color.hasMixedTag() ? color.getId() : color.getCode());
-        clan.persist();
+        clan.applyStyle(color);
         ClanSync.refreshMembers(clan);
-        account.send("§aCor alterada: " + color.getCode() + color.getName());
-        clan.broadcast("§7Cor da tag alterada por " + account.getNickname() + ".");
+        account.send("§aEstilo alterado: " + ClanTagFormatter.formatPreview(color, clan.getTagWithoutColors()));
+        clan.broadcast("§7Estilo da tag alterado por " + account.getNickname() + ".");
     }
 
     private void sendHelp(Account account, String label) {
@@ -491,7 +490,7 @@ public final class ClanCommand implements CommandInheritor {
 
     private Account require(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) ctx.reply("§cConta nao carregada.");
+        if (account == null) ctx.replyKey("errors.account-not-loaded");
         return account;
     }
 }

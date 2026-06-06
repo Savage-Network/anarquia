@@ -28,6 +28,24 @@ commands:
     description: Preferencias da conta
     usage: /prefs [list|toggle <chave>]
     aliases: [preferencias]
+  lang:
+    description: Escolhe o idioma das mensagens
+    usage: /lang
+    aliases: [language, idioma]
+  creditos:
+    description: Menu de creditos do servidor
+    usage: /creditos
+    aliases: [credits, credito, devs]
+  holo:
+    description: Gerencia hologramas TextDisplay
+    usage: /holo <list|set|remove|reload|explicacao|kills|deaths|...>
+    permission: game.admin
+    aliases: [hologram, holograma]
+  atualizarleaderboards:
+    description: Atualiza rankings e hologramas de top
+    usage: /atualizarleaderboards
+    permission: game.admin
+    aliases: [updateleaderboards, refreshleaderboards, atualizartop, atualizarranking]
   chat:
     description: Chat — ignore, clearchat, lock, slow
     usage: /chat [help|ignore|clear|lock|unlock|slow] ...
@@ -105,6 +123,11 @@ commands:
     usage: /history <nick>
     permission: game.punish
     aliases: [punishments, punicoes]
+  check:
+    description: Consulta punicao por ID ou jogador
+    usage: /check <ID|nick>
+    permission: game.punish
+    aliases: [punishcheck, verpunicao]
   gamereload:
     description: Recarrega configuracoes do plugin
     usage: /gamereload
@@ -179,6 +202,10 @@ commands:
     description: Resgata uma key de VIP
     usage: /resgatar <codigo>
     aliases: [redeem, resgate, key]
+  vincular:
+    description: Gera codigo para vincular conta ao Discord
+    usage: /vincular
+    aliases: [link, vinculo, discordlink]
   lixeira:
     description: Lixeira virtual — itens somem ao fechar
     usage: /lixeira
@@ -194,6 +221,10 @@ commands:
   livro:
     description: Recebe o guia do jogador
     usage: /livro
+  plus:
+    description: Menu de configuracao EMBER+
+    usage: /plus
+    aliases: ['+', mais, emberplus, ember+, embertplus, embermais]
   tpa:
     description: Pedido de teleporte
     usage: /tpa <jogador>
@@ -217,14 +248,21 @@ permissions:
   game.admin:
     description: Reload, mundo, economia admin
     default: false
+  game.combat.bypass:
+    description: Ignora combat tag e combat log
+    default: false
   game.staff:
     description: Staff base — /go, staff chat
     default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
   game.vip:
     description: Beneficios VIP
     default: false
   game.go:
-    description: Atalho vanish (/go)
+    description: Teleporta ate um jogador na rede (/go)
     default: false
   game.vanish:
     description: /vanish modo invisivel
@@ -281,23 +319,165 @@ permissions:
     default: true
   game.rank.vip:
     default: false
+    children:
+      medal.estrelinha: true
+      medal.aprovado: true
+      medal.brilho: true
+  game.rank.native:
+    default: false
+    children:
+      medal.galaxia: true
+      medal.constelacao: true
+      medal.nova: true
+      medal.orbita: true
+  game.rank.ember:
+    default: false
+    children:
+      medal.brilho: true
+      medal.solar: true
+      medal.lunar: true
+      medal.fortuna: true
+  game.rank.ember_plus:
+    default: false
+    children:
+      medal.brilho: true
+      medal.solar: true
+      medal.lunar: true
+      medal.fortuna: true
+  game.rank.savage:
+    default: false
+    children:
+      medal.solar: true
+      medal.supernova: true
+      medal.aurora: true
+      medal.fortuna: true
+      medal.corona: true
+  game.rank.beta:
+    default: false
+    children:
+      medal.cometa: true
+      medal.orbita: true
+      medal.pulso: true
+      medal.raio: true
+  game.rank.precious:
+    default: false
+    children:
+      medal.precious: true
   game.rank.builder:
     default: false
+    children:
+      medal.ajudante: true
+      medal.espadas: true
   game.rank.helper:
     default: false
+    children:
+      medal.ajudante: true
   game.rank.mod:
     default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+      medal.comando: true
+      medal.cruz_sagrada: true
+      medal.impacto: true
+  game.rank.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+      medal.comando: true
+      medal.cruz_sagrada: true
+      medal.impacto: true
   game.rank.admin:
     default: false
+    children:
+      medal.maestro: true
+      medal.mestre: true
+      medal.star: true
+  game.rank.vermelho:
+    default: false
+    children:
+      medal.y: true
   game.rank.zw:
     description: Rank exclusivo ZW (acesso total)
     default: false
     children:
-      '*':
-        description: Todas as permissoes SavageMC
-        default: false
+      game.*: true
+      lobbyhost.*: true
+      proxyhost.*: true
+      auth.*: true
+      eventos.*: true
+      tag.*: true
+      medal.*: true
 
   tag.*:
     default: false
+  tag.builder:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.helper:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.mod:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.modplus:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.admin:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.diretor:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.vermelho:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_zw:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
+  tag.tag_owner:
+    default: false
+    children:
+      game.staffchat: true
+      lobbyhost.staffchat: true
+      proxyhost.staffchat: true
+      game.staff: true
   medal.*:
     default: false

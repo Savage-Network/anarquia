@@ -15,7 +15,7 @@ public final class ResgatarCommand implements CommandInheritor {
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) {
-            ctx.reply("§cConta nao carregada.");
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
 

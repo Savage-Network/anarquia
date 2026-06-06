@@ -19,6 +19,7 @@ public final class MenuItem {
 
     private final ItemStack stack;
     private Consumer<Player> click;
+    private Consumer<Player> rightClick;
 
     private MenuItem(Material material, int amount) {
         this.stack = new ItemStack(material, amount);
@@ -54,6 +55,7 @@ public final class MenuItem {
         if (meta != null) {
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             for (String line : legacyLines) {
+                if (line == null) continue;
                 lore.add(ModernText.noItalic(Component.text(line)));
             }
             meta.lore(lore);
@@ -111,11 +113,20 @@ public final class MenuItem {
         return this;
     }
 
+    public MenuItem rightClick(Consumer<Player> action) {
+        this.rightClick = action;
+        return this;
+    }
+
     public ItemStack stack() {
         return stack;
     }
 
     public Consumer<Player> click() {
         return click;
+    }
+
+    public Consumer<Player> rightClick() {
+        return rightClick;
     }
 }

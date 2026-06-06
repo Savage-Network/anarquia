@@ -3,8 +3,8 @@ package com.minecraft.game.bukkit.shop.gui;
 import com.minecraft.game.account.Account;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
-import com.minecraft.game.bukkit.shop.ShopEconomy;
 import com.minecraft.game.bukkit.shop.SignShopManager;
+import com.minecraft.game.message.MenuTexts;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -17,74 +17,73 @@ public final class ShopHubMenu extends Menu {
     }
 
     public ShopHubMenu(Player player, Account account, Menu parent) {
-        super(player, "§8§lSavageMC §7| §fMercado", 5, parent);
+        super(player, MenuTexts.title(player, "menus.shop.hub-title"), 5, parent);
         this.account = account;
     }
 
     @Override
     public void build() {
         clear();
-        String sym = ShopEconomy.symbol();
 
         ShopMenuLayout.header(
                 this, account, Material.NETHER_STAR,
-                "§6§lSavageMC §7| §fMercado",
-                "§8▪ §7savagemc.net",
+                MenuTexts.legacy(player, "menus.shop.hub-header"),
+                MenuTexts.legacy(player, "menus.shop.hub-sub"),
                 "",
-                "§7Escolha uma opcao abaixo"
+                MenuTexts.legacy(player, "menus.shop.hub-desc")
         );
 
         set(20, MenuItem.of(Material.EMERALD)
-                .name("§a§lLoja do Servidor")
+                .name(MenuTexts.legacy(player, "menus.shop.server-shop"))
                 .lore(
-                        "§7Compre blocos, comida, PvP",
-                        "§7e ferramentas no spawn",
+                        MenuTexts.legacy(player, "menus.shop.server-shop-lore-1"),
+                        MenuTexts.legacy(player, "menus.shop.server-shop-lore-2"),
                         "",
-                        "§eClique para abrir"
+                        MenuTexts.legacy(player, "menus.common.click-open")
                 )
                 .glow()
                 .click(p -> new ServerShopMenu(p, account, this).open()));
 
         set(22, MenuItem.of(Material.GOLD_INGOT)
-                .name("§6§lVender Itens")
+                .name(MenuTexts.legacy(player, "menus.shop.sell"))
                 .lore(
-                        "§7Venda farm, minerios e drops",
-                        "§7direto ao servidor",
+                        MenuTexts.legacy(player, "menus.shop.sell-lore-1"),
+                        MenuTexts.legacy(player, "menus.shop.sell-lore-2"),
                         "",
-                        "§eClique para abrir"
+                        MenuTexts.legacy(player, "menus.common.click-open")
                 )
                 .glow()
                 .click(p -> new SellMenu(p, account, this).open()));
 
         set(24, MenuItem.of(Material.ENDER_CHEST)
-                .name("§5§lLeilao")
+                .name(MenuTexts.legacy(player, "menus.shop.auction"))
                 .lore(
-                        "§7Compre e venda entre jogadores",
-                        "§7Comando: §f/ah",
+                        MenuTexts.legacy(player, "menus.shop.auction-lore-1"),
+                        MenuTexts.legacy(player, "menus.shop.auction-lore-2"),
                         "",
-                        "§eClique para abrir"
+                        MenuTexts.legacy(player, "menus.common.click-open")
                 )
                 .click(p -> new AuctionBrowseMenu(p, account, this, 0).open()));
 
         set(30, MenuItem.of(Material.OAK_SIGN)
-                .name("§e§lLojas de Placa")
+                .name(MenuTexts.legacy(player, "menus.shop.sign-shop"))
                 .lore(
-                        "§7Monte sua loja com placas",
-                        "§7Comando: §f/loja placa",
+                        MenuTexts.legacy(player, "menus.shop.sign-shop-lore-1"),
+                        MenuTexts.legacy(player, "menus.shop.sign-shop-lore-2"),
                         "",
-                        "§eClique para tutorial"
+                        MenuTexts.legacy(player, "menus.common.click-open")
                 )
                 .click(SignShopManager::sendHelp));
 
         set(32, MenuItem.of(Material.PLAYER_HEAD)
-                .name("§b§lTroca Segura")
+                .name(MenuTexts.legacy(player, "menus.shop.trade"))
                 .lore(
-                        "§7Troque itens com seguranca",
-                        "§7Comando: §f/trade <jogador>",
+                        MenuTexts.legacy(player, "menus.shop.trade-lore-1"),
+                        MenuTexts.legacy(player, "menus.shop.trade-lore-2"),
                         "",
-                        "§eUse o comando no chat"
+                        MenuTexts.legacy(player, "menus.common.click-select")
                 )
-                .click(p -> p.sendMessage("§7Use §f/trade <jogador> §7para convidar.")));
+                .click(p -> p.sendMessage(MenuTexts.legacy(p, "menus.shop.trade-hint"))));
 
         fillIfEmpty(3, MenuItem.of(Material.LIME_STAINED_GLASS_PANE).name(" "));
         fillIfEmpty(5, MenuItem.of(Material.LIME_STAINED_GLASS_PANE).name(" "));

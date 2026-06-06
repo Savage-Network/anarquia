@@ -21,6 +21,7 @@ import java.util.UUID;
 public final class SignShopManager {
 
     private static final UUID SERVER_OWNER = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    public static final String CREATE_SUCCESS_PREFIX = "§aLoja criada!";
 
     private SignShopManager() {}
 
@@ -41,25 +42,30 @@ public final class SignShopManager {
     }
 
     public static String tryCreate(Sign sign, Player owner) {
-        if (!SignShopConfig.enabled()) return "§cLojas de placa desativadas.";
-        if (!owner.hasPermission("game.shop.create") && !owner.hasPermission("game.shop.admin")) {
-            return "§cSem permissao para criar lojas.";
-        }
-        if (SpawnProtection.isProtected(sign.getLocation()) && !owner.hasPermission("game.shop.admin")) {
-            return "§cNao e possivel criar loja na area protegida do spawn.";
-        }
-        if (SignShopStorageUtil.findStorageBlock(sign.getBlock()) == null) {
-            return "§cColoque a placa em um bau ou barril.";
-        }
-
         Optional<SignShop> parsed = SignShopParser.parse(sign, owner);
         if (parsed.isEmpty()) {
             return "§cFormato invalido. Veja §f/loja ajuda";
         }
+        return tryCreate(parsed.get(), sign.getBlock(), owner);
+    }
 
-        SignShop shop = parsed.get();
+    public static String tryCreate(SignShop shop, Block signBlock, Player owner) {
+        if (shop == null || signBlock == null || owner == null) {
+            return "§cFormato invalido. Veja §f/loja ajuda";
+        }
+        if (!SignShopConfig.enabled()) return "§cLojas de placa desativadas.";
+        if (!owner.hasPermission("game.shop.create") && !owner.hasPermission("game.shop.admin")) {
+            return "§cSem permissao para criar lojas.";
+        }
+        if (SpawnProtection.isProtected(signBlock.getLocation()) && !owner.hasPermission("game.shop.admin")) {
+            return "§cNao e possivel criar loja na area protegida do spawn.";
+        }
+        if (!shop.isServerShop() && SignShopStorageUtil.findStorageBlock(signBlock) == null) {
+            return "§cColoque a placa em um bau ou barril.";
+        }
+
         register(shop);
-        return "§aLoja criada! §7" + formatType(shop) + " §f" + ItemDisplayNames.plain(shop.getMaterial())
+        return CREATE_SUCCESS_PREFIX + " §7" + formatType(shop) + " §f" + ItemDisplayNames.plain(shop.getMaterial())
                 + " §7por §a" + SemiAnarchyConfig.currencySymbol() + shop.getPricePerUnit() + "/un";
     }
 
@@ -237,7 +243,7 @@ public final class SignShopManager {
     public static void sendHelp(Player player) {
         player.sendMessage("§6§lLOJAS DE PLACA §7(/loja placa)");
         player.sendMessage("§71) Coloque um §fbaú§7 e uma §fplaca§7 nele.");
-        player.sendMessage("§72) Escreva na placa (4 linhas):");
+        player.sendMessage("§72) Escreva na placa (4 linhas) — ao salvar, ela ganha §fcor§7 automaticamente:");
         player.sendMessage("§8  §f[LojaServer] §7(loja do spawn, staff)");
         player.sendMessage("§8  §f[Loja] §7(loja de jogador + estoque no baú)");
         player.sendMessage("§8  §fComprar §7ou §fVender");

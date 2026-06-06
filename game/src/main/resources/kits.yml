@@ -3,10 +3,12 @@
 # permission: vazio = todos; ou no Bukkit (ex: game.kit.vip)
 # min-rank: rank minimo na hierarquia (MEMBER, VIP, ...)
 # cooldown-seconds: tempo entre usos do mesmo kit
+# icon-material: icone no menu /kits (opcional)
 
 kits:
   iniciante:
     display-name: "&aKit Iniciante"
+    icon-material: WOODEN_SWORD
     min-rank: MEMBER
     permission: ""
     cooldown-seconds: 86400
@@ -15,15 +17,28 @@ kits:
       - material: STONE_SWORD
         amount: 1
         slot: 0
+        enchantments:
+          UNBREAKING: 1
       - material: STONE_PICKAXE
         amount: 1
         slot: 1
+        enchantments:
+          EFFICIENCY: 1
       - material: STONE_AXE
         amount: 1
         slot: 2
+      - material: STONE_SHOVEL
+        amount: 1
+        slot: 3
+      - material: SHIELD
+        amount: 1
+        slot: 4
       - material: BREAD
         amount: 16
         slot: 8
+      - material: TORCH
+        amount: 32
+        slot: 9
     armor:
       helmet: LEATHER_HELMET
       chestplate: LEATHER_CHESTPLATE
@@ -32,6 +47,7 @@ kits:
 
   pvp:
     display-name: "&cKit PvP"
+    icon-material: IRON_SWORD
     min-rank: MEMBER
     permission: ""
     cooldown-seconds: 3600
@@ -42,17 +58,24 @@ kits:
         slot: 0
         enchantments:
           SHARPNESS: 1
+          UNBREAKING: 2
       - material: BOW
         amount: 1
         slot: 1
+        enchantments:
+          POWER: 1
+          UNBREAKING: 2
       - material: ARROW
-        amount: 32
+        amount: 48
         slot: 9
+      - material: SHIELD
+        amount: 1
+        slot: 4
       - material: GOLDEN_APPLE
-        amount: 4
+        amount: 6
         slot: 2
       - material: COOKED_BEEF
-        amount: 16
+        amount: 24
         slot: 8
     armor:
       helmet: IRON_HELMET
@@ -62,6 +85,7 @@ kits:
 
   vip:
     display-name: "&6Kit VIP"
+    icon-material: DIAMOND
     min-rank: VIP
     permission: ""
     cooldown-seconds: 1800
@@ -79,12 +103,21 @@ kits:
         enchantments:
           EFFICIENCY: 3
           UNBREAKING: 2
-      - material: GOLDEN_APPLE
-        amount: 8
+      - material: DIAMOND_AXE
+        amount: 1
         slot: 2
-      - material: ENDER_PEARL
-        amount: 4
+        enchantments:
+          EFFICIENCY: 2
+          UNBREAKING: 2
+      - material: SHIELD
+        amount: 1
+        slot: 4
+      - material: GOLDEN_APPLE
+        amount: 10
         slot: 3
+      - material: ENDER_PEARL
+        amount: 6
+        slot: 5
       - material: COOKED_BEEF
         amount: 32
         slot: 8
@@ -96,6 +129,7 @@ kits:
 
   staff:
     display-name: "&9Kit Staff"
+    icon-material: NETHERITE_SWORD
     min-rank: HELPER
     permission: ""
     cooldown-seconds: 300
@@ -113,3 +147,6 @@ kits:
       - material: ENDER_PEARL
         amount: 16
         slot: 2
+      - material: COOKED_BEEF
+        amount: 32
+        slot: 8

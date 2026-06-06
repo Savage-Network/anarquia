@@ -79,7 +79,6 @@ public final class MiscCheckListener implements Listener {
         RIGHT_CLICKS.remove(id);
     }
 
-    /** Chamado a cada segundo pela task do engine. */
     public static void flushCpsWindow() {
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
             UUID id = player.getUniqueId();

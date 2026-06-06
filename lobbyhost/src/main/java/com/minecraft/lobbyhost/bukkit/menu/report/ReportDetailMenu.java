@@ -7,6 +7,7 @@ import com.minecraft.lobbyhost.backend.model.PlayerReport;
 import com.minecraft.lobbyhost.bukkit.menu.Menu;
 import com.minecraft.lobbyhost.bukkit.menu.MenuItem;
 import com.minecraft.lobbyhost.bukkit.menu.punish.PunishMenus;
+import com.minecraft.lobbyhost.bukkit.vanish.VanishService;
 import com.minecraft.lobbyhost.report.ReportStatus;
 import com.minecraft.lobbyhost.util.ModernText;
 import org.bukkit.Bukkit;
@@ -53,8 +54,8 @@ public final class ReportDetailMenu extends Menu {
 
         set(21, MenuItem.of(Material.ENDER_EYE)
                 .miniName(ModernText.gradient("Ir ao alvo", ModernText.ACCENT_A, ModernText.ACCENT_B))
-                .miniLore(ModernText.action("Teleportar"))
-                .click(p -> teleportTo(p, report.targetId(), report.targetName())));
+                .miniLore(ModernText.action("Teleportar + vanish"))
+                .click(p -> teleportToTarget(p, report.targetId(), report.targetName())));
 
         set(23, MenuItem.of(Material.IRON_SWORD)
                 .miniName(ModernText.gradient("Punir alvo", ModernText.ERROR, "#FCA5A5"))
@@ -89,6 +90,26 @@ public final class ReportDetailMenu extends Menu {
         staff.teleport(target.getLocation());
         staff.sendMessage(ModernText.parse("<!italic><" + ModernText.SUCCESS + ">Teleportado até "
                 + target.getName() + "."));
+    }
+
+    private void teleportToTarget(Player staff, java.util.UUID targetId, String name) {
+        clickSound();
+        Player target = Bukkit.getPlayer(targetId);
+        if (target == null || !target.isOnline()) {
+            staff.sendMessage(ModernText.parse("<!italic><" + ModernText.WARN + ">" + name + " offline."));
+            return;
+        }
+        staff.teleport(target.getLocation());
+        enableVanish(staff);
+        staff.sendMessage(ModernText.parse("<!italic><" + ModernText.SUCCESS + ">Teleportado até "
+                + target.getName() + " <#64748B>(vanish ativado)."));
+    }
+
+    private static void enableVanish(Player staff) {
+        Account acc = Core.getAccountController().of(staff.getUniqueId());
+        if (acc != null && VanishService.canVanish(acc)) {
+            VanishService.setVanished(staff, true);
+        }
     }
 
     private void closeReport(Player staff, ReportStatus status, String note) {

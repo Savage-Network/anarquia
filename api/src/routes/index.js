@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import catalogRoutes from './catalog.js';
+import discordRoutes from './discord.js';
 import profileRoutes from './profile.js';
 import punishmentsRoutes from './punishments.js';
 import reportsRoutes from './reports.js';
@@ -30,10 +31,13 @@ router.get('/', async (_req, res) => {
       reports: '/api/v1/reports',
       catalog: '/api/v1/catalog',
       serverStatus: '/api/v1/server/status',
+      discordLink: '/api/v1/discord/link',
+      discordMenu: '/api/v1/discord/menu/:nick',
     },
   });
 });
 
+router.use('/discord', discordRoutes);
 router.use('/profile', profileRoutes);
 router.use('/catalog', catalogRoutes);
 router.use('/punishments', punishmentsRoutes);

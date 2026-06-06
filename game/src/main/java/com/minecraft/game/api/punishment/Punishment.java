@@ -24,11 +24,18 @@ public class Punishment {
     private Revocation revocation = new Revocation();
     private long createdAt = System.currentTimeMillis();
     private long expiresAt = -1L;
+    private String ruleId;
     private boolean valid = true;
 
     public static Punishment create(UUID player, UUID author, String ip, String server,
                                    PunishmentCategory category, PunishmentReason reason,
                                    String cause, long expiresAt) {
+        return create(player, author, ip, server, category, reason, cause, expiresAt, null);
+    }
+
+    public static Punishment create(UUID player, UUID author, String ip, String server,
+                                   PunishmentCategory category, PunishmentReason reason,
+                                   String cause, long expiresAt, String ruleId) {
         Punishment p = new Punishment();
         p.id = PunishmentIds.newId();
         p.player = player;
@@ -39,6 +46,7 @@ public class Punishment {
         p.reason = reason;
         p.cause = cause != null && !cause.isBlank() ? cause : "Não informado";
         p.expiresAt = expiresAt;
+        p.ruleId = ruleId;
         p.createdAt = System.currentTimeMillis();
         p.valid = true;
         p.revocation = new Revocation();

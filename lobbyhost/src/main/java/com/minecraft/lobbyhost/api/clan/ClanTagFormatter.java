@@ -4,11 +4,18 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.tag.LegacyHex;
 
 /**
- * Formata a clantag exibida no tab/nametag/chat.
+ * Renderizador unificado de clantags — chat, tab, nametag e scoreboard usam a mesma lógica.
  */
 public final class ClanTagFormatter {
 
     private ClanTagFormatter() {}
+
+    public static final int TEAM_TEXT_LIMIT = 64;
+
+    public enum DisplayMode {
+        FULL,
+        TEAM
+    }
 
     public static String formatSuffix(Account account) {
         if (account == null || account.getToggle() == null || !account.getToggle().isShowClanTag()) {
@@ -17,41 +24,110 @@ public final class ClanTagFormatter {
         if (!account.hasClan()) return "";
         Clan clan = account.getClan();
         if (clan == null) return "";
-        return " " + formatBracketed(clan);
+        return fitTeamText(" " + render(clan, DisplayMode.TEAM));
     }
 
     public static String formatBracketed(Clan clan) {
-        String raw = clan.getTagWithoutColors().toUpperCase();
-        if (raw.isEmpty()) raw = "CLAN";
-        return formatTag(ClanColor.byStored(clan.getTagColor()), raw, clan.getTag());
+        return render(clan, DisplayMode.FULL);
+    }
+
+    public static String formatCompact(Clan clan) {
+        return render(clan, DisplayMode.TEAM);
+    }
+
+    public static String formatCompact(ClanColor color, String raw) {
+        return render(color, normalizeRaw(raw), DisplayMode.TEAM);
     }
 
     public static String formatChatTag(Clan clan) {
         return formatBracketed(clan);
     }
 
-    /** Preview usado no menu de cores (amostra curta se a tag for grande). */
     public static String formatPreview(ClanColor color, String tagSample) {
-        String raw = tagSample == null || tagSample.isBlank()
-                ? "TAG"
-                : tagSample.toUpperCase();
-        if (raw.length() > 6) raw = raw.substring(0, 6);
-        return formatTag(color, raw, raw);
+        String raw = normalizeRaw(tagSample);
+        if (raw.length() > 8) raw = raw.substring(0, 8);
+        return render(color, raw, DisplayMode.FULL);
     }
 
-    private static String formatTag(ClanColor color, String raw, String originalTag) {
-        if (color.getGradientMode() == ClanColor.GradientMode.YIN_YANG) {
-            return "§f[" + applyYinYang(raw) + "§f]";
+    public static String render(Clan clan, DisplayMode mode) {
+        if (clan == null) return "";
+        return render(ClanColor.byStored(clan.getTagColor()), normalizeRaw(clan.getTagWithoutColors()), mode);
+    }
+
+    public static String render(ClanColor color, String raw, DisplayMode mode) {
+        if (color == null) color = ClanColor.DEFAULT;
+        String text = normalizeRaw(raw);
+
+        return switch (color.getRenderMode()) {
+            case SOLID -> solidBracket(color.getCode(), text);
+            case HEX -> hexBracket(text, color.getToneA(), color.getToneB());
+            case YIN_YANG -> yinYangBracket(text);
+            case ALTERNATE -> alternateBracket(text, color.getToneA(), color.getToneB());
+        };
+    }
+
+    public static String fitTeamText(String legacy) {
+        if (legacy == null || legacy.isEmpty()) return "";
+        if (legacy.length() <= TEAM_TEXT_LIMIT) return legacy;
+
+        StringBuilder out = new StringBuilder();
+        int visible = 0;
+        for (int i = 0; i < legacy.length(); ) {
+            char c = legacy.charAt(i);
+            if (c == '§' && i + 1 < legacy.length()) {
+                char code = legacy.charAt(i + 1);
+                if (code == 'x' && i + 13 < legacy.length()) {
+                    out.append(legacy, i, i + 14);
+                    i += 14;
+                    continue;
+                }
+                out.append('§').append(code);
+                i += 2;
+                continue;
+            }
+            if (visible >= TEAM_TEXT_LIMIT) break;
+            out.append(c);
+            visible++;
+            i++;
         }
-        if (color.getGradientMode() == ClanColor.GradientMode.HEX) {
-            String inner = applyHexGradient(raw, color.getGradientFrom(), color.getGradientTo());
-            return color.getCode() + "[" + inner + color.getCode() + "]";
+        return out.toString();
+    }
+
+    private static String normalizeRaw(String raw) {
+        if (raw == null || raw.isBlank()) return "CLAN";
+        String cleaned = raw.replaceAll("§[0-9a-fA-Fk-oK-Or]", "")
+                .replaceAll("&[0-9a-fA-Fk-oK-Or]", "")
+                .trim();
+        return cleaned.isEmpty() ? "CLAN" : cleaned.toUpperCase();
+    }
+
+    private static String solidBracket(String code, String text) {
+        return code + "§l[" + code + "§l" + text + code + "§l]";
+    }
+
+    private static String hexBracket(String text, String fromHex, String toHex) {
+        String open = LegacyHex.of(fromHex) + "§l[";
+        String body = applyHexGradient(text, fromHex, toHex);
+        String close = LegacyHex.of(toHex) + "§l]";
+        return open + body + close;
+    }
+
+    private static String yinYangBracket(String text) {
+        return "§f§l[" + applyAlternate(text, "§f§l", "§8§l") + "§7§l]";
+    }
+
+    private static String alternateBracket(String text, String toneA, String toneB) {
+        String a = toneA.endsWith("§l") ? toneA : toneA + "§l";
+        String b = toneB.endsWith("§l") ? toneB : toneB + "§l";
+        return a + "[" + applyAlternate(text, a, b) + a + "]";
+    }
+
+    private static String applyAlternate(String text, String first, String second) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            sb.append(i % 2 == 0 ? first : second).append(text.charAt(i));
         }
-        String code = color.getCode();
-        if (originalTag != null && (originalTag.contains("§") || originalTag.contains("&"))) {
-            return code + "[" + stripLegacy(originalTag) + "]";
-        }
-        return code + "[" + raw + "]";
+        return sb.toString();
     }
 
     private static String applyHexGradient(String text, String fromHex, String toHex) {
@@ -64,15 +140,7 @@ public final class ClanTagFormatter {
         int len = text.length();
         for (int i = 0; i < len; i++) {
             double t = len == 1 ? 0.0 : (double) i / (len - 1);
-            sb.append(LegacyHex.of(toHex(lerpRgb(from, to, t)))).append(text.charAt(i));
-        }
-        return sb.toString();
-    }
-
-    private static String applyYinYang(String text) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            sb.append(i % 2 == 0 ? "§f" : "§0").append(text.charAt(i));
+            sb.append(LegacyHex.of(toHex(lerpRgb(from, to, t)))).append("§l").append(text.charAt(i));
         }
         return sb.toString();
     }
@@ -103,9 +171,5 @@ public final class ClanTagFormatter {
         int g = (int) Math.round(fg + (tg - fg) * t);
         int b = (int) Math.round(fb + (tb - fb) * t);
         return (r << 16) | (g << 8) | b;
-    }
-
-    private static String stripLegacy(String tag) {
-        return tag.replaceAll("§[0-9a-fA-Fk-oK-Or]", "").replaceAll("&[0-9a-fA-Fk-oK-Or]", "");
     }
 }

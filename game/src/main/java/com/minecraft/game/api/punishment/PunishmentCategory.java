@@ -10,7 +10,8 @@ import java.util.Arrays;
 public enum PunishmentCategory {
 
     BAN("Banimento"),
-    MUTE("Mute");
+    MUTE("Mute"),
+    WARN("Advertência");
 
     private final String displayName;
 

@@ -3,6 +3,7 @@ package com.minecraft.eventos.account;
 import com.minecraft.eventos.Core;
 import com.minecraft.eventos.account.context.AccountContext;
 import com.minecraft.eventos.account.context.objects.medal.Medal;
+import com.minecraft.eventos.account.context.objects.medal.RankMedals;
 import com.minecraft.eventos.account.context.objects.rank.Rank;
 import com.minecraft.eventos.account.context.objects.rank.RankType;
 import com.minecraft.eventos.account.context.objects.tag.Tag;
@@ -167,6 +168,7 @@ public class Account {
     /** Permission gate; aceita {@code null}. Em Paper 1.21 consulta o player online. */
     public boolean hasPermission(String node) {
         if (node == null || node.isEmpty()) return false;
+        if (getRankType().grants(node)) return true;
         Player p = player();
         return p != null && p.hasPermission(node);
     }
@@ -344,6 +346,8 @@ public class Account {
                 break;
         }
 
+        if (RankMedals.isGrantedByRank(rank, medal)) return true;
+
         // 2) Staff
         if (isStaffer()) return true;
 
@@ -362,14 +366,7 @@ public class Account {
     }
 
     private int vipPoolSize(RankType rank) {
-        int pool = poolSize();
-        return switch (rank) {
-            case SAVAGE     -> (int) Math.round(pool * 0.70);
-            case EMBER_PLUS, EMBER -> (int) Math.round(pool * 0.40);
-            case NATIVE     -> (int) Math.round(pool * 0.20);
-            case VIP        -> (int) Math.round(pool * 0.10);
-            default         -> 0;
-        };
+        return RankMedals.vipPoolAllowed(rank, poolSize());
     }
 
     private int poolSize() {

@@ -4,22 +4,23 @@ import com.minecraft.game.anticheat.checks.BlockCheckListener;
 import com.minecraft.game.anticheat.checks.CombatCheckListener;
 import com.minecraft.game.anticheat.checks.MiscCheckListener;
 import com.minecraft.game.anticheat.checks.MovementCheckListener;
+import com.minecraft.game.anticheat.checks.PlayerCheckListener;
 import com.minecraft.game.GamePlugin;
 import com.minecraft.game.bukkit.vanish.VanishService;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Motor central do anticheat. */
+/** Motor central do anticheat (buffers, setback, decay de VL). */
 public final class AnticheatEngine {
 
     private static final Map<String, Integer> CHECK_VIOLATIONS = new ConcurrentHashMap<>();
@@ -27,8 +28,8 @@ public final class AnticheatEngine {
     private static final Map<String, Long> ALERT_COOLDOWN = new ConcurrentHashMap<>();
     private static final Map<String, Deque<AnticheatFlagRecord>> FLAG_HISTORY = new ConcurrentHashMap<>();
 
-    private static final int MAX_FLAG_HISTORY = 8;
-    private static final long ALERT_COOLDOWN_MS = 1_800L;
+    private static final int MAX_FLAG_HISTORY = 12;
+    private static final long ALERT_COOLDOWN_MS = 1_500L;
 
     private static GamePlugin plugin;
 
@@ -40,23 +41,40 @@ public final class AnticheatEngine {
         Bukkit.getPluginManager().registerEvents(new CombatCheckListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new BlockCheckListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new MiscCheckListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new PlayerCheckListener(), plugin);
         Bukkit.getScheduler().runTaskTimer(plugin, MiscCheckListener::flushCpsWindow, 20L, 20L);
+        Bukkit.getScheduler().runTaskTimer(plugin, AnticheatLag::sampleTps, 20L, 40L);
+        if (AnticheatConfig.isVlDecayEnabled()) {
+            long interval = AnticheatConfig.getVlDecayIntervalTicks();
+            Bukkit.getScheduler().runTaskTimer(plugin, AnticheatEngine::decayViolations, interval, interval);
+        }
     }
 
     public static void reload() {
-        // listeners stay registered; config hot-reloads
+        AnticheatLag.sampleTps();
     }
 
-    public static void flag(Player player, AnticheatCheck check, String detail) {
+    /**
+     * Registra violação após passar pelo buffer do check.
+     * @param setback se true e check de movimento, teleporta para última posição válida
+     */
+    public static void flag(Player player, AnticheatCheck check, String detail, boolean setback) {
         if (player == null || check == null) return;
         if (!AnticheatConfig.isEnabled() || !AnticheatConfig.isCheckEnabled(check)) return;
         if (isExempt(player)) return;
 
+        AnticheatProfile profile = AnticheatProfiles.of(player);
+        int required = AnticheatLag.adjustBuffer(AnticheatConfig.bufferSize(check), player);
+        int buf = profile.incrementBuffer(check);
+        if (buf < required) return;
+        profile.resetBuffer(check);
+
         UUID id = player.getUniqueId();
         String cdKey = id + ":" + check.name();
         long now = System.currentTimeMillis();
+        long cooldown = (long) (ALERT_COOLDOWN_MS * AnticheatLag.toleranceMultiplier(player));
         Long last = ALERT_COOLDOWN.get(cdKey);
-        if (last != null && now - last < ALERT_COOLDOWN_MS) return;
+        if (last != null && now - last < cooldown) return;
         ALERT_COOLDOWN.put(cdKey, now);
 
         int checkVl = incrementCheckViolation(id, check);
@@ -64,6 +82,38 @@ public final class AnticheatEngine {
         recordFlag(id, check, detail, checkVl, totalVl);
         AnticheatAlertService.flag(player, check.getDisplayName(), detail, checkVl, totalVl);
         AnticheatPunishService.evaluate(player, totalVl);
+
+        if (setback && AnticheatConfig.isSetbackEnabled()
+                && check.getCategory() == AnticheatCheck.Category.MOVEMENT) {
+            applySetback(player, profile);
+        }
+    }
+
+    public static void flag(Player player, AnticheatCheck check, String detail) {
+        flag(player, check, detail, false);
+    }
+
+    public static void markValidPosition(Player player, Location loc) {
+        if (player == null || loc == null) return;
+        AnticheatProfile profile = AnticheatProfiles.of(player);
+        profile.lastValidLocation = loc.clone();
+    }
+
+    private static void applySetback(Player player, AnticheatProfile profile) {
+        Location safe = profile.lastValidLocation;
+        if (safe == null || safe.getWorld() == null) return;
+        if (!safe.getWorld().equals(player.getWorld())) return;
+        player.teleport(safe);
+    }
+
+    private static void decayViolations() {
+        int amount = AnticheatConfig.getVlDecayAmount();
+        for (UUID id : TOTAL_VIOLATIONS.keySet()) {
+            TOTAL_VIOLATIONS.computeIfPresent(id, (k, v) -> {
+                int next = v - amount;
+                return next <= 0 ? null : next;
+            });
+        }
     }
 
     public static int getTotalViolations(UUID id) {
@@ -108,7 +158,6 @@ public final class AnticheatEngine {
         return sum;
     }
 
-    /** Motivos pelos quais o jogador está isento de checks no momento. */
     public static List<String> exemptReasons(Player player) {
         if (player == null) return List.of("Jogador offline");
         List<String> reasons = new ArrayList<>();
@@ -133,9 +182,14 @@ public final class AnticheatEngine {
         CHECK_VIOLATIONS.keySet().removeIf(k -> k.startsWith(id + ":"));
         ALERT_COOLDOWN.keySet().removeIf(k -> k.startsWith(id + ":"));
         FLAG_HISTORY.keySet().removeIf(k -> k.startsWith(id + ":"));
+        AnticheatProfile profile = AnticheatProfiles.of(id);
+        if (profile != null) {
+            for (AnticheatCheck c : AnticheatCheck.values()) {
+                profile.resetBuffer(c);
+            }
+        }
     }
 
-    /** Zera VL e histórico de um check específico. */
     public static void resetCheckViolations(UUID id, AnticheatCheck check) {
         if (id == null || check == null) return;
         String key = violationKey(id, check);
@@ -143,6 +197,7 @@ public final class AnticheatEngine {
         CHECK_VIOLATIONS.remove(key);
         ALERT_COOLDOWN.remove(key);
         FLAG_HISTORY.remove(historyKey(id, check));
+        AnticheatProfiles.of(id).resetBuffer(check);
         if (removed > 0) {
             TOTAL_VIOLATIONS.merge(id, -removed, (a, b) -> Math.max(0, a + b));
         }

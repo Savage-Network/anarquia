@@ -40,7 +40,7 @@ public final class StaffChatService {
 
         Core.getProxy().getAllPlayers().forEach(p -> {
             Account a = Core.getAccountController().of(p.getUniqueId());
-            if (a != null && (a.isStaffer() || p.hasPermission("proxyhost.staffchat"))) {
+            if (a != null && a.canUseStaffChat()) {
                 p.sendMessage(formatted);
             }
         });

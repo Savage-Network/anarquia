@@ -7,6 +7,7 @@ import com.minecraft.game.backend.data.AuctionData;
 import com.minecraft.game.backend.data.SignShopData;
 import com.minecraft.game.backend.data.VipKeyData;
 import com.minecraft.game.backend.data.AccountIdentityData;
+import com.minecraft.game.backend.data.DiscordLinkData;
 import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.bukkit.shop.SignShopConfig;
 import com.minecraft.game.bukkit.shop.auction.AuctionManager;
@@ -17,6 +18,7 @@ import com.minecraft.game.backend.database.GameDatabaseSchema;
 import com.minecraft.game.backend.database.HikariProvider;
 import com.minecraft.game.config.DiscordConfig;
 import com.minecraft.game.Constant;
+import com.minecraft.game.message.Messages;
 import com.minecraft.game.backend.redis.RedisProvider;
 import com.minecraft.game.redis.AccountRedisListener;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandHandler;
@@ -32,6 +34,7 @@ import com.minecraft.game.bukkit.manager.TaskManager;
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -62,6 +65,8 @@ public final class GamePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Messages.load(this);
+        com.minecraft.game.punishment.PunishmentRules.load(this);
         long start = System.currentTimeMillis();
 
         try {
@@ -100,6 +105,7 @@ public final class GamePlugin extends JavaPlugin {
             VipKeyData vipKeyData = new VipKeyData(database);
             PlayerVaultData playerVaultData = new PlayerVaultData(database);
             AccountIdentityData accountIdentityData = new AccountIdentityData(database);
+            DiscordLinkData discordLinkData = new DiscordLinkData(database);
 
             GameDatabaseSchema.createAll(
                     database,
@@ -112,7 +118,8 @@ public final class GamePlugin extends JavaPlugin {
                     auctionData,
                     vipKeyData,
                     playerVaultData,
-                    accountIdentityData);
+                    accountIdentityData,
+                    discordLinkData);
 
             Core.setAccountData(accountData);
             Core.setClanData(clanData);
@@ -127,6 +134,7 @@ public final class GamePlugin extends JavaPlugin {
             Core.setVipKeyData(vipKeyData);
             Core.setPlayerVaultData(playerVaultData);
             Core.setAccountIdentityData(accountIdentityData);
+            Core.setDiscordLinkData(discordLinkData);
             AuctionManager.configure(
                     GameSettings.AUCTION_MAX_LISTINGS,
                     GameSettings.AUCTION_DURATION_HOURS,
@@ -146,6 +154,7 @@ public final class GamePlugin extends JavaPlugin {
             taskManager = new TaskManager(this);
             taskManager.start();
 
+            com.minecraft.game.bukkit.fake.FakeConfig.load(this);
             SemiAnarchyConfig.load(this);
             ensureSpawnWorldLoaded();
             KitManager.load(this);
@@ -157,6 +166,7 @@ public final class GamePlugin extends JavaPlugin {
 
             TagManager.startAnimationTask(this);
             AboveNameDisplay.init(this);
+            com.minecraft.game.bukkit.manager.CosmeticManager.init();
 
             // 6.5) Task de limpeza de requests de teleporte expirados
             getServer().getScheduler().runTaskTimer(this,
@@ -169,12 +179,21 @@ public final class GamePlugin extends JavaPlugin {
             new BukkitCommandHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.command");
             new ListenerHandler(this).handle(Constant.SOURCE_DIR + ".bukkit.listener");
             getServer().getPluginManager().registerEvents(new MenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.game.bukkit.menu.cosmetic.CosmeticMenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.game.bukkit.menu.fake.FakeMenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.game.bukkit.menu.lang.LangMenuListener(), this);
+            getServer().getPluginManager().registerEvents(new com.minecraft.game.bukkit.menu.credits.CreditosMenuListener(), this);
 
             // 7) Carregar contas dos jogadores ja online (reload)
             CompletableFuture.runAsync(() -> getServer().getOnlinePlayers().forEach(p ->
                     Core.getAccountController().load(p.getUniqueId(), p.getName())));
 
             getLogger().info("Plugin habilitado em " + (System.currentTimeMillis() - start) + "ms.");
+
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                com.minecraft.game.bukkit.hologram.HologramManager.initialize();
+                com.minecraft.game.bukkit.hologram.LeaderboardHologramManager.initialize();
+            }, 40L);
         } catch (Throwable t) {
             getLogger().severe("Falha critica ao inicializar o plugin:");
             t.printStackTrace();
@@ -184,7 +203,10 @@ public final class GamePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        com.minecraft.game.bukkit.hologram.HologramManager.shutdown();
+        com.minecraft.game.bukkit.hologram.LeaderboardHologramManager.shutdown();
         AboveNameDisplay.shutdown();
+        com.minecraft.game.bukkit.manager.CosmeticManager.shutdown();
         com.minecraft.game.bukkit.vanish.VanishService.shutdown();
         TagManager.stopAnimationTask();
         if (taskManager != null) taskManager.stop();
@@ -202,6 +224,7 @@ public final class GamePlugin extends JavaPlugin {
 
     public void reloadAll() {
         reloadConfig();
+        Messages.reload(this);
         DiscordConfig.load(this);
         SemiAnarchyConfig.reload(this);
         SignShopConfig.load(this);
@@ -212,6 +235,9 @@ public final class GamePlugin extends JavaPlugin {
         KitManager.load(this);
         AnticheatConfig.load(this);
         com.minecraft.game.bukkit.vanish.VanishService.reload(this);
+        com.minecraft.game.bukkit.fake.FakeConfig.load(this);
+        com.minecraft.game.bukkit.hologram.HologramManager.initialize();
+        com.minecraft.game.bukkit.hologram.LeaderboardHologramManager.initialize();
         getLogger().info("Configuracoes, kits, anticheat, vanish e semi-anarquia recarregados.");
     }
 

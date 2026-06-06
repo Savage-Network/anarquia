@@ -5,6 +5,7 @@ import com.minecraft.game.account.Account;
 import com.minecraft.game.account.context.objects.rank.Rank;
 import com.minecraft.game.account.context.objects.rank.RankType;
 import com.minecraft.game.account.context.objects.tag.Tag;
+import com.minecraft.game.account.context.objects.medal.RankMedals;
 import com.minecraft.game.bukkit.display.GameTabList;
 import com.minecraft.game.bukkit.display.PlayerDisplayService;
 import com.minecraft.game.bukkit.manager.TagManager;
@@ -54,8 +55,12 @@ public final class RankGrantService {
 
     public static Optional<RankType> parseRank(String raw) {
         if (raw == null || raw.isBlank()) return Optional.empty();
+        String normalized = raw.trim().toUpperCase(Locale.ROOT)
+                .replace(" ", "")
+                .replace("MOD+", "MODPLUS")
+                .replace("MOD_PLUS", "MODPLUS");
         try {
-            return Optional.of(RankType.valueOf(raw.trim().toUpperCase(Locale.ROOT)));
+            return Optional.of(RankType.valueOf(normalized));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
@@ -68,6 +73,8 @@ public final class RankGrantService {
                 .givenAt(System.currentTimeMillis())
                 .expiresAt(0L)
                 .build());
+        account.setTag(Tag.of(type));
+        RankMedals.applyRankMedals(account, type);
         account.markDirty();
     }
 
@@ -208,6 +215,7 @@ public final class RankGrantService {
     private static void applyPrimary(Account account, RankType grantType, Rank grant) {
         account.setRank(grant);
         account.setTag(Tag.of(grantType));
+        RankMedals.applyRankMedals(account, grantType);
         account.markDirty();
     }
 
@@ -227,6 +235,7 @@ public final class RankGrantService {
             return;
         }
         list.add(grant);
+        RankMedals.applyRankMedals(account, grant.getType());
         account.markDirty();
     }
 

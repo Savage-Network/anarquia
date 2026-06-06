@@ -59,6 +59,15 @@ public final class PunishmentService {
                                                               PunishmentCategory category,
                                                               PunishmentReason reason,
                                                               String timeArg, String cause) {
+        return apply(authorId, authorName, targetName, category, reason, timeArg, cause, null, false);
+    }
+
+    public static CompletableFuture<PunishmentResult> apply(UUID authorId, String authorName,
+                                                              String targetName,
+                                                              PunishmentCategory category,
+                                                              PunishmentReason reason,
+                                                              String timeArg, String cause,
+                                                              String ruleId, boolean silent) {
         return resolveTarget(targetName).thenApply(optTarget -> {
             if (optTarget.isEmpty()) {
                 return PunishmentResult.fail("Jogador não encontrado.");
@@ -72,7 +81,8 @@ public final class PunishmentService {
             PunishmentData data = Core.getPunishmentData();
             if (data == null) return PunishmentResult.fail("Sistema de punições indisponível.");
 
-            if (data.findActive(target.getId(), category).isPresent()) {
+            if (category != PunishmentCategory.WARN
+                    && data.findActive(target.getId(), category).isPresent()) {
                 return PunishmentResult.fail("O jogador já possui uma punição ativa deste tipo.");
             }
 
@@ -99,7 +109,8 @@ public final class PunishmentService {
                     category,
                     reason,
                     cause,
-                    expiresAt
+                    expiresAt,
+                    ruleId
             );
 
             data.save(punishment);
@@ -110,9 +121,13 @@ public final class PunishmentService {
 
             Core.getLogger().info("[punish] " + (authorName != null ? authorName : "CONSOLE")
                     + " puniu " + target.getName() + " (" + category.name() + "/"
-                    + reason.name() + ") id=" + punishment.getId());
+                    + reason.name() + ") id=" + punishment.getId()
+                    + (silent ? " [silent]" : ""));
 
-            PunishmentBroadcast.staff(punishment, target.getName(), authorName != null ? authorName : "CONSOLE");
+            if (!silent) {
+                PunishmentBroadcast.staff(punishment, target.getName(),
+                        authorName != null ? authorName : "CONSOLE");
+            }
 
             return PunishmentResult.ok(punishment, target.getName());
         });
@@ -214,6 +229,9 @@ public final class PunishmentService {
         } else if (punishment.getCategory() == PunishmentCategory.MUTE) {
             target.send(ModernText.parse("<!italic><" + ModernText.ERROR + ">Você foi mutado. ID: <#F1F5F9>"
                     + punishment.getId()));
+        } else if (punishment.getCategory() == PunishmentCategory.WARN) {
+            target.send(ModernText.parse("<!italic><" + ModernText.WARN + ">Você recebeu uma advertência: <#F1F5F9>"
+                    + punishment.getCause() + " <#64748B>ID <#F1F5F9>" + punishment.getId()));
         }
     }
 

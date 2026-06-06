@@ -11,6 +11,7 @@ import com.minecraft.game.backend.data.SignShopData;
 import com.minecraft.game.backend.data.PlayerVaultData;
 import com.minecraft.game.backend.data.AccountIdentityData;
 import com.minecraft.game.backend.data.VipKeyData;
+import com.minecraft.game.backend.data.DiscordLinkData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,7 +38,8 @@ public final class GameDatabaseSchema {
             AuctionData auctionData,
             VipKeyData vipKeyData,
             PlayerVaultData playerVaultData,
-            AccountIdentityData accountIdentityData) {
+            AccountIdentityData accountIdentityData,
+            DiscordLinkData discordLinkData) {
 
         accountData.createTables();
         clanData.createTables();
@@ -49,12 +51,13 @@ public final class GameDatabaseSchema {
         vipKeyData.createTables();
         playerVaultData.createTables();
         accountIdentityData.createTables();
+        discordLinkData.createTables();
 
         createIndexes(database);
 
         Core.getLogger().info(
                 "Schema do game aplicado: accounts, account_identity, clans, network_stats, player_reports, "
-                        + "punishments, sign_shops, auction_listings, vip_keys, player_vaults");
+                        + "punishments, sign_shops, auction_listings, vip_keys, player_vaults, discord_links");
     }
 
     /** Indices extras (idempotente via IF NOT EXISTS). */

@@ -48,6 +48,7 @@ public final class ClanData {
     }
 
     public void save(Clan clan) {
+        clan.normalizeStyle();
         cache.put(clan.getId(), clan);
         String json = Core.GSON.toJson(clan);
         String upsert = database.getType() == HikariProvider.DatabaseType.MYSQL
@@ -82,7 +83,7 @@ public final class ClanData {
             ps.setString(1, id.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
-                Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
+                Clan clan = decodeClan(rs.getString("data"));
                 if (clan != null) cache.put(id, clan);
                 return clan;
             }
@@ -104,13 +105,37 @@ public final class ClanData {
             ps.setString(1, name);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
-                Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
+                Clan clan = decodeClan(rs.getString("data"));
                 if (clan != null) cache.put(clan.getId(), clan);
                 return clan;
             }
         } catch (SQLException e) {
             return null;
         }
+    }
+
+    /** Resolve cla pelo UUID do membro (repara metadata desatualizada). */
+    public Clan findByMember(UUID playerId) {
+        if (playerId == null) return null;
+        for (Clan clan : loadAllCached()) {
+            if (clan != null && clan.isMember(playerId)) return clan;
+        }
+        return null;
+    }
+
+    private List<Clan> loadAllCached() {
+        if (cache.isEmpty()) {
+            try (Connection c = database.getConnection();
+                 PreparedStatement ps = c.prepareStatement("SELECT data FROM clans")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Clan clan = decodeClan(rs.getString("data"));
+                        if (clan != null) cache.put(clan.getId(), clan);
+                    }
+                }
+            } catch (SQLException ignored) {}
+        }
+        return new ArrayList<>(cache.values());
     }
 
     public Clan getByTag(String tag) {
@@ -126,7 +151,7 @@ public final class ClanData {
             ps.setString(1, clean);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
-                Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
+                Clan clan = decodeClan(rs.getString("data"));
                 if (clan != null) cache.put(clan.getId(), clan);
                 return clan;
             }
@@ -153,7 +178,7 @@ public final class ClanData {
                  PreparedStatement ps = c.prepareStatement("SELECT data FROM clans")) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        Clan clan = Core.GSON.fromJson(rs.getString("data"), Clan.class);
+                        Clan clan = decodeClan(rs.getString("data"));
                         if (clan != null) {
                             cache.put(clan.getId(), clan);
                             all.add(clan);
@@ -198,5 +223,12 @@ public final class ClanData {
 
     public void removeRequest(ClanRequest request) {
         requests.remove(request.key());
+    }
+
+    private static Clan decodeClan(String json) {
+        if (json == null || json.isBlank()) return null;
+        Clan clan = Core.GSON.fromJson(json, Clan.class);
+        if (clan != null) clan.normalizeStyle();
+        return clan;
     }
 }

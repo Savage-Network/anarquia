@@ -21,7 +21,7 @@ public final class ShopCommand implements CommandInheritor {
             description = "Central de economia e lojas", usage = "/loja [gui|placa|reload]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         Player player = ctx.player();
 
         if (ctx.getArgs().length == 0 || ctx.getArgs()[0].equalsIgnoreCase("gui")

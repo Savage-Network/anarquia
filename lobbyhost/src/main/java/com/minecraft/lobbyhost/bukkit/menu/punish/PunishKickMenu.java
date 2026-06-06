@@ -4,18 +4,13 @@ import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.bukkit.menu.Menu;
 import com.minecraft.lobbyhost.bukkit.menu.MenuItem;
 import com.minecraft.lobbyhost.punishment.PunishContext;
+import com.minecraft.lobbyhost.punishment.PunishmentRules;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-public final class PunishKickMenu extends Menu {
+import java.util.List;
 
-    private static final String[] REASONS = {
-            "Comportamento inadequado",
-            "Spam / Flood",
-            "Provocação / Toxicidade",
-            "Skin ou nick inapropriado",
-            "Outro motivo"
-    };
+public final class PunishKickMenu extends Menu {
 
     private final Account target;
 
@@ -27,9 +22,10 @@ public final class PunishKickMenu extends Menu {
     @Override
     public void build() {
         clear();
-        int[] slots = {10, 11, 12, 13, 14, 15, 16};
-        for (int i = 0; i < REASONS.length && i < slots.length; i++) {
-            String reason = REASONS[i];
+        List<String> reasons = PunishmentRules.kickReasons();
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21};
+        for (int i = 0; i < reasons.size() && i < slots.length; i++) {
+            String reason = reasons.get(i);
             set(slots[i], MenuItem.of(Material.IRON_DOOR)
                     .name("§6" + reason)
                     .lore("§7Expulsar com este motivo", "", "§eClique para confirmar")

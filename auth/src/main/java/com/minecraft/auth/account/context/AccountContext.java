@@ -66,7 +66,10 @@ public class AccountContext {
     private CustomTitle customTitle = null;
 
     /** Cor do {@code +} do rank EMBER+ (ex.: {@code §5}). */
-    private String emberPlusColor = "§5";
+    /** Cor do {@code +} do rank EMBER+ (id ou legacy). */
+    private String emberPlusColor = "purple";
+    private int emberPlusMonths = 0;
+    private long emberPlusSince = 0L;
 
     private UUID lastMessage = Constant.DEFAULT_ID;
     private String partyIdentifier = "...";

@@ -148,7 +148,7 @@ public class Account {
             }
         }
         return getPermissions().stream()
-                .anyMatch(p -> !p.hasExpired() && p.getKey().equalsIgnoreCase(key));
+                .anyMatch(p -> !p.hasExpired() && RankType.matchesPermission(p.getKey(), key));
     }
 
     public java.util.List<com.minecraft.auth.account.context.objects.permission.Permission> getPermissions() {

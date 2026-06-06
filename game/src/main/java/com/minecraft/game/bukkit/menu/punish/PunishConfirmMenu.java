@@ -7,7 +7,7 @@ import com.minecraft.game.api.punishment.PunishmentReason;
 import com.minecraft.game.bukkit.menu.Menu;
 import com.minecraft.game.bukkit.menu.MenuItem;
 import com.minecraft.game.punishment.PunishContext;
-import com.minecraft.game.punishment.PunishmentPresets;
+import com.minecraft.game.punishment.PunishmentRules;
 import com.minecraft.game.punishment.PunishmentService;
 import com.minecraft.game.util.ModernText;
 import org.bukkit.Bukkit;
@@ -34,8 +34,10 @@ public final class PunishConfirmMenu extends Menu {
         String action = kick ? "Kick" : (ctx != null && ctx.category() != null
                 ? ctx.category().getDisplayName() : "Punição");
         String reason = ctx != null && ctx.reason() != null ? ctx.reason().getDisplayName() : "—";
-        String time = ctx != null ? PunishmentPresets.formatTime(ctx.time()) : "—";
+        String time = ctx != null ? PunishmentRules.formatTime(ctx.time()) : "—";
         String cause = ctx != null ? ctx.cause() : "Não informado";
+        int offense = ctx != null ? ctx.offenseNumber() : 1;
+        boolean silent = ctx != null && ctx.silent();
 
         set(4, MenuItem.of(Material.PLAYER_HEAD)
                 .skullOwner(target.getName())
@@ -43,8 +45,10 @@ public final class PunishConfirmMenu extends Menu {
                 .lore(
                         "§7Ação: §f" + action,
                         kick ? "" : "§7Motivo: §f" + reason,
+                        kick ? "" : "§7Infração: §f#" + offense,
                         kick ? "" : "§7Tempo: §f" + time,
                         "§7Causa: §f" + cause,
+                        silent ? "§7Modo: §aSilencioso" : "§7Modo: §fNormal",
                         "",
                         "§8Confirme abaixo"
                 ));
@@ -107,7 +111,8 @@ public final class PunishConfirmMenu extends Menu {
             return;
         }
 
-        PunishmentService.apply(authorId, authorName, targetName, category, reason, ctx.time(), ctx.cause())
+        PunishmentService.apply(authorId, authorName, targetName, category, reason,
+                        ctx.time(), ctx.cause(), ctx.ruleId(), ctx.silent())
                 .thenAccept(r -> Bukkit.getScheduler().runTask(Core.getJavaPlugin(), () -> {
                     if (r.success()) {
                         successSound();

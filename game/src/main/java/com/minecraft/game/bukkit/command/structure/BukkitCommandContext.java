@@ -2,6 +2,9 @@ package com.minecraft.game.bukkit.command.structure;
 
 import com.minecraft.game.Core;
 import com.minecraft.game.account.Account;
+import com.minecraft.game.message.LanguageService;
+import com.minecraft.game.message.Messages;
+import com.minecraft.game.message.PlayerLanguage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -10,6 +13,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,6 +53,18 @@ public final class BukkitCommandContext {
 
     public void reply(String legacy) {
         sender.sendMessage(legacy);
+    }
+
+    public PlayerLanguage lang() {
+        return LanguageService.of(sender);
+    }
+
+    public void replyKey(String path) {
+        reply(Messages.component(path, lang()));
+    }
+
+    public void replyKey(String path, Map<String, String> placeholders) {
+        reply(Messages.component(path, lang(), placeholders));
     }
 
     public String joinArgs(int from) {

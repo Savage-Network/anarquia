@@ -41,8 +41,11 @@ public final class TaskManager {
         networkPollTask = new NetworkPollTask().runTaskTimerAsynchronously(
                 plugin, 0L, networkTicks);
 
-        leaderboardTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
-                LeaderboardCache::refreshAll,
+        leaderboardTask = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+                    LeaderboardCache.refreshAll();
+                    plugin.getServer().getScheduler().runTask(plugin,
+                            com.minecraft.game.bukkit.hologram.LeaderboardHologramManager::refreshDisplays);
+                },
                 GameSettings.LEADERBOARD_REFRESH_TICKS,
                 GameSettings.LEADERBOARD_REFRESH_TICKS);
 

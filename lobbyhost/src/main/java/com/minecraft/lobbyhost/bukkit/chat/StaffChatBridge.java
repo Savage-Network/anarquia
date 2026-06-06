@@ -12,7 +12,12 @@ public final class StaffChatBridge {
     private StaffChatBridge() {}
 
     public static boolean canUseStaffChat(Account account, Player player) {
-        return account != null && (account.isStaffer() || player.hasPermission("lobbyhost.staffchat"));
+        if (account == null) return false;
+        if (account.canUseStaffChat()) return true;
+        return player != null && (
+                player.hasPermission("game.staffchat")
+                        || player.hasPermission("lobbyhost.staffchat")
+                        || player.hasPermission("proxyhost.staffchat"));
     }
 
     public static void send(Account sender, String message) {
@@ -49,7 +54,7 @@ public final class StaffChatBridge {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Account a = Core.getAccountController().of(p.getUniqueId());
             if (a == null) continue;
-            if (!a.isStaffer() && !p.hasPermission("lobbyhost.staffchat")) continue;
+            if (!canUseStaffChat(a, p)) continue;
             p.sendMessage(c);
         }
         Core.getLogger().info("[STAFF] " + strip(coloredFrom) + " @ " + server + ": " + body);

@@ -32,4 +32,7 @@ public class Toggle {
     private boolean acStaffVerbose = false;
 
     private TagPrefix tagPrefix = TagPrefix.DEFAULT;
+
+    /** Idioma do jogador: {@code pt} ou {@code en}. */
+    private String language = "pt";
 }

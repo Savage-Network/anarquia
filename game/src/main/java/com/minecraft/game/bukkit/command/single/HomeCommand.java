@@ -25,7 +25,7 @@ public final class HomeCommand implements CommandInheritor {
     @Command(name = "sethome", playerOnly = true, usage = "/sethome [nome]")
     public void setHome(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         String name = ctx.getArgs().length > 0 ? ctx.getArgs()[0] : "home";
         ctx.reply(HomeService.setHome(account, ctx.player(), name));
     }
@@ -33,7 +33,7 @@ public final class HomeCommand implements CommandInheritor {
     @Command(name = "delhome", playerOnly = true, usage = "/delhome [nome]")
     public void delHome(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         String name = ctx.getArgs().length > 0 ? ctx.getArgs()[0] : "home";
         ctx.reply(HomeService.deleteHome(account, name));
     }
@@ -41,14 +41,14 @@ public final class HomeCommand implements CommandInheritor {
     @Command(name = "homes", playerOnly = true, usage = "/homes")
     public void homes(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         HomeService.sendList(account);
     }
 
     @Command(name = "home", playerOnly = true, usage = "/home [nome]")
     public void home(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
-        if (account == null) { ctx.reply("§cConta nao carregada."); return; }
+        if (account == null) { ctx.replyKey("errors.account-not-loaded"); return; }
         Player player = ctx.player();
 
         if (CombatTagManager.isTagged(player)) {

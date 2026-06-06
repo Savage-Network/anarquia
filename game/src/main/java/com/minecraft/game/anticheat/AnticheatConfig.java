@@ -23,6 +23,18 @@ public final class AnticheatConfig {
 
     private static boolean enabled = true;
     private static boolean alertStaff = true;
+    private static boolean lagCompensation = true;
+    private static boolean setbackEnabled = true;
+
+    private static int bufferDefault = 2;
+    private static int bufferMovement = 3;
+    private static int bufferCombat = 2;
+    private static int bufferWorld = 2;
+    private static int bufferPlayer = 2;
+
+    private static boolean vlDecayEnabled = true;
+    private static long vlDecayIntervalTicks = 1200L;
+    private static int vlDecayAmount = 1;
 
     private static boolean punishEnabled = true;
     private static int kickVl = 25;
@@ -61,6 +73,18 @@ public final class AnticheatConfig {
     private static void readAll() {
         enabled = yaml.getBoolean("enabled", true);
         alertStaff = yaml.getBoolean("alert-staff", true);
+        lagCompensation = yaml.getBoolean("lag-compensation", true);
+        setbackEnabled = yaml.getBoolean("setback.enabled", true);
+
+        bufferDefault = yaml.getInt("buffers.default", 2);
+        bufferMovement = yaml.getInt("buffers.movement", 3);
+        bufferCombat = yaml.getInt("buffers.combat", 2);
+        bufferWorld = yaml.getInt("buffers.world", 2);
+        bufferPlayer = yaml.getInt("buffers.player", 2);
+
+        vlDecayEnabled = yaml.getBoolean("vl-decay.enabled", true);
+        vlDecayIntervalTicks = yaml.getLong("vl-decay.interval-ticks", 1200L);
+        vlDecayAmount = yaml.getInt("vl-decay.amount", 1);
 
         punishEnabled = yaml.getBoolean("punishments.enabled", true);
         kickVl = yaml.getInt("punishments.kick-vl", 25);
@@ -72,31 +96,54 @@ public final class AnticheatConfig {
         }
 
         numericValues.clear();
-        putNum("fly.air-ticks", yaml.getDouble("checks.fly.air-ticks", 28));
-        putNum("speed.ground-limit", yaml.getDouble("checks.speed.ground-limit", 0.65));
-        putNum("speed.air-limit", yaml.getDouble("checks.speed.air-limit", 0.55));
+        putNum("fly.air-ticks", yaml.getDouble("checks.fly.air-ticks", 32));
+        putNum("speed.ground-limit", yaml.getDouble("checks.speed.ground-limit", 0.68));
+        putNum("speed.air-limit", yaml.getDouble("checks.speed.air-limit", 0.58));
+        putNum("speed.sprint-bonus", yaml.getDouble("checks.speed.sprint-bonus", 0.08));
         putNum("no-fall.min-fall", yaml.getDouble("checks.no-fall.min-fall", 4.0));
         putNum("high-jump.max-delta-y", yaml.getDouble("checks.high-jump.max-delta-y", 0.85));
         putNum("step.max-step", yaml.getDouble("checks.step.max-step", 1.25));
-        putNum("elytra.max-speed", yaml.getDouble("checks.elytra.max-speed", 1.8));
-        putNum("blink.max-delta", yaml.getDouble("checks.blink.max-delta", 10.0));
+        putNum("elytra.max-speed", yaml.getDouble("checks.elytra.max-speed", 1.85));
+        putNum("blink.max-delta", yaml.getDouble("checks.blink.max-delta", 9.0));
+        putNum("no-slow.max-speed", yaml.getDouble("checks.no-slow.max-speed", 0.22));
+        putNum("strafe.min-speed", yaml.getDouble("checks.strafe.min-speed", 0.35));
+        putNum("strafe.max-yaw-delta", yaml.getDouble("checks.strafe.max-yaw-delta", 75));
         putNum("reach.max-reach", yaml.getDouble("checks.reach.max-reach", 3.35));
+        putNum("hitbox.max-reach", yaml.getDouble("checks.hitbox.max-reach", 3.05));
         putNum("kill-aura.max-targets", yaml.getDouble("checks.kill-aura.max-targets", 3));
         putNum("kill-aura.window-ms", yaml.getDouble("checks.kill-aura.window-ms", 500));
         putNum("auto-click.max-cps", yaml.getDouble("checks.auto-click.max-cps", 22));
+        putNum("no-swing.max-ms", yaml.getDouble("checks.no-swing.max-ms", 350));
         putNum("velocity.min-ratio", yaml.getDouble("checks.velocity.min-ratio", 0.35));
+        putNum("velocity.delay-ticks", yaml.getDouble("checks.velocity.delay-ticks", 3));
+        putNum("aim-assist.max-rotation", yaml.getDouble("checks.aim-assist.max-rotation", 45));
+        putNum("multi-hit.max-hits", yaml.getDouble("checks.multi-hit.max-hits", 2));
         putNum("fast-break.min-break-ms", yaml.getDouble("checks.fast-break.min-break-ms", 80));
         putNum("fast-place.max-per-second", yaml.getDouble("checks.fast-place.max-per-second", 14));
+        putNum("nuker.max-per-second", yaml.getDouble("checks.nuker.max-per-second", 18));
+        putNum("ghost-hand.max-reach", yaml.getDouble("checks.ghost-hand.max-reach", 6.0));
         putNum("fast-eat.min-eat-ms", yaml.getDouble("checks.fast-eat.min-eat-ms", 1400));
         putNum("fast-bow.min-draw-ms", yaml.getDouble("checks.fast-bow.min-draw-ms", 350));
         putNum("timer.max-moves-per-second", yaml.getDouble("checks.timer.max-moves-per-second", 22));
         putNum("inventory-move.speed-limit", yaml.getDouble("checks.inventory-move.speed-limit", 0.45));
+        putNum("auto-totem.min-ms", yaml.getDouble("checks.auto-totem.min-ms", 150));
+        putNum("auto-armor.min-ms", yaml.getDouble("checks.auto-armor.min-ms", 120));
     }
 
     public static void save() {
         if (yaml == null || file == null) return;
         yaml.set("enabled", enabled);
         yaml.set("alert-staff", alertStaff);
+        yaml.set("lag-compensation", lagCompensation);
+        yaml.set("setback.enabled", setbackEnabled);
+        yaml.set("buffers.default", bufferDefault);
+        yaml.set("buffers.movement", bufferMovement);
+        yaml.set("buffers.combat", bufferCombat);
+        yaml.set("buffers.world", bufferWorld);
+        yaml.set("buffers.player", bufferPlayer);
+        yaml.set("vl-decay.enabled", vlDecayEnabled);
+        yaml.set("vl-decay.interval-ticks", vlDecayIntervalTicks);
+        yaml.set("vl-decay.amount", vlDecayAmount);
         yaml.set("punishments.enabled", punishEnabled);
         yaml.set("punishments.kick-vl", kickVl);
         yaml.set("punishments.ban-vl", banVl);
@@ -113,6 +160,16 @@ public final class AnticheatConfig {
         } catch (IOException e) {
             com.minecraft.game.Core.getLogger().warning("Falha ao salvar anticheat.yml: " + e.getMessage());
         }
+    }
+
+    public static int bufferSize(AnticheatCheck check) {
+        if (check == null) return bufferDefault;
+        return switch (check.getCategory()) {
+            case MOVEMENT -> bufferMovement;
+            case COMBAT -> bufferCombat;
+            case WORLD -> bufferWorld;
+            case PLAYER -> bufferPlayer;
+        };
     }
 
     private static void putNum(String key, double value) {
@@ -133,12 +190,18 @@ public final class AnticheatConfig {
     public static boolean isAlertStaff() { return alertStaff; }
     public static void setAlertStaff(boolean v) { alertStaff = v; }
 
+    public static boolean isLagCompensation() { return lagCompensation; }
+    public static void setLagCompensation(boolean v) { lagCompensation = v; }
+
+    public static boolean isSetbackEnabled() { return setbackEnabled; }
+    public static void setSetbackEnabled(boolean v) { setbackEnabled = v; }
+
+    public static boolean isVlDecayEnabled() { return vlDecayEnabled; }
+    public static long getVlDecayIntervalTicks() { return vlDecayIntervalTicks; }
+    public static int getVlDecayAmount() { return vlDecayAmount; }
+
     public static String getDiscordWebhook() {
         return DiscordConfig.webhook("anticheat");
-    }
-
-    public static void setDiscordWebhook(String v) {
-        // Webhook do anticheat fica em plugins/game/discord.yml → webhooks.anticheat
     }
 
     public static boolean isPunishEnabled() { return punishEnabled; }

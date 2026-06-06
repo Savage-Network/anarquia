@@ -21,8 +21,14 @@ public final class LoginListener {
         Player player = event.getPlayer();
         Core.getAccountController().load(player.getUniqueId(), player.getUsername())
                 .thenAccept(account -> {
+                    if (Core.getNetworkPresenceData() != null) {
+                        String server = player.getCurrentServer()
+                                .map(s -> s.getServerInfo().getName())
+                                .orElse("proxy");
+                        Core.getNetworkPresenceData().upsert(player.getUniqueId(), player.getUsername(), server);
+                    }
                     if (Core.getLogger().isDebugEnabled()) {
-                        Core.getLogger().debug("Account cache: {} rank={} permNodes={} original={}",
+                        Core.getLogger().debug("Account cache: {} rank={} permNodes={} premium={}",
                                 account.getName(), account.getRankType(),
                                 account.collectPermissionNodes().size(), account.isPremium());
                     }
@@ -40,6 +46,14 @@ public final class LoginListener {
         Player p = event.getPlayer();
         Account a = Core.getAccountController().of(p.getUniqueId());
         if (a == null) return;
+
+        if (Core.getNetworkPresenceData() != null) {
+            String server = p.getCurrentServer()
+                    .map(s -> s.getServerInfo().getName())
+                    .orElse("proxy");
+            Core.getNetworkPresenceData().upsert(p.getUniqueId(), p.getUsername(), server);
+        }
+
         if (a.isStaffer()) {
             Core.getLogger().info("[staff] {} -> {}",
                     a.getName(),
@@ -50,6 +64,9 @@ public final class LoginListener {
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         Player player = event.getPlayer();
+        if (Core.getNetworkPresenceData() != null) {
+            Core.getNetworkPresenceData().remove(player.getUniqueId());
+        }
         Core.getAccountController().unload(player.getUniqueId());
     }
 }

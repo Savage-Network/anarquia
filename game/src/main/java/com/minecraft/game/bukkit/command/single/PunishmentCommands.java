@@ -192,6 +192,75 @@ public final class PunishmentCommands implements CommandInheritor {
         });
     }
 
+    @Command(name = "check", aliases = {"punishcheck", "verpunicao"}, rank = RankType.HELPER,
+            permission = "game.punish",
+            description = "Consulta punição por ID ou jogador",
+            usage = "/check <ID|nick>")
+    public void check(BukkitCommandContext ctx) {
+        if (!staffOk(ctx)) return;
+        String[] args = ctx.getArgs();
+        if (args.length < 1) {
+            ctx.reply(ModernText.parse(ModernText.hint("check <ID|nick>")));
+            return;
+        }
+        String query = args[0];
+        var data = Core.getPunishmentData();
+        if (data == null) {
+            ctx.reply(ModernText.parse("<!italic><" + ModernText.ERROR + ">Sistema indisponível."));
+            return;
+        }
+
+        if (query.startsWith("#") || query.matches("[a-zA-Z]{4}\\d")) {
+            String id = query.startsWith("#") ? query : "#" + query;
+            data.findById(id).ifPresentOrElse(p -> ctx.reply(formatPunishmentLine(p)),
+                    () -> ctx.reply(ModernText.parse("<!italic><" + ModernText.ERROR
+                            + ">Punição não encontrada.")));
+            return;
+        }
+
+        PunishmentService.resolveTarget(query).thenAccept(opt -> {
+            if (opt.isEmpty()) {
+                ctx.reply(ModernText.parse("<!italic><" + ModernText.ERROR + ">Jogador não encontrado."));
+                return;
+            }
+            Account target = opt.get();
+            var activeBan = data.findActive(target.getId(), PunishmentCategory.BAN);
+            var activeMute = data.findActive(target.getId(), PunishmentCategory.MUTE);
+            ctx.reply(ModernText.parse("<!italic><" + ModernText.WARN + ">Consulta: <#F1F5F9>"
+                    + target.getName()));
+            if (activeBan.isPresent()) {
+                ctx.reply(formatPunishmentLine(activeBan.get()));
+            } else {
+                ctx.reply(ModernText.parse("<!italic><" + ModernText.MUTED + ">Ban: nenhum ativo."));
+            }
+            if (activeMute.isPresent()) {
+                ctx.reply(formatPunishmentLine(activeMute.get()));
+            } else {
+                ctx.reply(ModernText.parse("<!italic><" + ModernText.MUTED + ">Mute: nenhum ativo."));
+            }
+            var recent = data.listByPlayer(target.getId(), 5);
+            if (!recent.isEmpty()) {
+                ctx.reply(ModernText.parse("<!italic><#64748B>Últimas punições:"));
+                for (var p : recent) {
+                    ctx.reply(formatPunishmentLine(p));
+                }
+            }
+        });
+    }
+
+    private net.kyori.adventure.text.Component formatPunishmentLine(
+            com.minecraft.game.api.punishment.Punishment p) {
+        String status = p.isActive() ? "ativa" : "revogada";
+        String duration = p.isTemporary()
+                ? PunishmentTimeUtil.formatRemaining(p.getExpiresAt())
+                : "Permanente";
+        return ModernText.parse("<!italic><#F1F5F9>" + p.getId()
+                + " <#64748B>| <#F1F5F9>" + p.getCategory().getDisplayName()
+                + " <#64748B>| " + status
+                + " <#64748B>| " + duration
+                + " <#64748B>| " + p.getCause());
+    }
+
     private void showPresets(BukkitCommandContext ctx, PunishmentCategory cat, String target) {
         ctx.reply(ModernText.parse("<!italic><" + ModernText.WARN + ">" + cat.getDisplayName()
                 + " <#64748B>para <#F1F5F9>" + target));
@@ -305,6 +374,12 @@ public final class PunishmentCommands implements CommandInheritor {
 
     @Completer(name = "history", subCommands = {"punishments", "punicoes"})
     public List<String> tabHistory(BukkitCommandContext ctx) {
+        if (ctx.getArgs().length == 1) return TabCompleteUtil.onlinePlayers(ctx.getArgs()[0]);
+        return List.of();
+    }
+
+    @Completer(name = "check", subCommands = {"punishcheck", "verpunicao"})
+    public List<String> tabCheck(BukkitCommandContext ctx) {
         if (ctx.getArgs().length == 1) return TabCompleteUtil.onlinePlayers(ctx.getArgs()[0]);
         return List.of();
     }

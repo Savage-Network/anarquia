@@ -4,65 +4,108 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Cores disponíveis para a clantag. Cada entrada mapeia para um vidro no menu.
+ * Estilos de clantag. Persistência sempre via {@link #getId()} (nunca {@code §code}).
  */
 @Getter
 @RequiredArgsConstructor
 public enum ClanColor {
 
-    DEFAULT("Padrão", "§7", "padrao", Material.LIGHT_GRAY_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    AQUA("Água", "§b", "aqua", Material.LIGHT_BLUE_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    GREEN("Verde", "§a", "verde", Material.LIME_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    GOLD("Ouro", "§6", "ouro", Material.ORANGE_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    RED("Vermelho", "§c", "vermelho", Material.RED_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    PINK("Rosa", "§d", "rosa", Material.PINK_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    PURPLE("Roxo", "§5", "roxo", Material.PURPLE_STAINED_GLASS_PANE, true, null,
-            GradientMode.NONE, null, null),
-    EMBER("Ember", "§c", "ember", Material.MAGENTA_STAINED_GLASS_PANE, false, "lobbyhost.vip",
-            GradientMode.NONE, null, null),
-    ADMIN("Admin", "§4", "admin", Material.BLACK_STAINED_GLASS_PANE, false, "lobbyhost.admin",
-            GradientMode.NONE, null, null),
+    // --- Sólidas ---
+    DEFAULT("Padrão", "§7", "padrao", Material.LIGHT_GRAY_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    AQUA("Água", "§b", "aqua", Material.LIGHT_BLUE_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    GREEN("Verde", "§a", "verde", Material.LIME_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    GOLD("Ouro", "§6", "ouro", Material.ORANGE_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    RED("Vermelho", "§c", "vermelho", Material.RED_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    PINK("Rosa", "§d", "rosa", Material.PINK_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    PURPLE("Roxo", "§5", "roxo", Material.PURPLE_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    WHITE("Branco", "§f", "branco", Material.QUARTZ_BLOCK,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
+    CYAN("Ciano", "§3", "ciano", Material.CYAN_CONCRETE,
+            StyleCategory.SOLID, true, null, RenderMode.SOLID, null, null),
 
-    /** Verde → amarelo (cores da bandeira). */
-    BRASIL("Brasil", "§a", "brasil", Material.YELLOW_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#009C3B", "#FFDF00"),
-    SUNSET("Pôr do Sol", "§6", "sunset", Material.ORANGE_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#EA580C", "#FBBF24"),
-    OCEAN("Oceano", "§b", "oceano", Material.BLUE_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#1D4ED8", "#38BDF8"),
-    FOREST("Floresta", "§2", "floresta", Material.GREEN_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#14532D", "#4ADE80"),
-    FIRE("Fogo", "§c", "fogo", Material.RED_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#DC2626", "#FACC15"),
-    AURORA("Aurora", "§d", "aurora", Material.MAGENTA_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#7C3AED", "#F472B6"),
-    ICE("Gelo", "§b", "gelo", Material.CYAN_STAINED_GLASS_PANE, true, null,
-            GradientMode.HEX, "#E0F2FE", "#22D3EE"),
-    SAVAGE("Savage", "§2", "savage", Material.EMERALD_BLOCK, true, null,
-            GradientMode.HEX, "#064E3B", "#10B981"),
-    YINGYANG("Yin Yang", "§f", "yingyang", Material.WHITE_STAINED_GLASS_PANE, true, null,
-            GradientMode.YIN_YANG, null, null);
+    // --- Premium ---
+    EMBER("Ember", "§c", "ember", Material.MAGENTA_CONCRETE,
+            StyleCategory.PREMIUM, false, "lobbyhost.vip", RenderMode.SOLID, null, null),
+    ADMIN("Admin", "§4", "admin", Material.BLACK_CONCRETE,
+            StyleCategory.PREMIUM, false, "lobbyhost.admin", RenderMode.SOLID, null, null),
+
+    // --- Gradientes hex ---
+    BRASIL("Brasil", "§a", "brasil", Material.GREEN_CONCRETE,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#009C3B", "#FFDF00"),
+    SAVAGE("Savage", "§2", "savage", Material.EMERALD_BLOCK,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#064E3B", "#10B981"),
+    SUNSET("Pôr do Sol", "§6", "sunset", Material.ORANGE_TERRACOTTA,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#EA580C", "#FBBF24"),
+    OCEAN("Oceano", "§b", "oceano", Material.BLUE_CONCRETE,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#1D4ED8", "#38BDF8"),
+    FOREST("Floresta", "§2", "floresta", Material.MOSS_BLOCK,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#14532D", "#4ADE80"),
+    FIRE("Fogo", "§c", "fogo", Material.MAGMA_BLOCK,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#DC2626", "#FACC15"),
+    AURORA("Aurora", "§d", "aurora", Material.AMETHYST_BLOCK,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#7C3AED", "#F472B6"),
+    ICE("Gelo", "§b", "gelo", Material.PACKED_ICE,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#E0F2FE", "#22D3EE"),
+    NEON("Neon", "§d", "neon", Material.PINK_GLAZED_TERRACOTTA,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#FF006E", "#00F5FF"),
+    ROYAL("Royal", "§5", "royal", Material.PURPLE_GLAZED_TERRACOTTA,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#4C1D95", "#F59E0B"),
+    MIDNIGHT("Meia-noite", "§1", "meianoite", Material.DEEPSLATE,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#0F172A", "#6366F1"),
+    CHERRY("Cereja", "§c", "cereja", Material.CHERRY_LEAVES,
+            StyleCategory.GRADIENT, true, null, RenderMode.HEX, "#BE185D", "#FDA4AF"),
+
+    // --- Especiais ---
+    YINGYANG("Yin Yang", "§f", "yingyang", Material.QUARTZ_BLOCK,
+            StyleCategory.SPECIAL, true, null, RenderMode.YIN_YANG, null, null),
+    ZEBRA("Zebra", "§f", "zebra", Material.WHITE_WOOL,
+            StyleCategory.SPECIAL, true, null, RenderMode.ALTERNATE, "§f", "§8");
 
     private final String name;
     private final String code;
     private final String id;
     private final Material glass;
+    private final StyleCategory category;
     private final boolean free;
-    /** Permissão LuckPerms; null = livre para todos. */
     private final String permission;
-    private final GradientMode gradientMode;
-    private final String gradientFrom;
-    private final String gradientTo;
+    private final RenderMode renderMode;
+    private final String toneA;
+    private final String toneB;
 
+    public boolean isGradient() {
+        return renderMode == RenderMode.HEX;
+    }
+
+    public boolean isPremium() {
+        return category == StyleCategory.PREMIUM;
+    }
+
+    @Deprecated
     public boolean hasMixedTag() {
-        return gradientMode != GradientMode.NONE;
+        return renderMode != RenderMode.SOLID;
+    }
+
+    public static ClanColor defaultColor() {
+        return DEFAULT;
+    }
+
+    public static List<ClanColor> byCategory(StyleCategory category) {
+        List<ClanColor> out = new ArrayList<>();
+        for (ClanColor color : values()) {
+            if (color.category == category) out.add(color);
+        }
+        return out;
     }
 
     public static ClanColor parse(String input) {
@@ -81,18 +124,38 @@ public enum ClanColor {
     }
 
     public static ClanColor byStored(String stored) {
-        if (stored == null || stored.isBlank()) return DEFAULT;
-        ClanColor byId = parse(stored);
-        if (byId != null) return byId;
+        return byId(normalizeStored(stored));
+    }
+
+    public static ClanColor byId(String id) {
+        if (id == null || id.isBlank()) return DEFAULT;
         for (ClanColor color : values()) {
-            if (color.code.equals(stored)) return color;
+            if (color.id.equalsIgnoreCase(id)) return color;
         }
         return DEFAULT;
     }
 
-    public enum GradientMode {
-        NONE,
+    public static String normalizeStored(String stored) {
+        if (stored == null || stored.isBlank()) return DEFAULT.getId();
+        ClanColor parsed = parse(stored);
+        if (parsed != null) return parsed.getId();
+        for (ClanColor color : values()) {
+            if (color.code.equals(stored)) return color.getId();
+        }
+        return DEFAULT.getId();
+    }
+
+    public enum StyleCategory {
+        SOLID,
+        PREMIUM,
+        GRADIENT,
+        SPECIAL
+    }
+
+    public enum RenderMode {
+        SOLID,
         HEX,
-        YIN_YANG
+        YIN_YANG,
+        ALTERNATE
     }
 }

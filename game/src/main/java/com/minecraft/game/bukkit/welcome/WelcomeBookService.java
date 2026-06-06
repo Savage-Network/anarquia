@@ -234,7 +234,7 @@ public final class WelcomeBookService {
                 .formatted(TITLE, RESET, SEP,
                         CMD, MUTED, BODY,
                         CMD, MUTED, CMD, MUTED,
-                        CMD, BODY));
+                        BODY, CMD, MUTED));
 
         pages.add("""
                 %sPerfil & chat%s

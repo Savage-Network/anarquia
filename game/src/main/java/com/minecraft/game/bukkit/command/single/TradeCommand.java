@@ -4,6 +4,7 @@ import com.minecraft.game.bukkit.command.annotation.Command;
 import com.minecraft.game.bukkit.command.annotation.Completer;
 import com.minecraft.game.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.game.bukkit.command.structure.CommandInheritor;
+import com.minecraft.game.bukkit.semi.CombatTagManager;
 import com.minecraft.game.bukkit.shop.trade.TradeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -22,6 +23,8 @@ public final class TradeCommand implements CommandInheritor {
         }
 
         Player player = ctx.player();
+        if (CombatTagManager.blockIfTagged(player)) return;
+
         String arg = ctx.getArgs()[0];
 
         if (arg.equalsIgnoreCase("aceitar") || arg.equalsIgnoreCase("accept")) {

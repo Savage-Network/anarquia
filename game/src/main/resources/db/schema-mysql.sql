@@ -56,6 +56,17 @@ CREATE TABLE IF NOT EXISTS network_stats (
 
 CREATE INDEX IF NOT EXISTS idx_network_stats_category ON network_stats(category);
 
+-- Presenca online (proxy atualiza; bot/API consultam)
+CREATE TABLE IF NOT EXISTS network_presence (
+    player_id     VARCHAR(36)  NOT NULL PRIMARY KEY,
+    player_name   VARCHAR(16)  NOT NULL,
+    server_id     VARCHAR(32)  NOT NULL DEFAULT 'proxy',
+    connected_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX IF NOT EXISTS idx_network_presence_seen ON network_presence(last_seen_at);
+
 -- Reports de jogadores (/report)
 CREATE TABLE IF NOT EXISTS player_reports (
     id              BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,

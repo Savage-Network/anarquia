@@ -2,17 +2,16 @@ package com.minecraft.lobbyhost.bukkit.command.single;
 
 import com.minecraft.lobbyhost.account.Account;
 import com.minecraft.lobbyhost.account.context.objects.cosmetic.Cape;
-import com.minecraft.lobbyhost.account.context.objects.cosmetic.CosmeticTitle;
-import com.minecraft.lobbyhost.account.context.objects.cosmetic.Gadget;
 import com.minecraft.lobbyhost.account.context.objects.cosmetic.ParticleEffect;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Command;
 import com.minecraft.lobbyhost.bukkit.command.annotation.Completer;
 import com.minecraft.lobbyhost.bukkit.command.structure.BukkitCommandContext;
 import com.minecraft.lobbyhost.bukkit.command.structure.CommandInheritor;
-import com.minecraft.lobbyhost.bukkit.manager.CosmeticManager;
-import com.minecraft.lobbyhost.bukkit.manager.TagManager;
+import com.minecraft.lobbyhost.bukkit.cosmetic.CapeParticleRegistry;
+import com.minecraft.lobbyhost.bukkit.cosmetic.CosmeticParticleRegistry;
 import com.minecraft.lobbyhost.bukkit.menu.CosmeticMenus;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,11 +20,11 @@ import java.util.List;
 public final class CosmeticCommand implements CommandInheritor {
 
     @Command(name = "cosmetic", aliases = {"cosmeticos", "cosmetico", "cos"}, playerOnly = true,
-            description = "Abre o menu de capas ou equipa uma capa", usage = "/cosmetic [cape|off] [nome]")
+            description = "Hub de cosméticos (capas e auras)", usage = "/cosmetic [sub] [id]")
     public void execute(BukkitCommandContext ctx) {
         Account account = ctx.account().orElse(null);
         if (account == null) {
-            ctx.reply("§cConta nao carregada.");
+            ctx.replyKey("errors.account-not-loaded");
             return;
         }
 
@@ -35,38 +34,65 @@ public final class CosmeticCommand implements CommandInheritor {
         }
 
         String sub = ctx.getArgs()[0].toLowerCase();
-        if ("off".equalsIgnoreCase(sub) || "desativar".equalsIgnoreCase(sub)) {
+        Player player = ctx.player();
+
+        if ("off".equals(sub) || "desativar".equals(sub)) {
             account.setActiveCape(null);
-            CosmeticManager.getCapeRenderer().remove(ctx.player());
-            ctx.player().playSound(ctx.player().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
-            ctx.reply("§aAsas desativadas!");
+            account.setActiveParticle(null);
+            CapeParticleRegistry.clear(player.getUniqueId());
+            CosmeticParticleRegistry.clear(player.getUniqueId());
+            ctx.reply("§aCosméticos desativados!");
             return;
         }
 
-        if (ctx.getArgs().length < 2) {
-            ctx.reply("§cArgumento insuficiente. Uso: /cosmetic <cape|off> [nome]");
+        if ("hub".equals(sub) || "menu".equals(sub)) {
+            CosmeticMenus.openMainMenu(player);
+            return;
+        }
+        if ("cape".equals(sub) || "capa".equals(sub) || "capas".equals(sub)) {
+            if (ctx.getArgs().length < 2) { CosmeticMenus.openCapeMenu(player); return; }
+            equipCape(ctx, account, player, ctx.getArgs()[1]);
+            return;
+        }
+        if ("particle".equals(sub) || "particula".equals(sub) || "aura".equals(sub)) {
+            if (ctx.getArgs().length < 2) { CosmeticMenus.openParticleMenu(player); return; }
+            equipParticle(ctx, account, ctx.getArgs()[1]);
+            return;
+        }
+        if ("ember".equals(sub) || "embercor".equals(sub)) {
+            CosmeticMenus.openEmberColorMenu(player);
+            return;
+        }
+        if ("unlock".equals(sub) && player.hasPermission("lobbyhost.admin")) {
+            if (ctx.getArgs().length < 3) {
+                ctx.reply("§cUso: /cosmetic unlock <tipo> <id>");
+                return;
+            }
+            String type = ctx.getArgs()[1].toLowerCase();
+            String id = ctx.getArgs()[2].toLowerCase();
+            account.unlockCosmetic(type + ":" + id);
+            ctx.reply("§aDesbloqueado: §f" + type + ":" + id);
             return;
         }
 
-        String name = ctx.getArgs()[1].toLowerCase();
+        ctx.reply("§cSubcomandos: hub, cape, particle, ember, off");
+    }
 
-        if ("cape".equals(sub) || "capa".equals(sub)) {
-            Cape cape = Cape.fromId(name);
-            if (cape == null) {
-                ctx.reply("§cCapa desconhecida.");
-                return;
-            }
-            if (!account.hasCape(cape)) {
-                ctx.reply("§cVocê não possui essa capa!");
-                return;
-            }
-            account.setActiveCape(cape);
-            CosmeticManager.getCapeRenderer().spawn(ctx.player(), cape);
-            ctx.reply("§aAsas " + cape.getDisplayName() + " §aequipadas!");
-            ctx.player().playSound(ctx.player().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
-        } else {
-            ctx.reply("§cSubcomando inválido. Use: /cosmetic <cape|off>");
-        }
+    private void equipCape(BukkitCommandContext ctx, Account account, Player player, String name) {
+        Cape cape = Cape.fromId(name);
+        if (cape == null) { ctx.reply("§cCapa desconhecida."); return; }
+        if (!account.hasCape(cape)) { ctx.reply("§cVocê não possui essa capa!"); return; }
+        account.setActiveCape(cape);
+        ctx.reply("§aAsas " + cape.getDisplayName() + " §aequipadas!");
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.8f);
+    }
+
+    private void equipParticle(BukkitCommandContext ctx, Account account, String name) {
+        ParticleEffect effect = ParticleEffect.fromId(name);
+        if (effect == null) { ctx.reply("§cPartícula desconhecida."); return; }
+        if (!account.hasParticle(effect)) { ctx.reply("§cVocê não possui essa aura!"); return; }
+        account.setActiveParticle(effect);
+        ctx.reply("§aAura " + effect.getDisplayName() + " §aativada!");
     }
 
     @Completer(name = "cosmetic")
@@ -79,7 +105,7 @@ public final class CosmeticCommand implements CommandInheritor {
 
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
-            for (String sub : Arrays.asList("cape", "off")) {
+            for (String sub : Arrays.asList("hub", "cape", "particle", "ember", "off", "unlock")) {
                 if (sub.startsWith(partial)) out.add(sub);
             }
             return out;
@@ -88,16 +114,16 @@ public final class CosmeticCommand implements CommandInheritor {
         if (args.length == 2) {
             String sub = args[0].toLowerCase();
             String partial = args[1].toLowerCase();
-
-            if ("cape".equals(sub) || "capa".equals(sub)) {
-                for (Cape cape : Cape.values()) {
-                    if (account.hasCape(cape) && cape.getId().startsWith(partial)) {
-                        out.add(cape.getId());
-                    }
+            if ("cape".equals(sub)) {
+                for (Cape c : Cape.values()) if (c.getId().startsWith(partial)) out.add(c.getId());
+            } else if ("particle".equals(sub) || "aura".equals(sub)) {
+                for (ParticleEffect p : ParticleEffect.values()) if (p.getId().startsWith(partial)) out.add(p.getId());
+            } else if ("unlock".equals(sub)) {
+                for (String t : Arrays.asList("cape", "particle")) {
+                    if (t.startsWith(partial)) out.add(t);
                 }
             }
         }
-
         return out;
     }
 }

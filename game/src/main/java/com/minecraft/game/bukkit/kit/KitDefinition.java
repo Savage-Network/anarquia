@@ -1,6 +1,7 @@
 package com.minecraft.game.bukkit.kit;
 
 import com.minecraft.game.account.context.objects.rank.RankType;
+import com.minecraft.game.bukkit.shop.ItemDisplayNames;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,10 +28,12 @@ public final class KitDefinition {
     private final Material chestplate;
     private final Material leggings;
     private final Material boots;
+    private final Material hubIcon;
 
     public KitDefinition(String id, String displayName, String permission, RankType minRank,
                          long cooldownMs, boolean clearInventory, List<KitSlotItem> items,
-                         Material helmet, Material chestplate, Material leggings, Material boots) {
+                         Material helmet, Material chestplate, Material leggings, Material boots,
+                         Material hubIcon) {
         this.id = id;
         this.displayName = displayName;
         this.permission = permission;
@@ -42,6 +45,7 @@ public final class KitDefinition {
         this.chestplate = chestplate;
         this.leggings = leggings;
         this.boots = boots;
+        this.hubIcon = hubIcon != null && hubIcon.isItem() ? hubIcon : Material.CHEST;
     }
 
     public String cooldownKey() {
@@ -49,10 +53,55 @@ public final class KitDefinition {
     }
 
     public Material iconMaterial() {
+        if (hubIcon != Material.CHEST) return hubIcon;
         if (!items.isEmpty()) return items.getFirst().stack().getType();
         if (chestplate != null && chestplate != Material.AIR) return chestplate;
         if (helmet != null && helmet != Material.AIR) return helmet;
         return Material.CHEST;
+    }
+
+    public int contentCount() {
+        int count = items.size();
+        if (helmet != null && helmet != Material.AIR) count++;
+        if (chestplate != null && chestplate != Material.AIR) count++;
+        if (leggings != null && leggings != Material.AIR) count++;
+        if (boots != null && boots != Material.AIR) count++;
+        return count;
+    }
+
+    public List<String> contentSummaryLines(int maxLines) {
+        List<String> lines = new ArrayList<>();
+        for (KitSlotItem item : items) {
+            if (lines.size() >= maxLines) break;
+            ItemStack stack = item.stack();
+            lines.add("§7" + ItemDisplayNames.plain(stack) + " §8x" + stack.getAmount());
+        }
+        appendArmorSummary(lines, maxLines);
+        return lines;
+    }
+
+    private void appendArmorSummary(List<String> lines, int maxLines) {
+        if (lines.size() >= maxLines) return;
+        List<String> armor = new ArrayList<>();
+        if (helmet != null && helmet != Material.AIR) armor.add(ItemDisplayNames.plain(helmet));
+        if (chestplate != null && chestplate != Material.AIR) armor.add(ItemDisplayNames.plain(chestplate));
+        if (leggings != null && leggings != Material.AIR) armor.add(ItemDisplayNames.plain(leggings));
+        if (boots != null && boots != Material.AIR) armor.add(ItemDisplayNames.plain(boots));
+        if (armor.isEmpty()) return;
+        if (lines.size() < maxLines) {
+            lines.add("§7Armadura: §f" + String.join("§7, §f", armor));
+        }
+    }
+
+    public ItemStack armorPiece(String slot) {
+        Material mat = switch (slot) {
+            case "helmet" -> helmet;
+            case "chestplate" -> chestplate;
+            case "leggings" -> leggings;
+            case "boots" -> boots;
+            default -> Material.AIR;
+        };
+        return mat != null && mat != Material.AIR ? new ItemStack(mat) : null;
     }
 
     public void apply(Player player) {
@@ -96,6 +145,7 @@ public final class KitDefinition {
         Material chest = parseArmor(armorSec, "chestplate");
         Material legs = parseArmor(armorSec, "leggings");
         Material boots = parseArmor(armorSec, "boots");
+        Material hubIcon = parseMaterial(sec.getString("icon-material", ""));
 
         return new KitDefinition(
                 id.toLowerCase(Locale.ROOT),
@@ -108,8 +158,15 @@ public final class KitDefinition {
                 helmet,
                 chest,
                 legs,
-                boots
+                boots,
+                hubIcon
         );
+    }
+
+    private static Material parseMaterial(String raw) {
+        if (raw == null || raw.isBlank()) return Material.CHEST;
+        Material mat = Material.matchMaterial(raw.toUpperCase(Locale.ROOT));
+        return mat != null && mat.isItem() ? mat : Material.CHEST;
     }
 
     private static Material parseArmor(ConfigurationSection sec, String key) {

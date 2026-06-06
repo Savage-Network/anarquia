@@ -1,4 +1,8 @@
 import { findAccount, formatAccountPublic } from './accountService.js';
+import { applyIdentityToAccount, loadAccountIdentity } from './accountIdentityService.js';
+import { isPlayerOnline, resolveAccountPremium } from './presenceService.js';
+import { resolveClanForAccount, getPlayerStats } from './clanService.js';
+import { findLinkByPlayer, formatLink } from './linkService.js';
 import { getPlayerPunishments } from './punishmentService.js';
 import { findCatalogItem, MEDALS, TAGS } from '../data/catalog.js';
 
@@ -84,13 +88,44 @@ export async function getFullProfile(identifier) {
 
   const punishmentData = await getPlayerPunishments(account.id);
   const punishments = splitPunishments(punishmentData?.punishments || []);
+  const clan = await resolveClanForAccount(account.context || {});
+  const stats = await getPlayerStats(account.id);
+  const discordLink = formatLink(await findLinkByPlayer(account.id));
+
+  const formatted = formatAccountExtended(account);
+  const identity = await loadAccountIdentity(account.id);
+  applyIdentityToAccount(formatted, identity);
+
+  const [online, premiumInfo] = await Promise.all([
+    isPlayerOnline(account.id),
+    resolveAccountPremium(account.id, account.context || {}),
+  ]);
+  formatted.online = online;
+  formatted.premium = premiumInfo.premium;
+  if (clan) {
+    formatted.clan = {
+      id: clan.id,
+      name: clan.name,
+      tag: clan.tag,
+      tagColorId: clan.tagColorId,
+    };
+  }
 
   return {
     id: account.id,
     name: account.name,
-    account: formatAccountExtended(account),
+    account: formatted,
     punishments,
     minigames: {},
+    stats: stats
+      ? {
+          kills: stats.kills,
+          deaths: stats.deaths,
+          golds: stats.golds,
+          bestKillStreak: stats.best_kill_streak,
+        }
+      : null,
+    discord: discordLink,
     meta: {
       fetchedAt: Date.now(),
       website: 'https://savagemc.net',
